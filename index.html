@@ -39,10 +39,12 @@ button {
 
 .tree.active { display:flex; }
 
-.branch {
-    display:flex;
-    flex-direction:column;
-    gap:10px;
+.branch h3 {
+    text-align:center;
+    color:#ffd700;
+    margin-bottom:6px;
+    border-bottom:1px solid #c9a66b;
+    padding-bottom:4px;
 }
 
 .node {
@@ -114,7 +116,7 @@ button {
 <!-- Knights -->
 <div class="branch">
 <div class="node available" data-id="m3" data-cost="2">
-<h3>Measured Advance</h3>
+<h3>Ironbreakers</h3>
 <p>+1 OD if moved ≤6</p>
 </div>
 
@@ -127,17 +129,17 @@ button {
 <!-- Ellites -->
 <div class="branch">
 <div class="node available" data-id="m5" data-cost="3">
-<h3>Living Anvils</h3>
+<h3>Anvilborn</h3>
 <p>+1 OD vs Elite units</p>
 </div>
 </div>
 
 <!-- SECOND ELITE COLUMN -->
 <div class="branch">
-<h3>Elite</h3>
+<h3>Anvilborn</h3>
 
 <div class="node available" data-id="m8" data-cost="3">
-<h3>Living Anvils</h3>
+<h3>Living Anvils II</h3>
 <p>+1 OD vs Elite units</p>
 </div>
 </div>
@@ -145,7 +147,7 @@ button {
 <!-- Commanders -->
 <div class="branch">
 <div class="node available" data-id="m6" data-cost="2">
-<h3>Forgemaster's Command</h3>
+<h3>Forge Lords</h3>
 <p>Adjacent units gain +2 Armour</p>
 </div>
 
@@ -162,7 +164,7 @@ button {
 <!-- Infrastructure -->
 <div class="branch">
 <div class="node available" data-id="d1" data-cost="2">
-<h3>Reinforced Foundations</h3>
+<h3>Infrastructure</h3>
 <p>No ranged damage to structures</p>
 </div>
 
@@ -180,7 +182,7 @@ button {
 <!-- World Boss -->
 <div class="branch">
 <div class="node available" data-id="d4" data-cost="3">
-<h3>Mark the Colossus</h3>
+<h3>World Bosses</h3>
 <p>First hit vs boss deals +2 damage</p>
 </div>
 
@@ -198,7 +200,7 @@ button {
 <!-- Treasure -->
 <div class="branch">
 <div class="node available" data-id="d7" data-cost="2">
-<h3>Measured Greed</h3>
+<h3>Treasure</h3>
 <p>Gain gold from discoveries</p>
 </div>
 
