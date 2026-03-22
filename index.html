@@ -2,307 +2,258 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Dwarves Skill Tree</title>
+<title>Age of War Companion</title>
 
 <style>
 body {
-    background: radial-gradient(circle, #2b2b2b, #111);
-    color: #e6d3a3;
-    font-family: serif;
-    text-align: center;
+    background:#111;
+    color:#e6d3a3;
+    font-family:serif;
+    text-align:center;
 }
 
-h1 {
-    margin: 10px;
-    color: #d4af37;
-}
-
-#topbar {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 10px;
-}
+h1 { color:#d4af37; }
 
 button {
-    padding: 10px;
-    background: linear-gradient(#a67c52, #6b4f2a);
-    border: 1px solid #3a2a15;
-    color: white;
-    cursor: pointer;
+    padding:8px 12px;
+    margin:5px;
+    background:#a67c52;
+    border:none;
+    cursor:pointer;
 }
 
-#smDisplay {
-    font-size: 20px;
-    margin-bottom: 15px;
+/* TOP BAR */
+#topbar {
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
 }
 
 /* TREE */
 .tree {
-    display: none;
-    justify-content: space-around;
-    margin-top: 20px;
+    display:none;
+    justify-content:space-around;
+    margin-top:20px;
 }
 
-.tree.active {
-    display: flex;
-}
+.tree.active { display:flex; }
 
-/* BRANCH */
 .branch {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
 }
 
-/* NODE CARD */
 .node {
-    background: linear-gradient(#4a3a22, #2a1e12);
-    border: 2px solid #c9a66b;
-    padding: 10px;
-    width: 200px;
-    border-radius: 8px;
-    cursor: pointer;
-    text-align: left;
+    background:#3a2a1a;
+    border:2px solid #c9a66b;
+    padding:8px;
+    width:200px;
+    border-radius:6px;
+    text-align:left;
+    cursor:pointer;
 }
 
-.node h3 {
-    margin: 0;
-    font-size: 14px;
-    color: #ffd700;
-}
+.node h3 { margin:0; color:#ffd700; font-size:14px; }
+.node p { margin:5px 0; font-size:12px; }
 
-.node p {
-    font-size: 12px;
-    margin: 5px 0;
-}
+.locked { opacity:.4; }
+.available { box-shadow:0 0 6px #c9a66b; }
+.unlocked { background:#c9a66b; color:black; }
 
-.cost {
-    font-size: 11px;
-    color: #ffcc66;
-}
-
-/* STATES */
-.locked {
-    opacity: 0.4;
-}
-
-.available {
-    box-shadow: 0 0 8px #c9a66b;
-}
-
-.unlocked {
-    background: linear-gradient(#c9a66b, #8a6a3f);
-    color: black;
-}
 </style>
 </head>
 
 <body>
 
-<h1>Dwarves Skill Trees</h1>
+<h1>Age of War Companion</h1>
 
+<!-- PROFILE -->
 <div id="topbar">
-    <button onclick="showTree('mountain')">Mountain Doctrine</button>
-    <button onclick="showTree('deep')">Deep Holds</button>
+    <input id="playerName" placeholder="Player Name">
+    <button onclick="createProfile()">Create/Load</button>
+
+    <select id="profileSelect" onchange="loadProfile()"></select>
+</div>
+
+<!-- FACTION -->
+<div>
+    <button onclick="selectFaction('dwarves')">Dwarves</button>
 </div>
 
 <div id="smDisplay">SM: 15</div>
 
-<!-- ================= MOUNTAIN ================= -->
-<div id="mountain" class="tree active">
+<!-- ================= DWARVES ================= -->
+
+<div id="dwarves" class="tree active">
 
 <div class="branch">
 <div class="node available" data-id="m1" data-cost="1">
 <h3>Shield Wall Doctrine</h3>
-<p>Guards gain +1 Retaliate when adjacent to Dwarfs or Structures.</p>
-<div class="cost">SM 1</div>
+<p>+1 Retaliate near allies/structures</p>
 </div>
 
 <div class="node locked" data-id="m2" data-cost="3" data-prereq="m1">
 <h3>Stand the Breach</h3>
-<p>Once per Phase when a Guard would be killed, reduce HP to 1 instead.</p>
-<div class="cost">SM 3</div>
+<p>Survive at 1 HP once per phase</p>
 </div>
 </div>
 
 <div class="branch">
 <div class="node available" data-id="m3" data-cost="2">
 <h3>Measured Advance</h3>
-<p>When Knights move 6 or less and attack, they gain +1 OD.</p>
-<div class="cost">SM 2</div>
+<p>+1 OD if moved ≤6</p>
 </div>
 
 <div class="node locked" data-id="m4" data-cost="4" data-prereq="m3">
 <h3>Break the Line</h3>
-<p>Knights deal +1 damage vs Armoured units and negate 1 Armour.</p>
-<div class="cost">SM 4</div>
-</div>
-</div>
-
-<div class="branch">
-<div class="node available" data-id="m5" data-cost="3">
-<h3>Living Anvils</h3>
-<p>Elites gain +1 OD against other Elite units.</p>
-<div class="cost">SM 3</div>
-</div>
-</div>
-
-<div class="branch">
-<div class="node available" data-id="m6" data-cost="2">
-<h3>Forgemaster's Command</h3>
-<p>Units adjacent to a Commander gain +2 Armour.</p>
-<div class="cost">SM 2</div>
-</div>
-
-<div class="node locked" data-id="m7" data-cost="4" data-prereq="m6">
-<h3>Hold to the Plan</h3>
-<p>Once per Phase, a Commander may move and attack for free.</p>
-<div class="cost">SM 4</div>
+<p>+1 damage vs armor</p>
 </div>
 </div>
 
 </div>
 
-<!-- ================= DEEP HOLDS ================= -->
-<div id="deep" class="tree">
-
-<div class="branch">
-<div class="node available" data-id="d1" data-cost="2">
-<h3>Reinforced Foundations</h3>
-<p>Structures cannot be targeted by ranged attacks (except siege).</p>
-<div class="cost">SM 2</div>
-</div>
-
-<div class="node locked" data-id="d2" data-cost="3" data-prereq="d1">
-<h3>Living Strongholds</h3>
-<p>Structures heal 2 HP if a Dwarf unit is adjacent.</p>
-<div class="cost">SM 3</div>
-</div>
-
-<div class="node locked" data-id="d3" data-cost="6" data-prereq="d2">
-<h3>Citadels Eternal</h3>
-<p>Structures cost 8 less gold to build.</p>
-<div class="cost">SM 6</div>
-</div>
-</div>
-
-<div class="branch">
-<div class="node available" data-id="d4" data-cost="3">
-<h3>Mark the Colossus</h3>
-<p>First time a World Boss takes damage each Phase, it suffers +2 damage.</p>
-<div class="cost">SM 3</div>
-</div>
-
-<div class="node locked" data-id="d5" data-cost="5" data-prereq="d4">
-<h3>Enduring Assault</h3>
-<p>Dwarves gain +1 damage vs enemies with 12+ HP.</p>
-<div class="cost">SM 5</div>
-</div>
-
-<div class="node locked" data-id="d6" data-cost="7" data-prereq="d5">
-<h3>Saga of the Slayer Kings</h3>
-<p>Defeating a World Boss grants bonus rewards.</p>
-<div class="cost">SM 7</div>
-</div>
-</div>
-
-<div class="branch">
-<div class="node available" data-id="d7" data-cost="2">
-<h3>Measured Greed</h3>
-<p>Gain +2 Gold when discovering POIs or caves.</p>
-<div class="cost">SM 2</div>
-</div>
-
-<div class="node locked" data-id="d8" data-cost="4" data-prereq="d7">
-<h3>Ancestral Vaults</h3>
-<p>Gain bonus Metal based on stored Gold.</p>
-<div class="cost">SM 4</div>
-</div>
-
-<div class="node locked" data-id="d9" data-cost="7" data-prereq="d8">
-<h3>Rich Beyond Reckoning</h3>
-<p>Discard items to gain +3 SM once per mission.</p>
-<div class="cost">SM 7</div>
-</div>
-</div>
-
-</div>
-
-<button onclick="resetTree()">Reset</button>
+<button onclick="resetProfile()">Reset Profile</button>
 
 <script>
+
+// GLOBAL STATE
+let currentProfile = null;
+let data = JSON.parse(localStorage.getItem("profiles")) || {};
 let sm = 15;
-let saved = JSON.parse(localStorage.getItem("dwarfTree")) || {};
 
-if(saved.sm !== undefined) sm = saved.sm;
+// CREATE / LOAD PROFILE
+function createProfile(){
+    let name = document.getElementById("playerName").value;
+    if(!name) return;
 
-const nodes = document.querySelectorAll(".node");
-
-nodes.forEach(node => {
-    let id = node.dataset.id;
-
-    if(saved[id] === "unlocked") {
-        node.classList.add("unlocked");
-        node.classList.remove("locked","available");
+    if(!data[name]){
+        data[name] = { sm:15, skills:{} };
     }
-});
 
-updateSM();
-updateAvailability();
+    currentProfile = name;
+    saveProfiles();
+    refreshProfiles();
+    loadProfile();
+}
 
-nodes.forEach(node => {
-    node.addEventListener("click", () => {
-        let cost = parseInt(node.dataset.cost);
-        let id = node.dataset.id;
+// LOAD PROFILE
+function loadProfile(){
+    let select = document.getElementById("profileSelect");
+    let name = select.value;
 
-        if(!node.classList.contains("available")) return;
+    if(!name) return;
 
-        if(sm >= cost){
-            sm -= cost;
-            node.classList.add("unlocked");
-            node.classList.remove("available");
+    currentProfile = name;
+    let profile = data[name];
 
-            saved[id] = "unlocked";
-            save();
+    sm = profile.sm;
+    applySkills();
+    updateSM();
+}
 
-            updateSM();
-            updateAvailability();
+// APPLY SAVED SKILLS
+function applySkills(){
+    document.querySelectorAll(".node").forEach(n=>{
+        n.classList.remove("unlocked","available","locked");
+
+        let id = n.dataset.id;
+        if(data[currentProfile].skills[id]){
+            n.classList.add("unlocked");
+        } else {
+            n.classList.add("locked");
         }
+    });
+
+    updateAvailability();
+}
+
+// CLICK LOGIC
+document.querySelectorAll(".node").forEach(node=>{
+    node.addEventListener("click", ()=>{
+
+        if(!currentProfile) return;
+
+        let id = node.dataset.id;
+        let cost = parseInt(node.dataset.cost);
+
+        // REMOVE SKILL
+        if(node.classList.contains("unlocked")){
+            delete data[currentProfile].skills[id];
+            sm += cost;
+        }
+
+        // ADD SKILL
+        else if(node.classList.contains("available")){
+            if(sm >= cost){
+                data[currentProfile].skills[id] = true;
+                sm -= cost;
+            }
+        }
+
+        saveProfiles();
+        applySkills();
+        updateSM();
     });
 });
 
+// AVAILABILITY
+function updateAvailability(){
+    document.querySelectorAll(".node").forEach(n=>{
+        if(n.classList.contains("unlocked")) return;
+
+        let prereq = n.dataset.prereq;
+
+        if(!prereq || data[currentProfile].skills[prereq]){
+            n.classList.add("available");
+            n.classList.remove("locked");
+        }
+    });
+}
+
+// UI
 function updateSM(){
     document.getElementById("smDisplay").innerText = "SM: " + sm;
 }
 
-function updateAvailability(){
-    nodes.forEach(node => {
-        if(node.classList.contains("unlocked")) return;
-
-        let prereq = node.dataset.prereq;
-
-        if(!prereq || saved[prereq] === "unlocked"){
-            node.classList.add("available");
-            node.classList.remove("locked");
-        }
-    });
+// SAVE
+function saveProfiles(){
+    data[currentProfile].sm = sm;
+    localStorage.setItem("profiles", JSON.stringify(data));
 }
 
-function save(){
-    saved.sm = sm;
-    localStorage.setItem("dwarfTree", JSON.stringify(saved));
+// PROFILE LIST
+function refreshProfiles(){
+    let select = document.getElementById("profileSelect");
+    select.innerHTML = "";
+
+    for(let name in data){
+        let opt = document.createElement("option");
+        opt.value = name;
+        opt.innerText = name;
+        select.appendChild(opt);
+    }
 }
 
-function resetTree(){
-    localStorage.removeItem("dwarfTree");
-    location.reload();
+// RESET
+function resetProfile(){
+    if(!currentProfile) return;
+
+    data[currentProfile] = { sm:15, skills:{} };
+    saveProfiles();
+    loadProfile();
 }
 
-function showTree(tree){
-    document.querySelectorAll(".tree").forEach(t => t.classList.remove("active"));
-    document.getElementById(tree).classList.add("active");
+// FACTION SWITCH
+function selectFaction(f){
+    document.querySelectorAll(".tree").forEach(t=>t.classList.remove("active"));
+    document.getElementById(f).classList.add("active");
 }
+
+// INIT
+refreshProfiles();
+
 </script>
 
 </body>
