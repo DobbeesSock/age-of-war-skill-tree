@@ -141,8 +141,13 @@ function createProfile(){
     }
 
     currentProfile = name;
+
     saveProfiles();
     refreshProfiles();
+
+    // 👇 THIS LINE FIXES EVERYTHING
+    document.getElementById("profileSelect").value = name;
+
     loadProfile();
 }
 
