@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dwarves Skill Tree</title>
+
+<style>
+body {
+    background: #1a1a1a;
+    color: #e6d3a3;
+    font-family: serif;
+    text-align: center;
+}
+
+h1 {
+    margin-top: 10px;
+}
+
+#smDisplay {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+/* TREE LAYOUT */
+.tree {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.branch {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* NODE STYLING */
+.node {
+    border: 2px solid #a67c52;
+    padding: 10px;
+    width: 150px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+
+.node.locked {
+    background: #333;
+    opacity: 0.5;
+}
+
+.node.available {
+    background: #5a4a2a;
+}
+
+.node.unlocked {
+    background: #c9a66b;
+    color: black;
+}
+
+/* BUTTON */
+button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: #a67c52;
+    border: none;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Dwarves Skill Tree</h1>
+<div id="smDisplay">SM: 10</div>
+
+<div class="tree">
+
+    <!-- BRANCH 1 -->
+    <div class="branch">
+        <div class="node available" data-id="b1n1" data-cost="1">+1 Structure HP<br>SM 1</div>
+        <div class="node locked" data-id="b1n2" data-cost="2" data-prereq="b1n1">Fortified Walls<br>SM 2</div>
+        <div class="node locked" data-id="b1n3" data-cost="3" data-prereq="b1n2">Stone Bastion<br>SM 3</div>
+    </div>
+
+    <!-- BRANCH 2 -->
+    <div class="branch">
+        <div class="node available" data-id="b2n1" data-cost="1">+1 Movement (Tunnel)<br>SM 1</div>
+        <div class="node locked" data-id="b2n2" data-cost="2" data-prereq="b2n1">Deep Tunnel<br>SM 2</div>
+        <div class="node locked" data-id="b2n3" data-cost="3" data-prereq="b2n2">Instant Relocation<br>SM 3</div>
+    </div>
+
+    <!-- BRANCH 3 -->
+    <div class="branch">
+        <div class="node available" data-id="b3n1" data-cost="1">+1 Metal Gain<br>SM 1</div>
+        <div class="node locked" data-id="b3n2" data-cost="2" data-prereq="b3n1">Efficient Mining<br>SM 2</div>
+        <div class="node locked" data-id="b3n3" data-cost="3" data-prereq="b3n2">Golden Age<br>SM 3</div>
+    </div>
+
+</div>
+
+<button onclick="resetTree()">Reset</button>
+
+<script>
+let sm = 10;
+
+// Load saved data
+let saved = JSON.parse(localStorage.getItem("dwarfTree")) || {};
+if(saved.sm !== undefined) sm = saved.sm;
+
+const nodes = document.querySelectorAll(".node");
+
+// Initialize nodes
+nodes.forEach(node => {
+    let id = node.dataset.id;
+
+    if(saved[id] === "unlocked") {
+        node.classList.remove("locked", "available");
+        node.classList.add("unlocked");
+    }
+});
+
+updateSM();
+updateAvailability();
+
+// CLICK LOGIC
+nodes.forEach(node => {
+    node.addEventListener("click", () => {
+        let cost = parseInt(node.dataset.cost);
+        let id = node.dataset.id;
+
+        if(!node.classList.contains("available")) return;
+
+        if(sm >= cost) {
+            sm -= cost;
+            node.classList.remove("available");
+            node.classList.add("unlocked");
+
+            saved[id] = "unlocked";
+            saveGame();
+
+            updateSM();
+            updateAvailability();
+        }
+    });
+});
+
+function updateSM() {
+    document.getElementById("smDisplay").innerText = "SM: " + sm;
+}
+
+function updateAvailability() {
+    nodes.forEach(node => {
+        if(node.classList.contains("unlocked")) return;
+
+        let prereq = node.dataset.prereq;
+
+        if(!prereq) {
+            node.classList.add("available");
+            node.classList.remove("locked");
+        } else {
+            if(saved[prereq] === "unlocked") {
+                node.classList.add("available");
+                node.classList.remove("locked");
+            }
+        }
+    });
+}
+
+function saveGame() {
+    saved.sm = sm;
+    localStorage.setItem("dwarfTree", JSON.stringify(saved));
+}
+
+function resetTree() {
+    localStorage.removeItem("dwarfTree");
+    location.reload();
+}
+</script>
+
+</body>
+</html>
