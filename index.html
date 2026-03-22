@@ -95,6 +95,7 @@ button {
 
 <div id="dwarves" class="tree active">
 
+<!-- Stonewardens -->
 <div class="branch">
 <div class="node available" data-id="m1" data-cost="1">
 <h3>Shield Wall Doctrine</h3>
@@ -107,6 +108,7 @@ button {
 </div>
 </div>
 
+<!-- Ironbreakers -->
 <div class="branch">
 <div class="node available" data-id="m3" data-cost="2">
 <h3>Measured Advance</h3>
@@ -115,7 +117,86 @@ button {
 
 <div class="node locked" data-id="m4" data-cost="4" data-prereq="m3">
 <h3>Break the Line</h3>
-<p>+1 damage vs armor</p>
+<p>+1 damage vs armor, ignore 1 armor</p>
+</div>
+</div>
+
+<!-- Anvilborn -->
+<div class="branch">
+<div class="node available" data-id="m5" data-cost="3">
+<h3>Living Anvils</h3>
+<p>+1 OD vs Elite units</p>
+</div>
+</div>
+
+<!-- Forge Lords -->
+<div class="branch">
+<div class="node available" data-id="m6" data-cost="2">
+<h3>Forgemaster's Command</h3>
+<p>Adjacent units gain +2 Armour</p>
+</div>
+
+<div class="node locked" data-id="m7" data-cost="4" data-prereq="m6">
+<h3>Hold to the Plan</h3>
+<p>Commander acts for free once per phase</p>
+</div>
+</div>
+
+</div>
+
+<div id="deep" class="tree">
+
+<!-- Infrastructure -->
+<div class="branch">
+<div class="node available" data-id="d1" data-cost="2">
+<h3>Reinforced Foundations</h3>
+<p>No ranged damage to structures</p>
+</div>
+
+<div class="node locked" data-id="d2" data-cost="3" data-prereq="d1">
+<h3>Living Strongholds</h3>
+<p>Structures heal when adjacent to dwarves</p>
+</div>
+
+<div class="node locked" data-id="d3" data-cost="6" data-prereq="d2">
+<h3>Citadels Eternal</h3>
+<p>Structures cost less gold</p>
+</div>
+</div>
+
+<!-- World Boss -->
+<div class="branch">
+<div class="node available" data-id="d4" data-cost="3">
+<h3>Mark the Colossus</h3>
+<p>First hit vs boss deals +2 damage</p>
+</div>
+
+<div class="node locked" data-id="d5" data-cost="5" data-prereq="d4">
+<h3>Enduring Assault</h3>
+<p>+1 damage vs high HP enemies</p>
+</div>
+
+<div class="node locked" data-id="d6" data-cost="7" data-prereq="d5">
+<h3>Saga of the Slayer Kings</h3>
+<p>Boss kills grant bonus rewards</p>
+</div>
+</div>
+
+<!-- Treasure -->
+<div class="branch">
+<div class="node available" data-id="d7" data-cost="2">
+<h3>Measured Greed</h3>
+<p>Gain gold from discoveries</p>
+</div>
+
+<div class="node locked" data-id="d8" data-cost="4" data-prereq="d7">
+<h3>Ancestral Vaults</h3>
+<p>Convert gold into metal</p>
+</div>
+
+<div class="node locked" data-id="d9" data-cost="7" data-prereq="d8">
+<h3>Rich Beyond Reckoning</h3>
+<p>Convert items into SM</p>
 </div>
 </div>
 
