@@ -123,6 +123,7 @@ button {
 
 <button onclick="resetProfile()">Reset Profile</button>
 
+
 <script>
 
 // GLOBAL STATE
@@ -222,6 +223,17 @@ function updateAvailability(){
 // UI
 function updateSM(){
     document.getElementById("smDisplay").innerText = "SM: " + sm;
+}
+
+function changeSM(amount){
+    if(!currentProfile) return;
+
+    sm += amount;
+
+    if(sm < 0) sm = 0;
+
+    saveProfiles();
+    updateSM();
 }
 
 // SAVE
