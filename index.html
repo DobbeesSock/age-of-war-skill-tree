@@ -131,6 +131,73 @@ button {
 
 <!-- ================= DWARVES ================= -->
 
+<div id="dwarves" class="tree active">
+    <div class="branch-container">
+
+        <!-- Guard -->
+        <div class="branch">
+            <div class="branch-title">Guard</div>
+
+            <div class="node available" data-id="m1" data-cost="1">
+                <h3>Shield Wall Doctrine</h3>
+                <p>+1 Retaliate near allies/structures</p>
+            </div>
+
+            <div class="node locked" data-id="m2" data-cost="2" data-prereq="m1">
+                <h3>Stand the Breach</h3>
+                <p>Survive at 1 HP once per phase</p>
+            </div>
+        </div>
+
+        <!-- Knight -->
+        <div class="branch">
+            <div class="branch-title">Knight</div>
+
+            <div class="node available" data-id="m3" data-cost="2">
+                <h3>Mounted Assault</h3>
+                <p>+1 OD if moved ≤6</p>
+            </div>
+
+            <div class="node locked" data-id="m4" data-cost="3" data-prereq="m3">
+                <h3>Break the Line</h3>
+                <p>+1 damage vs armor, ignore 1 armor</p>
+            </div>
+        </div>
+
+        <!-- Elite -->
+        <div class="branch">
+            <div class="branch-title">Elite</div>
+
+            <div class="node available" data-id="m5" data-cost="3">
+                <h3>Elite Training</h3>
+                <p>+1 OD vs Elite units</p>
+            </div>
+
+            <div class="node locked" data-id="m8" data-cost="4" data-prereq="m5">
+                <h3>Tempered Resolve</h3>
+                <p>Elites reduce incoming damage by 1</p>
+            </div>
+        </div>
+
+        <!-- Commander -->
+        <div class="branch">
+            <div class="branch-title">Commander</div>
+
+            <div class="node available" data-id="m6" data-cost="2">
+                <h3>Battlefield Orders</h3>
+                <p>Adjacent Commanders heal structures 2 HP per round</p>
+            </div>
+
+            <div class="node locked" data-id="m7" data-cost="5" data-prereq="m6">
+                <h3>Hold to the Plan</h3>
+                <p>1 Commander acts for free once per phase</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
 <!-- Infrastructure -->
        <div id="deep" class="tree">
     <div class="branch-container">
