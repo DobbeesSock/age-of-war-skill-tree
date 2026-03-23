@@ -6,44 +6,53 @@
 
 <style>
 body {
-    background:#111;
+    background: radial-gradient(circle at top, #2a1f14, #0f0b07 80%);
     color:#e6d3a3;
-    font-family:serif;
+    font-family: 'Georgia', serif;
     text-align:center;
 }
 
-h1 { color:#d4af37; }
+h1 {
+    color:#d4af37;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px #d4af37;
+}
 
 button {
-    padding:8px 12px;
+    padding:8px 14px;
     margin:5px;
-    background:#a67c52;
-    border:none;
+    background: linear-gradient(145deg, #5a4630, #3b2d1f);
+    border: 1px solid #c9a66b;
+    color:#e6d3a3;
     cursor:pointer;
+    border-radius:4px;
+    box-shadow: 0 0 4px #000;
+    transition: all 0.15s ease;
+}
+
+button:hover {
+    background: linear-gradient(145deg, #7a5a3a, #4a3626);
+    box-shadow: 0 0 8px gold;
 }
 
 .capstone {
     margin: 60px auto 20px;
     padding: 20px;
-    width: 320px;
-    background: #2f2418;
+    width: 340px;
+    background: radial-gradient(circle, #3a2c1c, #1f160d);
     border: 3px solid gold;
-    border-radius: 10px;
+    border-radius: 12px;
     text-align: center;
     opacity: 0.4;
-    transition: all 0.3s ease;
-}
-
-.capstone.unlocked {
-    opacity: 1;
-    box-shadow: 0 0 25px gold;
-    transform: scale(1.08);
+    box-shadow: inset 0 0 10px #000, 0 0 10px #000;
 }
 
 .capstone.available {
-    opacity: 0.8;
-    box-shadow: 0 0 12px #d4af37;
-    cursor: pointer;
+    box-shadow: 0 0 15px #d4af37;
+}
+
+.capstone.unlocked {
+    box-shadow: 0 0 25px gold, 0 0 50px rgba(212,175,55,0.4);
 }
 
 /* TOP BAR */
@@ -96,14 +105,14 @@ button {
 }
 
 .node {
-    background:#3a2a1a;
-    border:2px solid #c9a66b;
-    padding:8px;
+    background: linear-gradient(145deg, #3b2f23, #2a2017);
+    border: 2px solid #8b6a3e;
+    padding:10px;
     width:200px;
     border-radius:6px;
     text-align:left;
     cursor:pointer;
-    transition: all 0.15s ease;
+    box-shadow: inset 0 0 6px #000, 0 0 4px #000;
 }
 
 .capstone {
@@ -142,9 +151,9 @@ button {
 .locked { opacity:.4; }
 .available { box-shadow:0 0 6px #c9a66b; }
 .unlocked {
-    background:#c9a66b;
+    background: linear-gradient(145deg, #d4af37, #b8962e);
     color:black;
-    box-shadow: 0 0 12px gold;
+    box-shadow: 0 0 15px gold, inset 0 0 5px #fff3;
 }
 
 </style>
