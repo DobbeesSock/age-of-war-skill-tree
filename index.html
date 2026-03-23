@@ -22,6 +22,24 @@ button {
     cursor:pointer;
 }
 
+.capstone {
+    margin: 60px auto 20px;
+    padding: 20px;
+    width: 320px;
+    background: #2f2418;
+    border: 3px solid gold;
+    border-radius: 10px;
+    text-align: center;
+    opacity: 0.4;
+    transition: all 0.3s ease;
+}
+
+.capstone.unlocked {
+    opacity: 1;
+    box-shadow: 0 0 20px gold;
+    transform: scale(1.05);
+}
+
 /* TOP BAR */
 #topbar {
     display:flex;
@@ -80,6 +98,30 @@ button {
     text-align:left;
     cursor:pointer;
     transition: all 0.15s ease;
+}
+
+.capstone {
+    margin: 60px auto 20px;
+    padding: 20px;
+    width: 320px;
+    background: #2f2418;
+    border: 3px solid gold;
+    border-radius: 10px;
+    text-align: center;
+    opacity: 0.4;
+    transition: all 0.3s ease;
+}
+
+.capstone h2 {
+    color: gold;
+    margin-bottom: 10px;
+}
+
+.capstone.unlocked {
+    opacity: 1;
+    box-shadow: 0 0 20px gold;
+    transform: scale(1.05);
+    cursor: pointer;
 }
 
 .node::after {
@@ -194,6 +236,20 @@ button {
             </div>
         </div>
 
+    </div>
+
+    <!-- ✅ CAPSTONE GOES HERE -->
+    <div class="capstone locked" id="capstone-dwarves">
+        <h2>The Mountain Endures</h2>
+        <p><b>Cost: 9 SM</b></p>
+        <p>Once per mission (one phase):</p>
+        <p>
+            All Dwarf units gain +1 Armor<br>
+            Guards cannot be reduced below 1 HP<br>
+            Knights gain +1 OD<br>
+            Elites gain +1 RC<br>
+            Commanders gain +1 Attack
+        </p>
     </div>
 </div>
 
@@ -323,6 +379,41 @@ function applySkills(){
     });
 
     updateAvailability();
+    updateCapstones(); // ✅ correct placement
+}
+    function updateCapstones(){
+
+    // DWARVES
+    let dwarvesNodes = document.querySelectorAll("#dwarves .node");
+    let dwarvesUnlocked = document.querySelectorAll("#dwarves .node.unlocked");
+
+    let capD = document.getElementById("capstone-dwarves");
+
+    if(capD){
+        if(dwarvesNodes.length === dwarvesUnlocked.length && dwarvesNodes.length > 0){
+            capD.classList.add("unlocked");
+            capD.classList.remove("locked");
+        } else {
+            capD.classList.remove("unlocked");
+            capD.classList.add("locked");
+        }
+    }
+}
+
+    // DEEP
+    
+    let deepUnlocked = document.querySelectorAll("#deep .node.unlocked");
+
+    let capDeep = document.getElementById("capstone-deep");
+
+    if(deepNodes.length === deepUnlocked.length && deepNodes.length > 0){
+        capDeep.classList.add("unlocked");
+        capDeep.classList.remove("locked");
+    } else {
+        capDeep.classList.remove("unlocked");
+        capDeep.classList.add("locked");
+    }
+}
 }
 
 // CLICK LOGIC
