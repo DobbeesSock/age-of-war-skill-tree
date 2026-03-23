@@ -176,9 +176,9 @@ button:hover {
 </div>
 
 <!-- FACTION -->
-<div>
-    <button onclick="selectFaction('dwarves')">Mountain</button>
-    <button onclick="selectFaction('deep')">Deep Holds</button>
+<div id="factionBar">
+    <button onclick="setFaction('dwarves')">Mountain</button>
+    <button onclick="setFaction('deep')">Deep Holds</button>
 </div>
 
 <div id="smDisplay">SM: 15</div>
@@ -345,6 +345,7 @@ button:hover {
 <script>
 
 // GLOBAL STATE
+let currentFaction = "dwarves";
 let currentProfile = null;
 let data = JSON.parse(localStorage.getItem("profiles")) || {};
 let sm = 0;
@@ -355,7 +356,10 @@ function createProfile(){
     if(!name) return;
 
     if(!data[name]){
-        data[name] = { sm:0, skills:{} }; // ✅ keep simple
+       data[name] = {
+    dwarves: { sm:0, skills:{} },
+    deep: { sm:0, skills:{} }
+};
     }
 
     currentProfile = name;
@@ -375,9 +379,9 @@ function loadProfile(){
 
     currentProfile = name;
 
-    let profile = data[name];
+    let profile = data[name][currentFaction];
 
-    sm = profile.sm || 0;
+    sm = profile.sm ?? 0;
 
     applySkills();
     updateSM();
@@ -389,7 +393,9 @@ function applySkills(){
         n.classList.remove("unlocked","available","locked");
 
         let id = n.dataset.id;
-        if(data[currentProfile].skills[id]){
+        let skills = data[currentProfile][currentFaction].skills;
+
+        if(skills[id]){
             n.classList.add("unlocked");
         } else {
             n.classList.add("locked");
@@ -397,7 +403,7 @@ function applySkills(){
     });
 
     updateAvailability();
-    updateCapstones(); // ✅ correct placement
+    updateCapstones();
 }
     function updateCapstones(){
 
@@ -409,7 +415,8 @@ function applySkills(){
     if(!capD) return;
 
     let id = capD.dataset.id;
-    let unlocked = data[currentProfile].skills[id];
+    let skills = data[currentProfile][currentFaction].skills;
+    let unlocked = skills[id]; // ✅ THIS WAS MISSING
 
     // If already purchased
     if(unlocked){
@@ -418,7 +425,7 @@ function applySkills(){
         return;
     }
 
-    // If all nodes unlocked → make AVAILABLE (not unlocked)
+    // If all nodes unlocked → available
     if(dwarvesNodes.length === dwarvesUnlocked.length && dwarvesNodes.length > 0){
         capD.classList.add("available");
         capD.classList.remove("locked");
@@ -441,7 +448,7 @@ document.querySelectorAll(".capstone").forEach(cap=>{
         // Only allow if available
         if(cap.classList.contains("available")){
             if(sm >= cost){
-                data[currentProfile].skills[id] = true;
+                data[currentProfile][currentFaction].skills[id] = true;
                 sm -= cost;
 
                 saveProfiles();
@@ -465,17 +472,19 @@ document.querySelectorAll(".node").forEach(node=>{
 
         let id = node.dataset.id;
         let cost = parseInt(node.dataset.cost);
+        let skills = data[currentProfile][currentFaction].skills;
 
-        // REMOVE SKILL
+        // REMOVE
         if(node.classList.contains("unlocked")){
-            delete data[currentProfile].skills[id];
+            delete skills[id];
             sm += cost;
         }
 
-        // ADD SKILL
+        // ADD
         else if(node.classList.contains("available")){
             if(sm >= cost){
-                data[currentProfile].skills[id] = true;
+                let unlocked = skills[id];
+                skills[id] = true;
                 sm -= cost;
             }
         }
@@ -492,8 +501,9 @@ function updateAvailability(){
         if(n.classList.contains("unlocked")) return;
 
         let prereq = n.dataset.prereq;
+        let skills = data[currentProfile][currentFaction].skills;
 
-        if(!prereq || data[currentProfile].skills[prereq]){
+        if(!prereq || skills[prereq]){
             n.classList.add("available");
             n.classList.remove("locked");
         }
@@ -520,7 +530,7 @@ function changeSM(amount){
 function saveProfiles(){
     if(!currentProfile) return;
 
-    data[currentProfile].sm = sm;
+    data[currentProfile][currentFaction].sm = sm;
     localStorage.setItem("profiles", JSON.stringify(data));
 }
 
@@ -541,7 +551,7 @@ function refreshProfiles(){
 function resetProfile(){
     if(!currentProfile) return;
 
-    data[currentProfile] = { sm:0, skills:{} };
+    data[currentProfile][currentFaction].sm = sm;
     saveProfiles();
     loadProfile();
 }
@@ -567,9 +577,17 @@ function deleteProfile(){
 }
 
 // FACTION SWITCH
-function selectFaction(f){
+function setFaction(f){
+    currentFaction = f;
+
+    // Switch visible tree
     document.querySelectorAll(".tree").forEach(t=>t.classList.remove("active"));
     document.getElementById(f).classList.add("active");
+
+    // Reload profile data for this faction
+    if(currentProfile){
+        loadProfile();
+    }
 }
 
 // INIT
