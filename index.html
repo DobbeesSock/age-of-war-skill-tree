@@ -36,8 +36,14 @@ button {
 
 .capstone.unlocked {
     opacity: 1;
-    box-shadow: 0 0 20px gold;
-    transform: scale(1.05);
+    box-shadow: 0 0 25px gold;
+    transform: scale(1.08);
+}
+
+.capstone.available {
+    opacity: 0.8;
+    box-shadow: 0 0 12px #d4af37;
+    cursor: pointer;
 }
 
 /* TOP BAR */
@@ -242,7 +248,7 @@ button {
     </div>
 
     <!-- ✅ CAPSTONE GOES HERE -->
-    <div class="capstone locked" id="capstone-dwarves">
+    <div class="capstone locked" id="capstone-dwarves" data-id="cap_dwarves" data-cost="9">
         <h2>The Mountain Endures</h2>
         <p><b>Cost: 9 SM</b></p>
         <p>Once per mission (one phase):</p>
@@ -390,17 +396,52 @@ function applySkills(){
 
     let capD = document.getElementById("capstone-dwarves");
 
-    if(capD){
-        if(dwarvesNodes.length === dwarvesUnlocked.length && dwarvesNodes.length > 0){
-            capD.classList.add("unlocked");
-            capD.classList.remove("locked");
-        } else {
-            capD.classList.remove("unlocked");
-            capD.classList.add("locked");
-        }
+    if(!capD) return;
+
+    let id = capD.dataset.id;
+    let unlocked = data[currentProfile].skills[id];
+
+    // If already purchased
+    if(unlocked){
+        capD.classList.add("unlocked");
+        capD.classList.remove("locked","available");
+        return;
+    }
+
+    // If all nodes unlocked → make AVAILABLE (not unlocked)
+    if(dwarvesNodes.length === dwarvesUnlocked.length && dwarvesNodes.length > 0){
+        capD.classList.add("available");
+        capD.classList.remove("locked");
+    } else {
+        capD.classList.remove("available","unlocked");
+        capD.classList.add("locked");
     }
 }
+document.querySelectorAll(".capstone").forEach(cap=>{
+    cap.addEventListener("click", ()=>{
 
+        if(!currentProfile) return;
+
+        let id = cap.dataset.id;
+        let cost = parseInt(cap.dataset.cost);
+
+        // Already unlocked → do nothing
+        if(cap.classList.contains("unlocked")) return;
+
+        // Only allow if available
+        if(sm >= cost){
+    data[currentProfile].skills[id] = true;
+    sm -= cost;
+
+    saveProfiles();
+    applySkills();
+    updateSM();
+} else {
+    alert("Not enough SM!");
+}
+        }
+    });
+});
     
 
     
