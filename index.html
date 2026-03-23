@@ -429,16 +429,17 @@ document.querySelectorAll(".capstone").forEach(cap=>{
         if(cap.classList.contains("unlocked")) return;
 
         // Only allow if available
-        if(sm >= cost){
-    data[currentProfile].skills[id] = true;
-    sm -= cost;
+        if(cap.classList.contains("available")){
+            if(sm >= cost){
+                data[currentProfile].skills[id] = true;
+                sm -= cost;
 
-    saveProfiles();
-    applySkills();
-    updateSM();
-} else {
-    alert("Not enough SM!");
-}
+                saveProfiles();
+                applySkills();
+                updateSM();
+            } else {
+                alert("Not enough SM!");
+            }
         }
     });
 });
