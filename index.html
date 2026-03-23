@@ -403,17 +403,7 @@ function applySkills(){
 
     
 
-    let capDeep = document.getElementById("capstone-deep");
-
-    if(deepNodes.length === deepUnlocked.length && deepNodes.length > 0){
-        capDeep.classList.add("unlocked");
-        capDeep.classList.remove("locked");
-    } else {
-        capDeep.classList.remove("unlocked");
-        capDeep.classList.add("locked");
-    }
-}
-}
+    
 
 // CLICK LOGIC
 document.querySelectorAll(".node").forEach(node=>{
