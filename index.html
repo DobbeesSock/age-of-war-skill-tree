@@ -339,10 +339,8 @@ function createProfile(){
     if(!name) return;
 
     if(!data[name]){
-        data[name] = {
-    dwarves: { sm:15, skills:{} },
-    deep: { sm:15, skills:{} }
-}
+        data[name] = { sm:15, skills:{} }; // ✅ keep simple
+    }
 
     currentProfile = name;
 
@@ -387,8 +385,7 @@ function applySkills(){
 }
     function updateCapstones(){
 
-    // DWARVES
-   
+    let dwarvesNodes = document.querySelectorAll("#dwarves .node");
     let dwarvesUnlocked = document.querySelectorAll("#dwarves .node.unlocked");
 
     let capD = document.getElementById("capstone-dwarves");
@@ -404,9 +401,7 @@ function applySkills(){
     }
 }
 
-    // DEEP
     
-    let deepUnlocked = document.querySelectorAll("#deep .node.unlocked");
 
     let capDeep = document.getElementById("capstone-deep");
 
@@ -480,7 +475,7 @@ function changeSM(amount){
 }
 
 // SAVE
-function saveProfile(){
+function saveProfiles(){
     if(!currentProfile) return;
 
     data[currentProfile].sm = sm;
