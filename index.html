@@ -139,12 +139,12 @@ button {
     <div class="branch-title">Guard</div>
 
     <div class="node available" data-id="m1" data-cost="1">
-        <h3>Shield Wall Doctrine (1 SM)</h3>
+        <h3>Shield Wall Doctrine</h3>
         <p>+1 Retaliate near allies/structures</p>
     </div>
 
     <div class="node locked" data-id="m2" data-cost="2" data-prereq="m1">
-        <h3>Stand the Breach (2 SM)</h3>
+        <h3>Stand the Breach</h3>
         <p>Survive at 1 HP once per phase</p>
     </div>
 </div>
@@ -154,12 +154,12 @@ button {
     <div class="branch-title">Knight</div>
 
     <div class="node available" data-id="m3" data-cost="2">
-        <h3>Mounted Assault (2 SM)</h3>
+        <h3>Mounted Assault</h3>
         <p>+1 OD if moved ≤6</p>
     </div>
 
     <div class="node locked" data-id="m4" data-cost="3" data-prereq="m3">
-        <h3>Break the Line (3 SM)</h3>
+        <h3>Break the Line</h3>
         <p>+1 damage vs armor, ignore 1 armor</p>
     </div>
 </div>
@@ -169,12 +169,12 @@ button {
     <div class="branch-title">Elite</div>
 
     <div class="node available" data-id="m5" data-cost="3">
-        <h3>Elite Training (3 SM)</h3>
+        <h3>Elite Training</h3>
         <p>+1 OD vs Elite units</p>
     </div>
 
     <div class="node locked" data-id="m8" data-cost="4" data-prereq="m5">
-        <h3>Tempored REsolve (4 SM)</h3>
+        <h3>Tempored REsolve</h3>
         <p>Elites reduce incoming damage by 1</p>
     </div>
 </div>
@@ -184,89 +184,88 @@ button {
     <div class="branch-title">Commander</div>
 
     <div class="node available" data-id="m6" data-cost="2">
-        <h3>Battlefield Orders (2 SM)</h3>
+        <h3>Battlefield Orders</h3>
         <p>Adjacent Commanders heal strucutres 2 HP per round</p>
     </div>
 
     <div class="node locked" data-id="m7" data-cost="5" data-prereq="m6">
-        <h3>Hold to the Plan (5 SM)</h3>
+        <h3>Hold to the Plan</h3>
         <p>1 Commander acts for free once per phase</p>
     </div>
 </div>
 
 </div>
 
-<div id="deep" class="tree">
+
 
 <!-- Infrastructure -->
-<div class="branch">
-    <div class="branch-title">Infranstructure</div>
+       <div id="deep" class="tree">
+    <div class="branch-container">
 
-    <div class="node available" data-id="d1" data-cost="2">
+        <!-- Infrastructure -->
+        <div class="branch">
+            <div class="branch-title">Infrastructure</div>
 
-        <h3>Infrastructure (2 SM)</h3>
+            <div class="node available" data-id="d1" data-cost="2">
+                <h3>Infrastructure</h3>
+                <p>Structures are immune to ranged attacks, excluding siege</p>
+            </div>
 
-        <p>Strucutres are immune it Range attacks, excluding siege</p>
+            <div class="node locked" data-id="d2" data-cost="4" data-prereq="d1">
+                <h3>Living Strongholds</h3>
+                <p>Adjacent Dwarf units heal structures 1 HP per round</p>
+            </div>
+
+            <div class="node locked" data-id="d3" data-cost="6" data-prereq="d2">
+                <h3>Citadels Eternal</h3>
+                <p>Structures cost 8 less gold</p>
+            </div>
+        </div>
+
+        <!-- World Boss -->
+        <div class="branch">
+            <div class="branch-title">World Boss</div>
+
+            <div class="node available" data-id="d4" data-cost="3">
+                <h3>World Bosses</h3>
+                <p>First hit vs boss deals +2 damage</p>
+            </div>
+
+            <div class="node locked" data-id="d5" data-cost="5" data-prereq="d4">
+                <h3>Enduring Assault</h3>
+                <p>+1 damage vs enemies with 12+ HP</p>
+            </div>
+
+            <div class="node locked" data-id="d6" data-cost="7" data-prereq="d5">
+                <h3>Saga of the Slayer Kings</h3>
+                <p>Defeating a World Boss grants rewards</p>
+            </div>
+        </div>
+
+        <!-- Treasure -->
+        <div class="branch">
+            <div class="branch-title">Treasure</div>
+
+            <div class="node available" data-id="d7" data-cost="2">
+                <h3>Treasure</h3>
+                <p>Gain +2 Gold when discovering a POI or Cave</p>
+            </div>
+
+            <div class="node locked" data-id="d8" data-cost="4" data-prereq="d7">
+                <h3>Ancestral Vaults</h3>
+                <p>Gain +2 Metal per 50 Gold</p>
+            </div>
+
+            <div class="node locked" data-id="d9" data-cost="7" data-prereq="d8">
+                <h3>Rich Beyond Reckoning</h3>
+                <p>Discard items to gain SM</p>
+            </div>
+        </div>
+
+    </div>
 </div>
 
-<div class="node locked" data-id="d2" data-cost="4" data-prereq="d1">
-<h3>Living Strongholds (4 SM)</h3>
-<p>Adjacent Dwarf units heal structures 1 HP per round</p>
-</div>
-
-<div class="node locked" data-id="d3" data-cost="6" data-prereq="d2">
-<h3>Citadels Eternal (6 SM)</h3>
-<p>Structures cost minus 8 gold</p>
-</div>
-</div>
-
-<!-- World Boss -->
- <div class="branch">
-    <div class="branch-title">World Boss</div>
-    <div class="node available" data-id="d4" data-cost="3">
-    
-        <h3>World Bosses (3 SM)</h3>
-
-        <p>First hit vs boss deals +2 damage</p>
-</div>
-
-<div class="node locked" data-id="d5" data-cost="5" data-prereq="d4">
-<h3>Enduring Assault (5 SM)</h3>
-<p>+1 damage vs enemeis with 12+ HP</p>
-</div>
-
-<div class="node locked" data-id="d6" data-cost="7" data-prereq="d5">
-<h3>Saga of the Slayer Kings (7 SM)</h3>
-<p>When a World Boss is defeated gain a Blueprint or 2 Mythic Potions</p>
-</div>
-</div>
-
-<!-- Treasure -->
- <div class="branch">
-    <div class="branch-title">Treasure</div>
-
-    <div class="node available" data-id="d7" data-cost="2">
-
-        <h3>Treasure (2 SM)</h3>
-
-        <p>Gain +2 Gold when discovering a POI or Cave</p>
-</div>
-
-<div class="node locked" data-id="d8" data-cost="4" data-prereq="d7">
-<h3>Ancestral Vaults (4 SM)</h3>
-<p>For every 50 Gold at the start of a Phase gain +2 Metal</p>
-</div>
-
-<div class="node locked" data-id="d9" data-cost="7" data-prereq="d8">
-<h3>Rich Beyond Reckoning (7 SM)</h3>
-<p>Once per mission may discard 3 Potions or Relics to gain +2 SM</p>
-</div>
-</div>
-
-</div>
-
-<button onclick="resetProfile()">Reset Profile</button>
-
+  
 
 <script>
 
