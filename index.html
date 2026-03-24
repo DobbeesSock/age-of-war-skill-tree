@@ -168,7 +168,7 @@ button:hover {
     <input id="playerName" placeholder="Player Name">
 
     <button onclick="createProfile()">Create</button>
-    <button onclick="saveProfile()">Save</button>
+   <button onclick="saveProfiles()">Save</button>
     <button onclick="loadProfile()">Load</button>
     <button onclick="deleteProfile()">Delete</button>
 
@@ -181,7 +181,7 @@ button:hover {
     <button onclick="setFaction('deep')">Deep Holds</button>
 </div>
 
-<div id="smDisplay">SM: 15</div>
+<div id="smDisplay">SM: 0</div>
 
 <div>
     <button onclick="changeSM(-1)">-1</button>
@@ -407,31 +407,28 @@ function applySkills(){
 }
     function updateCapstones(){
 
-    let dwarvesNodes = document.querySelectorAll("#dwarves .node");
-    let dwarvesUnlocked = document.querySelectorAll("#dwarves .node.unlocked");
+    let cap = document.querySelector(`#${currentFaction} .capstone`);
+    if(!cap) return;
 
-    let capD = document.getElementById("capstone-dwarves");
+    let nodes = document.querySelectorAll(`#${currentFaction} .node`);
+    let unlockedNodes = document.querySelectorAll(`#${currentFaction} .node.unlocked`);
 
-    if(!capD) return;
-
-    let id = capD.dataset.id;
+    let id = cap.dataset.id;
     let skills = data[currentProfile][currentFaction].skills;
-    let unlocked = skills[id]; // ✅ THIS WAS MISSING
+    let unlocked = skills[id];
 
-    // If already purchased
     if(unlocked){
-        capD.classList.add("unlocked");
-        capD.classList.remove("locked","available");
+        cap.classList.add("unlocked");
+        cap.classList.remove("locked","available");
         return;
     }
 
-    // If all nodes unlocked → available
-    if(dwarvesNodes.length === dwarvesUnlocked.length && dwarvesNodes.length > 0){
-        capD.classList.add("available");
-        capD.classList.remove("locked");
+    if(nodes.length === unlockedNodes.length && nodes.length > 0){
+        cap.classList.add("available");
+        cap.classList.remove("locked");
     } else {
-        capD.classList.remove("available","unlocked");
-        capD.classList.add("locked");
+        cap.classList.remove("available","unlocked");
+        cap.classList.add("locked");
     }
 }
 document.querySelectorAll(".capstone").forEach(cap=>{
