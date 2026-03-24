@@ -18,6 +18,16 @@ h1 {
     text-shadow: 0 0 8px #d4af37;
 }
 
+#factionSelect {
+    padding:8px;
+    background:#2a2017;
+    color:#e6d3a3;
+    border:1px solid gold;
+    border-radius:4px;
+    font-family:serif;
+    box-shadow: 0 0 6px #000;
+}
+
 button {
     padding:8px 14px;
     margin:5px;
@@ -118,7 +128,6 @@ button:hover {
 .capstone {
     margin: 60px auto 20px;
     padding: 20px;
-    width: 320px;
     background: #2f2418;
     border: 3px solid gold;
     border-radius: 10px;
@@ -165,6 +174,7 @@ button:hover {
 
 <!-- PROFILE -->
 <div id="topbar">
+    <div id="smDisplay">SM: 0</div>
     <input id="playerName" placeholder="Player Name">
 
     <button onclick="createProfile()">Create</button>
@@ -177,25 +187,30 @@ button:hover {
 
 <!-- FACTION -->
 <div id="factionBar">
-    <button onclick="setFaction('dwarves')">Mountain</button>
-    <button onclick="setFaction('deep')">Deep Holds</button>
-</div>
-
-<div id="smDisplay">SM: 0</div>
-
-<div>
-    <button onclick="changeSM(-1)">-1</button>
-    <button onclick="changeSM(1)">+1</button>
-    <button onclick="changeSM(-5)">-5</button>
-    <button onclick="changeSM(5)">+5</button>
+    <select id="factionSelect" onchange="setFaction(this.value)">
+        <option value="dwarves">Dwarves - Mountain</option>
+        <option value="deep">Dwarves - Deep Holds</option>
+        <option value="elves">Elves</option>
+        <option value="men">Men</option>
+        <option value="barbarians">Barbarians</option>
+        <option value="orcs">Orcs</option>
+        <option value="order">The Order</option>
+        <option value="redacted1" disabled>??? (Locked)</option>
+        <option value="redacted2" disabled>??? (Locked)</option>
+        <option value="redacted3" disabled>??? (Locked)</option>
+        <option value="redacted4" disabled>??? (Locked)</option>
+    </select>
 </div>
 
 <!-- ================= DWARVES ================= -->
 
+
+    <!-- dwarves content -->
 <div id="dwarves" class="tree active">
+
     <div class="branch-container">
 
-        <!-- Guard -->
+         <!-- Guard -->
         <div class="branch">
             <div class="branch-title">Guard</div>
 
@@ -271,6 +286,22 @@ button:hover {
         </p>
     </div>
 </div>
+
+    
+
+
+
+<div id="elves" class="tree"></div>
+<div id="men" class="tree"></div>
+<div id="barbarians" class="tree"></div>
+<div id="orcs" class="tree"></div>
+<div id="order" class="tree"></div>
+<div id="redacted1" class="tree"></div>
+<div id="redacted2" class="tree"></div>
+<div id="redacted3" class="tree"></div>
+<div id="redacted4" class="tree"></div>
+
+       
 
 
 <!-- Infrastructure -->
@@ -355,12 +386,19 @@ function createProfile(){
     let name = document.getElementById("playerName").value;
     if(!name) return;
 
-    if(!data[name]){
-       data[name] = {
-    dwarves: { sm:0, skills:{} },
-    deep: { sm:0, skills:{} }
-};
-    }
+    data[name] = {
+        dwarves: { sm:0, skills:{} },
+        deep: { sm:0, skills:{} },
+        elves: { sm:0, skills:{} },
+        men: { sm:0, skills:{} },
+        barbarians: { sm:0, skills:{} },
+        orcs: { sm:0, skills:{} },
+        order: { sm:0, skills:{} },
+        redacted1: { sm:0, skills:{} },
+        redacted2: { sm:0, skills:{} },
+        redacted3: { sm:0, skills:{} },
+        redacted4: { sm:0, skills:{} }
+    };
 
     currentProfile = name;
 
@@ -577,11 +615,15 @@ function deleteProfile(){
 function setFaction(f){
     currentFaction = f;
 
+    // Update dropdown
+    document.getElementById("factionSelect").value = f;
+
     // Switch visible tree
     document.querySelectorAll(".tree").forEach(t=>t.classList.remove("active"));
-    document.getElementById(f).classList.add("active");
+    let tree = document.getElementById(f);
+    if(tree) tree.classList.add("active");
 
-    // Reload profile data for this faction
+    // Reload profile data
     if(currentProfile){
         loadProfile();
     }
