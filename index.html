@@ -45,6 +45,26 @@ button:hover {
     box-shadow: 0 0 8px gold;
 }
 
+body.order {
+    background: radial-gradient(circle at top, #2a2a3a, #0a0a12);
+}
+
+body.elves {
+    background: radial-gradient(circle at top, #1d3a2a, #0b1a12);
+}
+
+body.orcs {
+    background: radial-gradient(circle at top, #3a1d1d, #140808);
+}
+
+body.barbarians {
+    background: radial-gradient(circle at top, #3a2a1a, #1a1208);
+}
+
+body.men {
+    background: radial-gradient(circle at top, #2a2a2a, #0f0f0f);
+}
+
 .capstone {
     margin: 60px auto 20px;
     padding: 20px;
@@ -125,16 +145,6 @@ button:hover {
     box-shadow: inset 0 0 6px #000, 0 0 4px #000;
 }
 
-.capstone {
-    margin: 60px auto 20px;
-    padding: 20px;
-    background: #2f2418;
-    border: 3px solid gold;
-    border-radius: 10px;
-    text-align: center;
-    opacity: 0.4;
-    transition: all 0.3s ease;
-}
 
 .capstone h2 {
     color: gold;
@@ -295,7 +305,97 @@ button:hover {
 <div id="men" class="tree"></div>
 <div id="barbarians" class="tree"></div>
 <div id="orcs" class="tree"></div>
-<div id="order" class="tree"></div>
+<div id="order" class="tree">
+
+    <div class="branch-container">
+
+        <!-- Archers -->
+        <div class="branch">
+            <div class="branch-title">Archers</div>
+
+            <div class="node available" data-id="o1" data-cost="1">
+                <h3>Distant Execution</h3>
+                <p>First attack each phase gains +1 OD</p>
+            </div>
+
+            <div class="node locked" data-id="o2" data-cost="2" data-prereq="o1">
+                <h3>Lockdown Shots</h3>
+                <p>Attacks apply Lockdown</p>
+            </div>
+
+            <div class="node locked" data-id="o3" data-cost="5" data-prereq="o2">
+                <h3>Multi-Target Focus</h3>
+                <p>Gain +1 Target</p>
+            </div>
+        </div>
+
+        <!-- Guards -->
+        <div class="branch">
+            <div class="branch-title">Guards</div>
+
+            <div class="node available" data-id="o4" data-cost="2">
+                <h3>False Walls</h3>
+                <p>First attack against Guards deals -2 damage</p>
+            </div>
+
+            <div class="node locked" data-id="o5" data-cost="4" data-prereq="o4">
+                <h3>Zone Punishment</h3>
+                <p>Adjacent enemies take 1 damage per round</p>
+            </div>
+
+            <div class="node locked" data-id="o6" data-cost="6" data-prereq="o5">
+                <h3>+1 OD, +3 Movement</h3>
+            </div>
+        </div>
+
+        <!-- Elites -->
+        <div class="branch">
+            <div class="branch-title">Elites</div>
+
+            <div class="node available" data-id="o7" data-cost="2">
+                <h3>Reign of the Goats</h3>
+                <p>Heal 2 HP when adjacent to another Elite each round</p>
+            </div>
+
+            <div class="node locked" data-id="o8" data-cost="6" data-prereq="o7">
+                <h3>Elite Shielding</h3>
+                <p>Cannot be targeted while adjacent to another Elite</p>
+            </div>
+
+            <div class="node locked" data-id="o9" data-cost="8" data-prereq="o8">
+                <h3>+1 RC</h3>
+            </div>
+        </div>
+
+        <!-- Assassins -->
+        <div class="branch">
+            <div class="branch-title">Assassins</div>
+
+            <div class="node available" data-id="o10" data-cost="2">
+                <h3>The Knife in the Dark</h3>
+                <p>Can disengage after attacking</p>
+            </div>
+
+            <div class="node locked" data-id="o11" data-cost="5" data-prereq="o10">
+                <h3>+2 damage while Invisible</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="capstone locked" id="capstone-order" data-id="cap_order" data-cost="9">
+        <h2>Veil of Dominion</h2>
+        <p><b>Cost: 9 SM</b></p>
+        <p>Once per mission (one phase):</p>
+        <p>
+            All units gain Invisibility for 1 round<br>
+            Invisible units gain +2 OD<br>
+            Killing an enemy grants +2 Gold<br>
+            Enemies suffer -1 RC vs Invisible targets
+        </p>
+    </div>
+
+</div>
 <div id="redacted1" class="tree"></div>
 <div id="redacted2" class="tree"></div>
 <div id="redacted3" class="tree"></div>
@@ -615,15 +715,14 @@ function deleteProfile(){
 function setFaction(f){
     currentFaction = f;
 
-    // Update dropdown
+    document.body.className = f; // 
+
     document.getElementById("factionSelect").value = f;
 
-    // Switch visible tree
     document.querySelectorAll(".tree").forEach(t=>t.classList.remove("active"));
     let tree = document.getElementById(f);
     if(tree) tree.classList.add("active");
 
-    // Reload profile data
     if(currentProfile){
         loadProfile();
     }
