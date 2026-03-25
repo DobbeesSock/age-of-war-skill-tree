@@ -18,6 +18,10 @@ h1 {
     text-shadow: 0 0 8px #d4af37;
 }
 
+.spec-tree.completed {
+    box-shadow: 0 0 20px purple;
+}
+
 #factionSelect {
     padding:8px;
     background:#2a2017;
@@ -505,7 +509,7 @@ body.men {
 
 <div class="node locked" data-id="os_s3" data-cost="4" data-prereq="os_s2">
     <h3>Fade Step</h3>
-    <p>Chance to become Invisible when moving</p>
+    <p>While Invisible roll a D20 when moving</p>
 </div>
         </div>
     </div>
@@ -696,21 +700,21 @@ document.querySelectorAll(".capstone").forEach(cap=>{
         let id = cap.dataset.id;
         let cost = parseInt(cap.dataset.cost);
 
-        // Already unlocked → do nothing
         if(cap.classList.contains("unlocked")) return;
 
-        // Only allow if available
         if(cap.classList.contains("available")){
             if(sm >= cost){
                 data[currentProfile][currentFaction].skills[id] = true;
                 sm -= cost;
+
                 if(currentFaction === "order"){
-    document.getElementById("orderSpecSelect").style.display = "block";
-}
+                    document.getElementById("orderSpecSelect").style.display = "block";
+                }
 
                 saveProfiles();
                 applySkills();
                 updateSM();
+
             } else {
                 alert("Not enough SM!");
             }
@@ -749,6 +753,13 @@ document.querySelectorAll(".node").forEach(node=>{
         saveProfiles();
         applySkills();
         updateSM();
+
+        if(currentFaction === "order"){
+            let spec = data[currentProfile].order.spec;
+            if(spec){
+                showSpecTree(spec);
+            }
+        }
     });
 });
 
@@ -802,6 +813,7 @@ function chooseSpec(path){
 }
 
 function showSpecTree(path){
+    
     document.querySelectorAll(".spec-tree").forEach(t=>{
         t.classList.remove("active");
     });
@@ -811,6 +823,15 @@ function showSpecTree(path){
 
     applySkills();
 
+    // 🔥 mark ALL completed spec trees
+    ["shadow","veil","execution"].forEach(p=>{
+        if(isSpecComplete(p)){
+            let el = document.getElementById("order-spec-" + p);
+            if(el) el.classList.add("completed");
+        }
+    });
+
+    // 🔥 RESTORE THIS (this was missing)
     if(currentFaction === "order"){
         let spec = data[currentProfile].order.spec;
 
