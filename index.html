@@ -493,10 +493,20 @@ body.men {
             <div class="branch">
                 <div class="branch-title">Shadow Path</div>
 
-                <div class="node available" data-id="os_s1" data-cost="1">...</div>
-                <div class="node locked" data-id="os_s2" data-cost="3" data-prereq="os_s1">...</div>
-                <div class="node locked" data-id="os_s3" data-cost="4" data-prereq="os_s2">...</div>
-            </div>
+                <div class="node available" data-id="os_s1" data-cost="1">
+    <h3>Shadow Instinct</h3>
+    <p>+1 OD while Invisible</p>
+</div>
+
+<div class="node locked" data-id="os_s2" data-cost="3" data-prereq="os_s1">
+    <h3>Ghost Blades</h3>
+    <p>Attacks ignore Armor while Invisible</p>
+</div>
+
+<div class="node locked" data-id="os_s3" data-cost="4" data-prereq="os_s2">
+    <h3>Fade Step</h3>
+    <p>Chance to become Invisible when moving</p>
+</div>
         </div>
     </div>
 
@@ -506,26 +516,47 @@ body.men {
             <div class="branch">
                 <div class="branch-title">Veil Path</div>
 
-                <div class="node available" data-id="os_v1" data-cost="1">...</div>
-                <div class="node locked" data-id="os_v2" data-cost="4" data-prereq="os_v1">...</div>
-                <div class="node locked" data-id="os_v3" data-cost="6" data-prereq="os_v2">...</div>
+                <div class="node available" data-id="os_v1" data-cost="1">
+    <h3>Veil of Silence</h3>
+    <p>Invisibility lasts until an attack</p>
+</div>
+
+<div class="node locked" data-id="os_v2" data-cost="4" data-prereq="os_v1">
+    <h3>Slip Between Blades</h3>
+    <p>Twice per mission, evade an attack completely</p>
+</div>
+
+<div class="node locked" data-id="os_v3" data-cost="6" data-prereq="os_v2">
+    <h3>Phantom Regeneration</h3>
+    <p>While Invisible, heal 2 HP per round</p>
+</div>
+</div>
+</div>
+</div>
+
+   <!-- EXECUTION -->
+<div id="order-spec-execution" class="spec-tree">
+    <div class="branch-container">
+        <div class="branch">
+            <div class="branch-title">Execution Path</div>
+
+            <div class="node available" data-id="os_e1" data-cost="4">
+                <h3>Execution Step</h3>
+                <p>After attacking, move 3 and become Invisible</p>
             </div>
+
+            <div class="node locked" data-id="os_e2" data-cost="5" data-prereq="os_e1">
+                <h3>Elite Erasure</h3>
+                <p>Elites cannot make RC against Invisible units</p>
+            </div>
+
+            <div class="node locked" data-id="os_e3" data-cost="7" data-prereq="os_e2">
+                <h3>Commander Collapse</h3>
+                <p>Commanders cannot make RC against Invisible units</p>
+            </div>
+
         </div>
     </div>
-
-    <!-- EXECUTION -->
-    <div id="order-spec-execution" class="spec-tree">
-        <div class="branch-container">
-            <div class="branch">
-                <div class="branch-title">Execution Path</div>
-
-                <div class="node available" data-id="os_e1" data-cost="4">...</div>
-                <div class="node locked" data-id="os_e2" data-cost="5" data-prereq="os_e1">...</div>
-                <div class="node locked" data-id="os_e3" data-cost="7" data-prereq="os_e2">...</div>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <div id="redacted1" class="tree"></div>
@@ -613,11 +644,24 @@ function applySkills(){
         } else {
             n.classList.add("locked");
         }
-    });
-
+    });    
+        
     updateAvailability();
     updateCapstones();
+
+
+    //
+    if(currentFaction === "order"){
+        let spec = data[currentProfile].order.spec;
+
+        if(spec && isSpecComplete(spec)){
+            document.querySelectorAll(".spec-tree").forEach(t=>{
+                t.classList.add("active");
+            });
+        }
+    }
 }
+
     function updateCapstones(){
 
     let cap = document.querySelector(`#${currentFaction} .capstone`);
@@ -752,6 +796,7 @@ function chooseSpec(path){
     document.getElementById("orderSpecSelect").style.display = "none";
 
     showSpecTree(path);
+    
 
     saveProfiles();
 }
@@ -763,6 +808,25 @@ function showSpecTree(path){
 
     let tree = document.getElementById("order-spec-" + path);
     if(tree) tree.classList.add("active");
+
+    applySkills();
+
+    if(currentFaction === "order"){
+        let spec = data[currentProfile].order.spec;
+
+        if(spec && isSpecComplete(spec)){
+            document.querySelectorAll(".spec-tree").forEach(t=>{
+                t.classList.add("active");
+            });
+        }
+    }
+}
+
+function isSpecComplete(path){
+    let nodes = document.querySelectorAll(`#order-spec-${path} .node`);
+    let unlocked = document.querySelectorAll(`#order-spec-${path} .node.unlocked`);
+
+    return nodes.length > 0 && nodes.length === unlocked.length;
 }
 
 // SAVE
