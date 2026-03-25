@@ -224,7 +224,8 @@ body.men {
         <option value="men">Men</option>
         <option value="barbarians">Barbarians</option>
         <option value="orcs">Orcs</option>
-        <option value="order">The Order</option>
+        <option value="order">Order – Core</option>
+        <option value="orderSpec">Order – Specialization</option>
         <option value="redacted1" disabled>??? (Locked)</option>
         <option value="redacted2" disabled>??? (Locked)</option>
         <option value="redacted3" disabled>??? (Locked)</option>
@@ -485,97 +486,57 @@ body.men {
     </p>
 </div>
 
+         
+   
+
     
-         <!-- SPECIALIZATION SELECT -->
-    <div id="orderSpecSelect" style="display:none; margin-top:20px;">
-        <h2>Choose Specialization</h2>
-
-        <button onclick="chooseSpec('shadow')">Shadow Path</button>
-        <button onclick="chooseSpec('veil')">Veil Path</button>
-        <button onclick="chooseSpec('execution')">Execution Path</button>
-    </div>
-
-    <!-- SHADOW -->
-    <div id="order-spec-shadow" class="spec-tree">
-        <div class="branch-container">
-            <div class="branch">
-                <div class="branch-title">Shadow Path</div>
-
-                <div class="node available" data-id="os_s1" data-cost="1">
-    <h3>Shadow Instinct</h3>
-    <p>+1 OD while Invisible</p>
-</div>
-
-<div class="node locked" data-id="os_s2" data-cost="3" data-prereq="os_s1">
-    <h3>Ghost Blades</h3>
-    <p>Attacks ignore Armor while Invisible</p>
-</div>
-
-<div class="node locked" data-id="os_s3" data-cost="4" data-prereq="os_s2">
-    <h3>Fade Step</h3>
-    <p>While Invisible roll a D20 when moving</p>
-</div>
-        </div>
-    </div>
-
-    <!-- VEIL -->
-<div id="order-spec-veil" class="spec-tree">
-    <div class="branch-container">
-        <div class="branch">
-            <div class="branch-title">Veil Path</div>
-
-            <div class="node available" data-id="os_v1" data-cost="1">
-                <h3>Veil of Silence</h3>
-                <p>Invisibility lasts until an attack</p>
-            </div>
-
-            <div class="node locked" data-id="os_v2" data-cost="4" data-prereq="os_v1">
-                <h3>Slip Between Blades</h3>
-                <p>Twice per mission, evade an attack completely</p>
-            </div>
-
-            <div class="node locked" data-id="os_v3" data-cost="6" data-prereq="os_v2">
-                <h3>Phantom Regeneration</h3>
-                <p>While Invisible, heal 2 HP per round</p>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-
-
-   <!-- EXECUTION -->
-<div id="order-spec-execution" class="spec-tree">
-    <div class="branch-container">
-        <div class="branch">
-            <div class="branch-title">Execution Path</div>
-
-            <div class="node available" data-id="os_e1" data-cost="4">
-                <h3>Execution Step</h3>
-                <p>After attacking, move 3 and become Invisible</p>
-            </div>
-
-            <div class="node locked" data-id="os_e2" data-cost="5" data-prereq="os_e1">
-                <h3>Elite Erasure</h3>
-                <p>Elites cannot make RC against Invisible units</p>
-            </div>
-
-            <div class="node locked" data-id="os_e3" data-cost="7" data-prereq="os_e2">
-                <h3>Commander Collapse</h3>
-                <p>Commanders cannot make RC against Invisible units</p>
-            </div>
-
-        </div>
-    </div>
-</div>
-
 <div id="redacted1" class="tree"></div>
 <div id="redacted2" class="tree"></div>
 <div id="redacted3" class="tree"></div>
 <div id="redacted4" class="tree"></div>
 
-       
+<div id="orderSpec" class="tree">
+
+    <div class="branch-container">
+
+        <!-- Shadow -->
+        <div class="branch">
+            <div class="branch-title">Shadow</div>
+
+            <div class="node available" data-id="os_s1" data-cost="1">
+                <h3>Shadow Instinct</h3>
+                <p>+1 OD while Invisible</p>
+            </div>
+
+            <div class="node locked" data-id="os_s2" data-cost="3" data-prereq="os_s1">
+                <h3>Ghost Blades</h3>
+                <p>Attacks ignore Armor while Invisible</p>
+            </div>
+        </div>
+
+        <!-- Veil -->
+        <div class="branch">
+            <div class="branch-title">Veil</div>
+
+            <div class="node available" data-id="os_v1" data-cost="1">
+                <h3>Veil of Silence</h3>
+                <p>Invisibility lasts until an attack</p>
+            </div>
+        </div>
+
+        <!-- Execution -->
+        <div class="branch">
+            <div class="branch-title">Execution</div>
+
+            <div class="node available" data-id="os_e1" data-cost="4">
+                <h3>Execution Step</h3>
+                <p>After attacking, move 3 and become Invisible</p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
 
 
 
@@ -602,7 +563,8 @@ function createProfile(){
         men: { sm:0, skills:{} },
         barbarians: { sm:0, skills:{} },
         orcs: { sm:0, skills:{} },
-        order: { sm:0, skills:{}, spec:null },
+        order: { sm:0, skills:{} },
+        orderSpec: { sm:0, skills:{} },
         redacted1: { sm:0, skills:{} },
         redacted2: { sm:0, skills:{} },
         redacted3: { sm:0, skills:{} },
@@ -611,11 +573,8 @@ function createProfile(){
 
     currentProfile = name;
     // 
-document.querySelectorAll(".spec-tree").forEach(t=>{
-    t.classList.remove("active","completed");
-});
 
-document.getElementById("orderSpecSelect").style.display = "none";
+    
 
     refreshProfiles();
     document.getElementById("profileSelect").value = name;
@@ -709,9 +668,7 @@ document.querySelectorAll(".capstone").forEach(cap=>{
                 data[currentProfile][currentFaction].skills[id] = true;
                 sm -= cost;
 
-                if(currentFaction === "order"){
-                    document.getElementById("orderSpecSelect").style.display = "block";
-                }
+                
 
                 saveProfiles();
                 applySkills();
@@ -756,12 +713,7 @@ document.querySelectorAll(".node").forEach(node=>{
         applySkills();
         updateSM();
 
-        if(currentFaction === "order"){
-            let spec = data[currentProfile].order.spec;
-            if(spec){
-                showSpecTree(spec);
-            }
-        }
+        
     });
 });
 
@@ -796,61 +748,13 @@ function changeSM(amount){
     updateSM();
 }
 
-function chooseSpec(path){
-    if(!currentProfile) return;
 
-    let profile = data[currentProfile].order;
-
-    // 🔒 Prevent re-selection
     
 
-    profile.spec = path;
-
-    document.getElementById("orderSpecSelect").style.display = "none";
-
-    showSpecTree(path);
     
 
-    saveProfiles();
-}
 
-function showSpecTree(path){
-    
-    document.querySelectorAll(".spec-tree").forEach(t=>{
-        t.classList.remove("active");
-    });
 
-    let tree = document.getElementById("order-spec-" + path);
-    if(tree) tree.classList.add("active");
-
-    applySkills();
-
-    // 🔥 mark ALL completed spec trees
-    ["shadow","veil","execution"].forEach(p=>{
-        if(isSpecComplete(p)){
-            let el = document.getElementById("order-spec-" + p);
-            if(el) el.classList.add("completed");
-        }
-    });
-
-    // 🔥 RESTORE THIS (this was missing)
-    if(currentFaction === "order"){
-        let spec = data[currentProfile].order.spec;
-
-        if(spec && isSpecComplete(spec)){
-            document.querySelectorAll(".spec-tree").forEach(t=>{
-                t.classList.add("active");
-            });
-        }
-    }
-}
-
-function isSpecComplete(path){
-    let nodes = document.querySelectorAll(`#order-spec-${path} .node`);
-    let unlocked = document.querySelectorAll(`#order-spec-${path} .node.unlocked`);
-
-    return nodes.length > 0 && nodes.length === unlocked.length;
-}
 
 // SAVE
 function saveProfiles(){
@@ -904,18 +808,15 @@ function deleteProfile(){
 
 // FACTION SWITCH
 function setFaction(f){
-    document.querySelectorAll(".spec-tree").forEach(t=>{
-    t.classList.remove("active","completed");
-});
 
-document.getElementById("orderSpecSelect").style.display = "none";
     currentFaction = f;
 
-    document.body.className = f; // 
+    document.body.className = f;
 
     document.getElementById("factionSelect").value = f;
 
     document.querySelectorAll(".tree").forEach(t=>t.classList.remove("active"));
+
     let tree = document.getElementById(f);
     if(tree) tree.classList.add("active");
 
