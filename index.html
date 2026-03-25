@@ -28,6 +28,15 @@ h1 {
     box-shadow: 0 0 6px #000;
 }
 
+.spec-tree {
+    display: none;
+    margin-top: 20px;
+}
+
+.spec-tree.active {
+    display: block;
+}
+
 button {
     padding:8px 14px;
     margin:5px;
@@ -297,6 +306,8 @@ body.men {
             Elites gain +1 RC<br>
             Commanders gain +1 Attack
         </p>
+    </div>
+</div>
     <!-- Infrastructure -->
        <div id="deep" class="tree">
     <div class="branch-container">
@@ -455,18 +466,68 @@ body.men {
     </div>
 
     <div class="capstone locked" id="capstone-order" data-id="cap_order" data-cost="9">
-        <h2>Veil of Dominion</h2>
-        <p><b>Cost: 9 SM</b></p>
-        <p>Once per mission (one phase):</p>
-        <p>
-            All Assassins gain Invisibility after each attack this Phase<br>
-            Invisible units gain +1 RC<br>
-            Killing an enemy grants +2 Gold<br>
-            Enemies suffer -1 RC vs Invisible targets
-        </p>
+    <h2>Veil of Dominion</h2>
+    <p><b>Cost: 9 SM</b></p>
+    <p>Once per mission (one phase):</p>
+    <p>
+        All Assassins gain Invisibility after each attack this Phase<br>
+        Invisible units gain +1 RC<br>
+        Killing an enemy grants +2 Gold<br>
+        Enemies suffer -1 RC vs Invisible targets
+    </p>
+</div>
+
+    
+         <!-- SPECIALIZATION SELECT -->
+    <div id="orderSpecSelect" style="display:none; margin-top:20px;">
+        <h2>Choose Specialization</h2>
+
+        <button onclick="chooseSpec('shadow')">Shadow Path</button>
+        <button onclick="chooseSpec('veil')">Veil Path</button>
+        <button onclick="chooseSpec('execution')">Execution Path</button>
+    </div>
+
+    <!-- SHADOW -->
+    <div id="order-spec-shadow" class="spec-tree">
+        <div class="branch-container">
+            <div class="branch">
+                <div class="branch-title">Shadow Path</div>
+
+                <div class="node available" data-id="os_s1" data-cost="1">...</div>
+                <div class="node locked" data-id="os_s2" data-cost="3" data-prereq="os_s1">...</div>
+                <div class="node locked" data-id="os_s3" data-cost="4" data-prereq="os_s2">...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VEIL -->
+    <div id="order-spec-veil" class="spec-tree">
+        <div class="branch-container">
+            <div class="branch">
+                <div class="branch-title">Veil Path</div>
+
+                <div class="node available" data-id="os_v1" data-cost="1">...</div>
+                <div class="node locked" data-id="os_v2" data-cost="4" data-prereq="os_v1">...</div>
+                <div class="node locked" data-id="os_v3" data-cost="6" data-prereq="os_v2">...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXECUTION -->
+    <div id="order-spec-execution" class="spec-tree">
+        <div class="branch-container">
+            <div class="branch">
+                <div class="branch-title">Execution Path</div>
+
+                <div class="node available" data-id="os_e1" data-cost="4">...</div>
+                <div class="node locked" data-id="os_e2" data-cost="5" data-prereq="os_e1">...</div>
+                <div class="node locked" data-id="os_e3" data-cost="7" data-prereq="os_e2">...</div>
+            </div>
+        </div>
     </div>
 
 </div>
+
 <div id="redacted1" class="tree"></div>
 <div id="redacted2" class="tree"></div>
 <div id="redacted3" class="tree"></div>
@@ -512,6 +573,7 @@ function createProfile(){
     document.getElementById("profileSelect").value = name;
 
     loadProfile();
+    
 }
 
 // LOAD PROFILE
@@ -529,6 +591,13 @@ function loadProfile(){
 
     applySkills();
     updateSM();
+    
+    if(currentFaction === "order"){
+        let spec = data[currentProfile].order.spec;
+        if(spec){
+            showSpecTree(spec);
+        }
+    }
 }
 
 // APPLY SAVED SKILLS
@@ -591,6 +660,9 @@ document.querySelectorAll(".capstone").forEach(cap=>{
             if(sm >= cost){
                 data[currentProfile][currentFaction].skills[id] = true;
                 sm -= cost;
+                if(currentFaction === "order"){
+    document.getElementById("orderSpecSelect").style.display = "block";
+}
 
                 saveProfiles();
                 applySkills();
@@ -665,6 +737,32 @@ function changeSM(amount){
 
     saveProfiles();
     updateSM();
+}
+
+function chooseSpec(path){
+    if(!currentProfile) return;
+
+    let profile = data[currentProfile].order;
+
+    // 🔒 Prevent re-selection
+    if(profile.spec) return;
+
+    profile.spec = path;
+
+    document.getElementById("orderSpecSelect").style.display = "none";
+
+    showSpecTree(path);
+
+    saveProfiles();
+}
+
+function showSpecTree(path){
+    document.querySelectorAll(".spec-tree").forEach(t=>{
+        t.classList.remove("active");
+    });
+
+    let tree = document.getElementById("order-spec-" + path);
+    if(tree) tree.classList.add("active");
 }
 
 // SAVE
