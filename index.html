@@ -662,15 +662,7 @@ function applySkills(){
 
 
     //
-    if(currentFaction === "order"){
-        let spec = data[currentProfile].order.spec;
-
-        if(spec && isSpecComplete(spec)){
-            document.querySelectorAll(".spec-tree").forEach(t=>{
-                t.classList.add("active");
-            });
-        }
-    }
+    
 }
 
     function updateCapstones(){
