@@ -187,7 +187,7 @@ body.men {
     <div id="smDisplay">SM: 0</div>
     <button onclick="changeSM(1)">+1 SM</button>
     <button onclick="changeSM(-1)">-1 SM</button>
-    
+
     <input id="playerName" placeholder="Player Name">
 
     <button onclick="createProfile()">Create</button>
@@ -347,7 +347,7 @@ body.men {
             </div>
 
             <div class="node locked" data-id="o6" data-cost="6" data-prereq="o5">
-                <h3>+1 OD, +3 Movement</h3>
+                <h3>+1 OD, +3 Movement Upgrade</h3>
             </div>
         </div>
 
@@ -362,7 +362,7 @@ body.men {
 
             <div class="node locked" data-id="o8" data-cost="6" data-prereq="o7">
                 <h3>Elite Shielding</h3>
-                <p>Cannot be targeted while adjacent to another Elite</p>
+                <p>Cannot be targeted by other Elites</p>
             </div>
 
             <div class="node locked" data-id="o9" data-cost="8" data-prereq="o8">
@@ -376,7 +376,7 @@ body.men {
 
             <div class="node available" data-id="o10" data-cost="2">
                 <h3>The Knife in the Dark</h3>
-                <p>Can disengage after attacking</p>
+                <p>Movemnet does not cause engagement</p>
             </div>
 
             <div class="node locked" data-id="o11" data-cost="5" data-prereq="o10">
@@ -391,8 +391,8 @@ body.men {
         <p><b>Cost: 9 SM</b></p>
         <p>Once per mission (one phase):</p>
         <p>
-            All units gain Invisibility for 1 round<br>
-            Invisible units gain +2 OD<br>
+            All Assassins gain Invisibility after each attack this Phase<br>
+            Invisible units gain +1 RC<br>
             Killing an enemy grants +2 Gold<br>
             Enemies suffer -1 RC vs Invisible targets
         </p>
