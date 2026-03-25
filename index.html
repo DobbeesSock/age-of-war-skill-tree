@@ -599,7 +599,7 @@ function createProfile(){
         men: { sm:0, skills:{} },
         barbarians: { sm:0, skills:{} },
         orcs: { sm:0, skills:{} },
-        order: { sm:0, skills:{} },
+        order: { sm:0, skills:{}, spec:null },
         redacted1: { sm:0, skills:{} },
         redacted2: { sm:0, skills:{} },
         redacted3: { sm:0, skills:{} },
@@ -799,7 +799,7 @@ function chooseSpec(path){
     let profile = data[currentProfile].order;
 
     // 🔒 Prevent re-selection
-    if(profile.spec) return;
+    profile.spec = path;
 
     profile.spec = path;
 
