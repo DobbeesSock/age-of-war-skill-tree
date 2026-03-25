@@ -623,8 +623,8 @@ function applySkills(){
     let cap = document.querySelector(`#${currentFaction} .capstone`);
     if(!cap) return;
 
-    let nodes = document.querySelectorAll(`#${currentFaction} .node`);
-    let unlockedNodes = document.querySelectorAll(`#${currentFaction} .node.unlocked`);
+    let nodes = document.querySelectorAll(`#${currentFaction} > .branch-container .node`);
+    let unlockedNodes = document.querySelectorAll(`#${currentFaction} > .branch-container .node.unlocked`);
 
     let id = cap.dataset.id;
     let skills = data[currentProfile][currentFaction].skills;
