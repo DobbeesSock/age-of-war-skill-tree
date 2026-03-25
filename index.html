@@ -297,120 +297,7 @@ body.men {
             Elites gain +1 RC<br>
             Commanders gain +1 Attack
         </p>
-    </div>
-</div>
-
-    
-
-
-
-<div id="elves" class="tree"></div>
-<div id="men" class="tree"></div>
-<div id="barbarians" class="tree"></div>
-<div id="orcs" class="tree"></div>
-<div id="order" class="tree">
-
-    <div class="branch-container">
-
-        <!-- Archers -->
-        <div class="branch">
-            <div class="branch-title">Archers</div>
-
-            <div class="node available" data-id="o1" data-cost="1">
-                <h3>Distant Execution</h3>
-                <p>First attack each phase gains +1 OD</p>
-            </div>
-
-            <div class="node locked" data-id="o2" data-cost="2" data-prereq="o1">
-                <h3>Lockdown Shots</h3>
-                <p>Attacks apply Lockdown</p>
-            </div>
-
-            <div class="node locked" data-id="o3" data-cost="5" data-prereq="o2">
-                <h3>Multi-Target Focus</h3>
-                <p>Gain +1 Target</p>
-            </div>
-        </div>
-
-        <!-- Guards -->
-        <div class="branch">
-            <div class="branch-title">Guards</div>
-
-            <div class="node available" data-id="o4" data-cost="2">
-                <h3>False Walls</h3>
-                <p>First attack against Guards deals -2 damage</p>
-            </div>
-
-            <div class="node locked" data-id="o5" data-cost="4" data-prereq="o4">
-                <h3>Zone Punishment</h3>
-                <p>Adjacent enemies take 1 damage per round</p>
-            </div>
-
-            <div class="node locked" data-id="o6" data-cost="6" data-prereq="o5">
-                <h3>Upgrade</h3>
-                <h3>+1 OD, +3 Movement Upgrade</h3>
-            </div>
-        </div>
-
-        <!-- Elites -->
-        <div class="branch">
-            <div class="branch-title">Elites</div>
-
-            <div class="node available" data-id="o7" data-cost="2">
-                <h3>Reign of the Goats</h3>
-                <p>Heal 2 HP when adjacent to another Elite each round</p>
-            </div>
-
-            <div class="node locked" data-id="o8" data-cost="6" data-prereq="o7">
-                <h3>Elite Shielding</h3>
-                <p>Cannot be targeted by other Elites</p>
-            </div>
-
-            <div class="node locked" data-id="o9" data-cost="8" data-prereq="o8">
-                <h3>Improvements</h3>
-                <h3>+1 RC</h3>
-            </div>
-        </div>
-
-        <!-- Assassins -->
-        <div class="branch">
-            <div class="branch-title">Assassins</div>
-
-            <div class="node available" data-id="o10" data-cost="2">
-                <h3>The Knife in the Dark</h3>
-                <p>Movemnet does not cause engagement</p>
-            </div>
-
-            <div class="node locked" data-id="o11" data-cost="5" data-prereq="o10">
-                <h3>From the Shadows</h3>
-                <h3>+2 damage while Invisible</h3>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="capstone locked" id="capstone-order" data-id="cap_order" data-cost="9">
-        <h2>Veil of Dominion</h2>
-        <p><b>Cost: 9 SM</b></p>
-        <p>Once per mission (one phase):</p>
-        <p>
-            All Assassins gain Invisibility after each attack this Phase<br>
-            Invisible units gain +1 RC<br>
-            Killing an enemy grants +2 Gold<br>
-            Enemies suffer -1 RC vs Invisible targets
-        </p>
-    </div>
-
-</div>
-<div id="redacted1" class="tree"></div>
-<div id="redacted2" class="tree"></div>
-<div id="redacted3" class="tree"></div>
-<div id="redacted4" class="tree"></div>
-
-       
-
-
-<!-- Infrastructure -->
+    <!-- Infrastructure -->
        <div id="deep" class="tree">
     <div class="branch-container">
 
@@ -474,8 +361,121 @@ body.men {
             </div>
         </div>
 
+    
     </div>
 </div>
+
+    
+
+
+
+<div id="elves" class="tree"></div>
+<div id="men" class="tree"></div>
+<div id="barbarians" class="tree"></div>
+<div id="orcs" class="tree"></div>
+<div id="order" class="tree">
+
+    <div class="branch-container">
+
+        <!-- Archers -->
+        <div class="branch">
+            <div class="branch-title">Archers</div>
+
+            <div class="node available" data-id="o1" data-cost="1">
+                <h3>Distant Execution</h3>
+                <p>First attack each phase gains +1 OD</p>
+            </div>
+
+            <div class="node locked" data-id="o2" data-cost="2" data-prereq="o1">
+                <h3>Lockdown Shots</h3>
+                <p>Attacks apply Lockdown</p>
+            </div>
+
+            <div class="node locked" data-id="o3" data-cost="5" data-prereq="o2">
+                <h3>Multi-Target Focus</h3>
+                <p>Gain +1 Target</p>
+            </div>
+        </div>
+
+        <!-- Guards -->
+        <div class="branch">
+            <div class="branch-title">Guards</div>
+
+            <div class="node available" data-id="o4" data-cost="2">
+                <h3>False Walls</h3>
+                <p>First attack against Guards deals -2 damage</p>
+            </div>
+
+            <div class="node locked" data-id="o5" data-cost="4" data-prereq="o4">
+                <h3>Zone Punishment</h3>
+                <p>Adjacent enemies take 1 damage per round</p>
+            </div>
+
+            <div class="node locked" data-id="o6" data-cost="6" data-prereq="o5">
+                <h3>Upgrade</h3>
+                <h3>+1 Output Damage & +3 Movement Upgrade</h3>
+            </div>
+        </div>
+
+        <!-- Elites -->
+        <div class="branch">
+            <div class="branch-title">Elites</div>
+
+            <div class="node available" data-id="o7" data-cost="2">
+                <h3>Reign of the Goats</h3>
+                <p>Heal 2 HP when adjacent to another Elite each round</p>
+            </div>
+
+            <div class="node locked" data-id="o8" data-cost="6" data-prereq="o7">
+                <h3>Elite Shielding</h3>
+                <p>Cannot be targeted by other Elites</p>
+            </div>
+
+            <div class="node locked" data-id="o9" data-cost="8" data-prereq="o8">
+                <h3>Improvements</h3>
+                <h3>+1 Roll Check</h3>
+            </div>
+        </div>
+
+        <!-- Assassins -->
+        <div class="branch">
+            <div class="branch-title">Assassins</div>
+
+            <div class="node available" data-id="o10" data-cost="2">
+                <h3>The Knife in the Dark</h3>
+                <p>Movemnet does not cause engagement</p>
+            </div>
+
+            <div class="node locked" data-id="o11" data-cost="5" data-prereq="o10">
+                <h3>From the Shadows</h3>
+                <h3>+2 damage while Invisible</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="capstone locked" id="capstone-order" data-id="cap_order" data-cost="9">
+        <h2>Veil of Dominion</h2>
+        <p><b>Cost: 9 SM</b></p>
+        <p>Once per mission (one phase):</p>
+        <p>
+            All Assassins gain Invisibility after each attack this Phase<br>
+            Invisible units gain +1 RC<br>
+            Killing an enemy grants +2 Gold<br>
+            Enemies suffer -1 RC vs Invisible targets
+        </p>
+    </div>
+
+</div>
+<div id="redacted1" class="tree"></div>
+<div id="redacted2" class="tree"></div>
+<div id="redacted3" class="tree"></div>
+<div id="redacted4" class="tree"></div>
+
+       
+
+
+
 
   
 
