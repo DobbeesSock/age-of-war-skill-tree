@@ -282,6 +282,26 @@ body.orcs {
     box-shadow: 0 0 20px red;
 }
 
+/* WAR PATH = darker bronze / war tone */
+body.orcsWar {
+    background: radial-gradient(circle at top, #2f1a12, #120904);
+}
+
+#orcsWar .node {
+    background: linear-gradient(145deg, #3a2418, #1a0f08);
+    border: 2px solid #cc7744;
+}
+
+#orcsWar .node.unlocked {
+    background: linear-gradient(145deg, #cc7744, #7a3b1a);
+    box-shadow: 0 0 15px orange;
+}
+
+#orcsWar .branch-title {
+    color: #ff8844;
+    text-shadow: 0 0 6px orange;
+}
+
 </style>
 </head>
 
@@ -313,7 +333,8 @@ body.orcs {
         <option value="elves">Elves</option>
         <option value="men">Men</option>
         <option value="barbarians">Barbarians</option>
-        <option value="orcs">Orcs</option>
+        <option value="orcs">Orcs – Blooded Path</option>
+        <option value="orcsWar">Orcs – War Path</option>
         <option value="order">Order – Core</option>
         <option value="orderSpec">Order – Specialization</option>
         <option value="redacted1" disabled>??? (Locked)</option>
@@ -562,6 +583,88 @@ body.orcs {
     </div>
 
 </div>
+<div id="orcsWar" class="tree">
+
+    <div class="branch-container">
+
+        <!-- DREADRIDERS -->
+        <div class="branch">
+            <div class="branch-title">Dreadriders</div>
+
+            <div class="node available" data-id="orc_w1" data-cost="2">
+                <h3>Thunder Through</h3>
+                <p>Riders deal 1 damage to all trampled units</p>
+            </div>
+
+            <div class="node locked" data-id="orc_w2" data-cost="3" data-prereq="orc_w1">
+                <h3>Break and Run</h3>
+                <p>After attacking, disengage and move 3</p>
+            </div>
+
+            <div class="node locked" data-id="orc_w3" data-cost="5" data-prereq="orc_w2">
+                <h3>Deterministic Chaos</h3>
+                <p>Follow enemies that disengage and attack</p>
+            </div>
+        </div>
+
+        <!-- WAR-SPEAKERS -->
+        <div class="branch">
+            <div class="branch-title">War-Speakers</div>
+
+            <div class="node available" data-id="orc_w4" data-cost="2">
+                <h3>Words in Blood</h3>
+                <p>Adjacent units gain +2 Retaliate</p>
+            </div>
+
+            <div class="node locked" data-id="orc_w5" data-cost="3" data-prereq="orc_w4">
+                <h3>Sacrifice is Strength</h3>
+                <p>Lose 1 HP to grant +2 Damage or +3 Movement</p>
+            </div>
+
+            <div class="node locked" data-id="orc_w6" data-cost="5" data-prereq="orc_w5">
+                <h3>War Without End</h3>
+                <p>Adjacent units gain +1 damage while wounded</p>
+            </div>
+        </div>
+
+        <!-- INDUSTRY -->
+        <div class="branch">
+            <div class="branch-title">Industry</div>
+
+            <div class="node available" data-id="orc_w7" data-cost="2">
+                <h3>Blood-Forged Tribute</h3>
+                <p>Gain +20 Gold once per mission</p>
+            </div>
+
+            <div class="node locked" data-id="orc_w8" data-cost="4" data-prereq="orc_w7">
+                <h3>Relentless Muster</h3>
+                <p>Spawned units gain free Move 5</p>
+            </div>
+
+            <div class="node locked" data-id="orc_w9" data-cost="6" data-prereq="orc_w8">
+                <h3>War Machine</h3>
+                <p>Units cost +1 Energy to spawn</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- CAPSTONE -->
+    <div class="capstone locked" id="capstone-orcsWar" data-id="cap_orcsWar" data-cost="9">
+        <h2>Doctrine of the War Path</h2>
+        <p><b>Cost: 9 SM</b></p>
+        <p>Once per mission (one phase):</p>
+        <p>
+            Units heal 2 HP per round<br>
+            Units gain +2 Movement after attacking<br>
+            Sacrifice effects grant double bonuses<br>
+            Spawned units act immediately
+        </p>
+    </div>
+
+</div>
+
+
 <div id="order" class="tree">
 
     <div class="branch-container">
@@ -758,6 +861,7 @@ function createProfile(){
         men: { sm:0, skills:{} },
         barbarians: { sm:0, skills:{} },
         orcs: { sm:0, skills:{} },
+        orcsWar: { sm:0, skills:{} },
         order: { sm:0, skills:{} },
         orderSpec: { sm:0, skills:{} },
         redacted1: { sm:0, skills:{} },
