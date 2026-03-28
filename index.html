@@ -32,6 +32,8 @@ h1 {
     box-shadow: 0 0 6px #000;
 }
 
+
+
 .spec-tree {
     display: none;
     margin-top: 20px;
@@ -248,6 +250,38 @@ body.orderSpec {
     box-shadow: 0 0 15px gold;
 }
 
+/* ===== ORC THEME ===== */
+
+body.orcs {
+    background: radial-gradient(circle at top, #3a1d1d, #140808);
+}
+
+#orcs .node {
+    background: linear-gradient(145deg, #3a1d1d, #1a0a0a);
+    border: 2px solid #a33;
+}
+
+#orcs .node.available {
+    box-shadow: 0 0 10px #a33;
+}
+
+#orcs .node.unlocked {
+    background: linear-gradient(145deg, #b33, #711);
+    box-shadow: 0 0 15px red;
+    color: #fff;
+}
+
+#orcs .branch-title {
+    color: #ff4444;
+    text-shadow: 0 0 6px red;
+}
+
+#orcs .capstone {
+    background: radial-gradient(circle, #4a1f1f, #1a0808);
+    border: 3px solid #ff4444;
+    box-shadow: 0 0 20px red;
+}
+
 </style>
 </head>
 
@@ -448,7 +482,86 @@ body.orderSpec {
 <div id="elves" class="tree"></div>
 <div id="men" class="tree"></div>
 <div id="barbarians" class="tree"></div>
-<div id="orcs" class="tree"></div>
+<div id="orcs" class="tree">
+
+    <div class="branch-container">
+
+        <!-- BLOODWARDENS (GUARD) -->
+        <div class="branch">
+            <div class="branch-title">Bloodwardens</div>
+
+            <div class="node available" data-id="orc_g1" data-cost="2">
+                <h3>Hold Through Pain</h3>
+                <p>Reduce damage by 1 below half HP</p>
+            </div>
+
+            <div class="node locked" data-id="orc_g2" data-cost="3" data-prereq="orc_g1">
+                <h3>Break Upon Me</h3>
+                <p>Attackers suffer 1 damage</p>
+            </div>
+
+            <div class="node locked" data-id="orc_g3" data-cost="4" data-prereq="orc_g2">
+                <h3>The Line Is Ours</h3>
+                <p>Cannot be Trampled</p>
+            </div>
+        </div>
+
+        <!-- RED BLADES (KNIGHT) -->
+        <div class="branch">
+            <div class="branch-title">Red Blades</div>
+
+            <div class="node available" data-id="orc_k1" data-cost="2">
+                <h3>Blood Momentum</h3>
+                <p>Heal 1 HP after a kill</p>
+            </div>
+
+            <div class="node locked" data-id="orc_k2" data-cost="4" data-prereq="orc_k1">
+                <h3>Ritual Execution</h3>
+                <p>+2 Damage below half HP</p>
+            </div>
+
+            <div class="node locked" data-id="orc_k3" data-cost="5" data-prereq="orc_k2">
+                <h3>No Time to Rest</h3>
+                <p>Move 3 after a kill</p>
+            </div>
+        </div>
+
+        <!-- GLOOMSTALKERS (ARCHER) -->
+        <div class="branch">
+            <div class="branch-title">Gloomstalkers</div>
+
+            <div class="node available" data-id="orc_a1" data-cost="3">
+                <h3>Bleeding Marks</h3>
+                <p>Heal 2 HP after a kill</p>
+            </div>
+
+            <div class="node locked" data-id="orc_a2" data-cost="3" data-prereq="orc_a1">
+                <h3>Cruel Patience</h3>
+                <p>+1 Damage to wounded enemies</p>
+            </div>
+
+            <div class="node locked" data-id="orc_a3" data-cost="4" data-prereq="orc_a2">
+                <h3>Chosen Prey</h3>
+                <p>Marked enemies take +1 Damage</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- CAPSTONE -->
+    <div class="capstone locked" id="capstone-orcs" data-id="cap_orcs" data-cost="9">
+        <h2>Doctrine of the Blooded Path</h2>
+        <p><b>Cost: 9 SM</b></p>
+        <p>Once per mission (one phase):</p>
+        <p>
+            All Orc units gain +2 Damage below half HP<br>
+            Killing an enemy heals 2 HP<br>
+            Units gain +1 Movement after a kill<br>
+            Wounded enemies take +1 Damage
+        </p>
+    </div>
+
+</div>
 <div id="order" class="tree">
 
     <div class="branch-container">
