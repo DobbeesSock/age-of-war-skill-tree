@@ -492,7 +492,7 @@ body.orcs {
 
             <div class="node available" data-id="orc_g1" data-cost="2">
                 <h3>Hold Through Pain</h3>
-                <p>Reduce damage by 1 below half HP</p>
+                <p>Reduce damage by 1 when below half HP</p>
             </div>
 
             <div class="node locked" data-id="orc_g2" data-cost="3" data-prereq="orc_g1">
@@ -532,17 +532,17 @@ body.orcs {
 
             <div class="node available" data-id="orc_a1" data-cost="3">
                 <h3>Bleeding Marks</h3>
-                <p>Heal 2 HP after a kill</p>
+                <p>May attack the same target with a target 2</p>
             </div>
 
-            <div class="node locked" data-id="orc_a2" data-cost="3" data-prereq="orc_a1">
+            <div class="node locked" data-id="orc_a2" data-cost="4" data-prereq="orc_a1">
                 <h3>Cruel Patience</h3>
                 <p>+1 Damage to wounded enemies</p>
             </div>
 
-            <div class="node locked" data-id="orc_a3" data-cost="4" data-prereq="orc_a2">
+            <div class="node locked" data-id="orc_a3" data-cost="5" data-prereq="orc_a2">
                 <h3>Chosen Prey</h3>
-                <p>Marked enemies take +1 Damage</p>
+                <p>Marked an enemy, marked targeted suffers +1 Damage from attacks</p>
             </div>
         </div>
 
@@ -554,10 +554,10 @@ body.orcs {
         <p><b>Cost: 9 SM</b></p>
         <p>Once per mission (one phase):</p>
         <p>
-            All Orc units gain +2 Damage below half HP<br>
-            Killing an enemy heals 2 HP<br>
-            Units gain +1 Movement after a kill<br>
-            Wounded enemies take +1 Damage
+            Elite & Commander Orc units gain +2 Damage below half HP<br>
+            All Orc units heal 2 HP per round while in Province<br>
+            Units gain 2 Move after a kill does not trigger Engagement<br>
+            Wounded Guard & Knights take +1 Damage when attacking them
         </p>
     </div>
 
