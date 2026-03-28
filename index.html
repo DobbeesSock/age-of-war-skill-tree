@@ -162,6 +162,27 @@ body.men {
     box-shadow: inset 0 0 6px #000, 0 0 4px #000;
 }
 
+#orderSpec {
+    box-shadow: 0 0 25px rgba(212,175,55,0.2);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+/* Shadow = purple tint */
+#orderSpec .branch:nth-child(1) .node.unlocked {
+    box-shadow: 0 0 12px purple;
+}
+
+/* Veil = blue tint */
+#orderSpec .branch:nth-child(2) .node.unlocked {
+    box-shadow: 0 0 12px cyan;
+}
+
+/* Execution = red tint */
+#orderSpec .branch:nth-child(3) .node.unlocked {
+    box-shadow: 0 0 12px crimson;
+}
+
 
 .capstone h2 {
     color: gold;
@@ -190,6 +211,41 @@ body.men {
     background: linear-gradient(145deg, #d4af37, #b8962e);
     color:black;
     box-shadow: 0 0 15px gold, inset 0 0 5px #fff3;
+}
+
+/* ===== ORDER SPEC THEME ===== */
+
+body.orderSpec {
+    background: radial-gradient(circle at top, #1a1f3a, #05070f);
+}
+
+/* stronger gold glow for specialization */
+#orderSpec .node.available {
+    box-shadow: 0 0 10px #d4af37;
+}
+
+#orderSpec .node.unlocked {
+    background: linear-gradient(145deg, #d4af37, #b8962e);
+    box-shadow: 0 0 20px gold, inset 0 0 8px #fff3;
+}
+
+/* darker elite panel look */
+#orderSpec .node {
+    background: linear-gradient(145deg, #1f243f, #12162b);
+    border: 2px solid #d4af37;
+}
+
+/* branch titles pop more */
+#orderSpec .branch-title {
+    color: #ffd700;
+    text-shadow: 0 0 6px gold;
+}
+
+/* capstone style */
+#orderSpec .capstone {
+    background: radial-gradient(circle, #2a2f55, #0a0d1f);
+    border: 3px solid #d4af37;
+    box-shadow: 0 0 15px gold;
 }
 
 </style>
