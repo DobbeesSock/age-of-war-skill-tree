@@ -99,6 +99,50 @@ body.men {
 .capstone.unlocked {
     box-shadow: 0 0 25px gold, 0 0 50px rgba(212,175,55,0.4);
 }
+.node {
+    position: relative;
+    padding-top: 40px;
+}
+
+/* circular icon */
+.node-icon {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid #999;
+    box-shadow: 0 0 6px #000;
+}
+.node::before {
+    content: "";
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    width: 2px;
+    height: 20px;
+    background: #777;
+    transform: translateX(-50%);
+}
+
+.branch-title::before {
+    content: "⚔";
+    margin-right: 6px;
+}
+
+/* first node shouldn't have line */
+.branch .node:first-of-type::before {
+    display: none;
+}
+
+/* unlocked glow */
+.node.unlocked .node-icon {
+    box-shadow: 0 0 10px gold;
+}
 
 /* TOP BAR */
 #topbar {
@@ -106,6 +150,25 @@ body.men {
     justify-content:center;
     gap:10px;
     flex-wrap:wrap;
+}
+/* ===== ORC ICONS ===== */
+
+/* Bloodwardens (green) */
+#orcs .branch:nth-child(1) .node-icon {
+    background: radial-gradient(circle, #2e5a2e, #0f1f0f);
+    border: 2px solid #4caf50;
+}
+
+/* Red Blades (red) */
+#orcs .branch:nth-child(2) .node-icon {
+    background: radial-gradient(circle, #7a1f1f, #2a0a0a);
+    border: 2px solid #ff4444;
+}
+
+/* Gloomstalkers (purple) */
+#orcs .branch:nth-child(3) .node-icon {
+    background: radial-gradient(circle, #4a2a6a, #14081f);
+    border: 2px solid #bb66ff;
 }
 
 /* TREE */
@@ -301,6 +364,7 @@ body.orcsWar {
     color: #ff8844;
     text-shadow: 0 0 6px orange;
 }
+
 
 </style>
 </head>
