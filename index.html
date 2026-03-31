@@ -662,69 +662,69 @@ body.elves {
         <h2>Doctrine of the Veiled Horizon</h2>
         <p><b>Cost: 1 SM</b></p>
         <p>
-            Units at Range 3+ gain +1 OD if they did not move
+            Units that attack from Range 3+ gain +1 OD if they did not move the phase
         </p>
     </div>
 
     <div class="branch-container">
 
-        <!-- ARCHER -->
+        <!-- Silent Volley ARCHER -->
         <div class="branch">
-            <div class="branch-title">Silent Volley</div>
+            <div class="branch-title">Silent Volley Archer</div>
 
             <div class="node locked" data-id="e2_a1" data-cost="1">
                 <h3>Lockdown Strike</h3>
-                <p>First attack gains Lockdown</p>
+                <p>First attack each phase gains Lockdown</p>
             </div>
 
             <div class="node locked" data-id="e2_a2" data-cost="3" data-prereq="e2_a1">
-                <h3>Ignore Armour</h3>
-                <p>Ignore armour if not moved</p>
+                <h3>Precise</h3>
+                <p>Ignore armour of target if unit did not move this phase</p>
             </div>
 
             <div class="node locked" data-id="e2_a3" data-cost="5" data-prereq="e2_a2">
-                <h3>Precise Ambush</h3>
+                <h3>Ambush</h3>
                 <p>+2 OD vs full HP targets</p>
             </div>
         </div>
 
-        <!-- ELITE -->
+        <!-- Special ELITE Lineage -->
         <div class="branch">
-            <div class="branch-title">Elite Lineage</div>
+            <div class="branch-title">Special Elite Lineage</div>
 
-            <div class="node locked" data-id="e2_e1" data-cost="2">
-                <h3>Elite Aegis</h3>
-                <p>+1 Armour at Range 3+</p>
+            <div class="node locked" data-id="e2_e1" data-cost="3">
+                <h3>Aegis</h3>
+                <p>+1 RC on first attack each phase</p>
             </div>
 
-            <div class="node locked" data-id="e2_e2" data-cost="4" data-prereq="e2_e1">
-                <h3>Noble Precision</h3>
-                <p>Reroll failed attack</p>
+            <div class="node locked" data-id="e2_e2" data-cost="5" data-prereq="e2_e1">
+                <h3>Noble Effort</h3>
+                <p>Reroll 1 failed attack each round</p>
             </div>
 
             <div class="node locked" data-id="e2_e3" data-cost="7" data-prereq="e2_e2">
-                <h3>Double Volley</h3>
-                <p>Elite may attack twice</p>
+                <h3>Aggravated</h3>
+                <p>1 Sepcail Elite unit may attack twice per action per round</p>
             </div>
         </div>
 
         <!-- UTILITY -->
         <div class="branch">
-            <div class="branch-title">Crown of Thorns</div>
+            <div class="branch-title">Intuned</div>
 
             <div class="node locked" data-id="e2_u1" data-cost="3">
                 <h3>Wounding Wealth</h3>
-                <p>Gain gold on damage</p>
+                <p>Each time an enemy is reduced below half HP from your attacks gain +2 Gold</p>
             </div>
 
             <div class="node locked" data-id="e2_u2" data-cost="5" data-prereq="e2_u1">
                 <h3>Killing Focus</h3>
-                <p>Kills refund SM</p>
+                <p>Once per phase a kill refunds 1 SM</p>
             </div>
 
             <div class="node locked" data-id="e2_u3" data-cost="8" data-prereq="e2_u2">
                 <h3>Eclipsing Arrows</h3>
-                <p>Ignore defensive modifiers</p>
+                <p>Ignore Shield & Stealth checks if at Range 5+</p>
             </div>
         </div>
 
@@ -735,7 +735,9 @@ body.elves {
         <h2>Sovereign of the Horizon</h2>
         <p><b>Cost: 9 SM</b></p>
         <p>
-            Choose a target: all attacks gain +2 OD
+            Once per phase designate 1 target, all Elven attacks gain +1 OD against that target this phase
+            1 Commander may move for free each phase anytime during your round
+            Gain an unlock bonus of +15 Gold
         </p>
     </div>
 
