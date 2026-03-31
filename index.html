@@ -241,6 +241,8 @@ body.men {
     box-shadow: 0 0 15px gold, inset 0 0 5px #fff3;
 }
 
+
+
 /* ===== ORDER SPEC THEME ===== */
 
 body.orderSpec {
@@ -365,6 +367,11 @@ body.elves {
 
 <body>
 
+
+
+
+
+
 <h1>Age of War Companion</h1>
 
 <!-- PROFILE -->
@@ -372,6 +379,10 @@ body.elves {
     <div id="smDisplay">SM: 0</div>
     <button onclick="changeSM(1)">+1 SM</button>
     <button onclick="changeSM(-1)">-1 SM</button>
+    <button id="doctrineBtn" onclick="buyDoctrine('elves')">
+        Unlock Doctrine
+    </button>
+   
 
     <input id="playerName" placeholder="Player Name">
 
@@ -388,7 +399,7 @@ body.elves {
     <select id="factionSelect" onchange="setFaction(this.value)">
         <option value="dwarves">Dwarves - Mountain</option>
         <option value="deep">Dwarves - Deep Holds</option>
-        <option value="elves">Elves</option>
+        <option value="elves">Elves - Swift Action</option>
         <option value="men">Men</option>
         <option value="barbarians">Barbarians</option>
         <option value="orcs">Orcs – Blooded Path</option>
@@ -1189,10 +1200,18 @@ document.querySelectorAll(".node").forEach(node=>{
 // AVAILABILITY
 function updateAvailability(){
     document.querySelectorAll(".node").forEach(n=>{
+
         if(n.classList.contains("unlocked")) return;
 
         let prereq = n.dataset.prereq;
         let skills = data[currentProfile][currentFaction].skills;
+
+        // 🚨 REQUIRE DOCTRINE FIRST
+        if(currentFaction === "elves" && !skills["elves_root"]){
+            n.classList.remove("available");
+            n.classList.add("locked");
+            return;
+        }
 
         if(!prereq || skills[prereq]){
             n.classList.add("available");
@@ -1297,7 +1316,20 @@ function setFaction(f){
 // INIT
 refreshProfiles();
 
+
+
+
+
+
+
+
+
+
+
+
 </script>
+
+
 
 </body>
 </html>
