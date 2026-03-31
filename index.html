@@ -37,6 +37,115 @@ h1 {
     box-shadow: 0 0 6px #000;
 }
 
+.tree {
+    position: relative;
+}
+
+.tree::before {
+    content: "";
+    position: absolute;
+    top: 120px; /* below doctrine */
+    bottom: 120px; /* above capstone */
+    left: 50%;
+    width: 2px;
+    background: linear-gradient(to bottom, transparent, #d4af37, transparent);
+    transform: translateX(-50%);
+    opacity: 0.4;
+}
+
+.doctrine-wrapper {
+    position: relative;
+}
+
+/* vertical line down from doctrine */
+.doctrine-wrapper::after {
+    content: "";
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    width: 2px;
+    height: 40px;
+    background: #d4af37;
+    transform: translateX(-50%);
+}
+
+.branch-container {
+    position: relative;
+}
+
+/* horizontal line across branches */
+.branch-container::before {
+    content: "";
+    position: absolute;
+    top: -20px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: #d4af37;
+    opacity: 0.5;
+}
+
+.branch {
+    position: relative;
+}
+
+/* line from top connector down into branch */
+.branch::before {
+    content: "";
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    width: 2px;
+    height: 20px;
+    background: #d4af37;
+    transform: translateX(-50%);
+}
+
+.branch .node {
+    position: relative;
+}
+
+/* line between nodes */
+.branch .node::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    width: 2px;
+    height: 12px;
+    background: #d4af37;
+    transform: translateX(-50%);
+}
+
+/* remove line for first node */
+.branch .node:first-child::before {
+    display: none;
+}
+
+.capstone {
+    position: relative;
+}
+
+/* line from branches down to capstone */
+.capstone::before {
+    content: "";
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    width: 2px;
+    height: 40px;
+    background: #d4af37;
+    transform: translateX(-50%);
+}
+
+.node.unlocked::before,
+.branch::before,
+.branch-container::before,
+.capstone::before,
+.doctrine-wrapper::after {
+    box-shadow: 0 0 6px #d4af37;
+}
+
 
 
 .spec-tree {
@@ -653,6 +762,7 @@ body.elves {
             </div>
         </div>
 
+     
     </div>
 
     <!-- CAPSTONE -->
