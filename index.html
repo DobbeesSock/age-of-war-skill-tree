@@ -328,6 +328,37 @@ body.orcsWar {
     text-shadow: 0 0 6px orange;
 }
 
+/* ===== ELF THEME ===== */
+
+body.elves {
+    background: radial-gradient(circle at top, #2f4f2f, #0f1a0f);
+}
+
+#elves .node {
+    background: linear-gradient(145deg, #2f4f2f, #162616);
+    border: 2px solid #6bbf59;
+}
+
+#elves .node.available {
+    box-shadow: 0 0 10px #6bbf59;
+}
+
+#elves .node.unlocked {
+    background: linear-gradient(145deg, #6bbf59, #2f7f2f);
+    box-shadow: 0 0 20px #6bbf59;
+}
+
+#elves .branch-title {
+    color: #a8ff9a;
+    text-shadow: 0 0 6px #6bbf59;
+}
+
+#elves .capstone {
+    background: radial-gradient(circle, #3f6f3f, #162616);
+    border: 3px solid #a8ff9a;
+    box-shadow: 0 0 15px #6bbf59;
+}
+
 
 </style>
 </head>
@@ -539,7 +570,76 @@ body.orcsWar {
 
 
 
-<div id="elves" class="tree"></div>
+<div id="elves" class="tree">
+
+    <!-- DOCTRINE -->
+    <div class="capstone available" id="elves-doctrine" data-id="elves_root" data-cost="1">
+        <h2>Doctrine of Twin Canopies</h2>
+        <p><b>Cost: 1 SM</b></p>
+        <p>
+            Archers gain +1 Range<br>
+            Elites gain +1 Armour<br>
+            Unlocks both branches
+        </p>
+    </div>
+
+    <div class="branch-container">
+
+        <!-- CANOPY MARKSMEN -->
+        <div class="branch">
+            <div class="branch-title">Canopy Marksmen</div>
+
+            <div class="node available" data-id="elf_a1" data-cost="2">
+                <h3>Wind-Sighted</h3>
+                <p>First Archer attack each phase gains +1 OD</p>
+            </div>
+
+            <div class="node locked" data-id="elf_a2" data-cost="4" data-prereq="elf_a1">
+                <h3>Ghost in the Leaves</h3>
+                <p>Archers in Forest gain Stealth Check 4-6</p>
+            </div>
+
+            <div class="node locked" data-id="elf_a3" data-cost="7" data-prereq="elf_a2">
+                <h3>Perfect Volley</h3>
+                <p>Once per phase, an Archer may attack twice</p>
+            </div>
+        </div>
+
+        <!-- SILVERBLADE PHALANX -->
+        <div class="branch">
+            <div class="branch-title">Silverblaade Phalanx</div>
+
+            <div class="node available" data-id="elf_e1" data-cost="2">
+                <h3>Forest Striders</h3>
+                <p>Elites gain +4 Movement in wooded areas</p>
+            </div>
+
+            <div class="node locked" data-id="elf_e2" data-cost="4" data-prereq="elf_e1">
+                <h3>Finishers Instinct</h3>
+                <p>+1 OD when attacking a unit already damaged this phase</p>
+            </div>
+
+            <div class="node locked" data-id="elf_e3" data-cost="7" data-prereq="elf_e2">
+                <h3>Relentless Advance</h3>
+                <p>After an Elite kills an enemy may move 5, does not trigger engagement</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- CAPSTONE -->
+    <div class="capstone locked" id="capstone-elves" data-id="cap_elves" data-cost="9">
+        <h2>Harmony of the Canopy</h2>
+        <p><b>Cost: 9 SM</b></p>
+        <p>
+            Archers gain +2 Range<br>
+            Elites gain +2 Movement<br>
+            Forest grants +1 OD and Stealth<br>
+            Killing an enemy refreshes movement
+        </p>
+    </div>
+</div>
+
 <div id="men" class="tree"></div>
 <div id="barbarians" class="tree"></div>
 <div id="orcs" class="tree">
