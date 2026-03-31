@@ -335,6 +335,17 @@ body.orcsWar {
     text-shadow: 0 0 6px orange;
 }
 
+.doctrine-wrapper {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-bottom: 20px;
+}
+
+.doctrine-wrapper .node {
+    grid-column: 2 / span 2;
+    justify-self: center;
+}
+
 /* ===== ELF THEME ===== */
 
 body.elves {
@@ -588,6 +599,7 @@ body.elves {
 <div id="elves" class="tree">
 
     <!-- DOCTRINE -->
+    <div class="doctrine-wrapper">
     <div class="node available" id="elves-doctrine" data-id="elves_root" data-cost="1">
         <h2>Doctrine of Twin Canopies</h2>
         <p><b>Cost: 1 SM</b></p>
@@ -597,6 +609,7 @@ body.elves {
             Unlocks both branches
         </p>
     </div>
+</div>
 
     <div class="branch-container">
 
@@ -658,6 +671,7 @@ body.elves {
 <div id="elves2" class="tree">
 
     <!-- DOCTRINE -->
+    <div class="doctrine-wrapper">
     <div class="node available" data-id="elves2_root" data-cost="1">
         <h2>Doctrine of the Veiled Horizon</h2>
         <p><b>Cost: 1 SM</b></p>
@@ -665,6 +679,7 @@ body.elves {
             Units that attack from Range 3+ gain +1 OD if they did not move the phase
         </p>
     </div>
+</div>
 
     <div class="branch-container">
 
