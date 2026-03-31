@@ -603,7 +603,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Canopy Marksmen</div>
 
-            <div class="node available" data-id="elf_a1" data-cost="2">
+            <div class="node locked" data-id="elf_a1" data-cost="2">
                 <h3>Wind-Sighted</h3>
                 <p>First Archer attack each phase gains +1 OD</p>
             </div>
@@ -623,7 +623,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Silverblaade Phalanx</div>
 
-            <div class="node available" data-id="elf_e1" data-cost="2">
+            <div class="node locked" data-id="elf_e1" data-cost="2">
                 <h3>Forest Striders</h3>
                 <p>Elites gain +4 Movement in wooded areas</p>
             </div>
@@ -1099,6 +1099,9 @@ function applySkills(){
             n.classList.add("unlocked");
         } else {
             n.classList.add("locked");
+
+            if(!n.dataset.prereq){
+                n.classList.add("available");
         }
     });    
         
