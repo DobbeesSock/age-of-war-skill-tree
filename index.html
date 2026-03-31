@@ -12,6 +12,11 @@ body {
     text-align:center;
 }
 
+#elves-doctrine {
+    margin: 20px auto;
+    width: 320px;
+}
+
 h1 {
     color:#d4af37;
     letter-spacing: 2px;
@@ -379,9 +384,7 @@ body.elves {
     <div id="smDisplay">SM: 0</div>
     <button onclick="changeSM(1)">+1 SM</button>
     <button onclick="changeSM(-1)">-1 SM</button>
-    <button id="doctrineBtn" onclick="buyDoctrine('elves')">
-        Unlock Doctrine
-    </button>
+    
    
 
     <input id="playerName" placeholder="Player Name">
@@ -584,7 +587,7 @@ body.elves {
 <div id="elves" class="tree">
 
     <!-- DOCTRINE -->
-    <div class="capstone available" id="elves-doctrine" data-id="elves_root" data-cost="1">
+    <div class="node available" id="elves-doctrine" data-id="elves_root" data-cost="1">
         <h2>Doctrine of Twin Canopies</h2>
         <p><b>Cost: 1 SM</b></p>
         <p>
