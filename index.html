@@ -1099,18 +1099,11 @@ function applySkills(){
             n.classList.add("unlocked");
         } else {
             n.classList.add("locked");
-
-            if(!n.dataset.prereq){
-                n.classList.add("available");
         }
-    });    
-        
+    });
+
     updateAvailability();
     updateCapstones();
-
-
-    //
-    
 }
 
     function updateCapstones(){
@@ -1209,16 +1202,25 @@ function updateAvailability(){
 
         if(n.classList.contains("unlocked")) return;
 
+        let id = n.dataset.id;
         let prereq = n.dataset.prereq;
         let skills = data[currentProfile][currentFaction].skills;
 
-        // 🚨 REQUIRE DOCTRINE FIRST
+        // ✅ DOCTRINE (root node) is always available
+        if(id === "elves_root"){
+            n.classList.add("available");
+            n.classList.remove("locked");
+            return;
+        }
+
+        // 🚨 LOCK everything behind doctrine
         if(currentFaction === "elves" && !skills["elves_root"]){
             n.classList.remove("available");
             n.classList.add("locked");
             return;
         }
 
+        // normal prereq logic
         if(!prereq || skills[prereq]){
             n.classList.add("available");
             n.classList.remove("locked");
