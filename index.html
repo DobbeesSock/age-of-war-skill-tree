@@ -101,33 +101,10 @@ body.men {
 }
 .node {
     position: relative;
-    padding-top: 40px;
+    padding-top: 10px;
 }
 
-/* circular icon */
-.node-icon {
-    position: absolute;
-    top: -22px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background-size: cover;
-    background-position: center;
-    border: 2px solid #999;
-    box-shadow: 0 0 6px #000;
-}
-.node::before {
-    content: "";
-    position: absolute;
-    top: -20px;
-    left: 50%;
-    width: 2px;
-    height: 20px;
-    background: #777;
-    transform: translateX(-50%);
-}
+
 
 .branch-title::before {
     content: "⚔";
@@ -153,23 +130,11 @@ body.men {
 }
 /* ===== ORC ICONS ===== */
 
-/* Bloodwardens (green) */
-#orcs .branch:nth-child(1) .node-icon {
-    background: radial-gradient(circle, #2e5a2e, #0f1f0f);
-    border: 2px solid #4caf50;
-}
 
-/* Red Blades (red) */
-#orcs .branch:nth-child(2) .node-icon {
-    background: radial-gradient(circle, #7a1f1f, #2a0a0a);
-    border: 2px solid #ff4444;
-}
 
-/* Gloomstalkers (purple) */
-#orcs .branch:nth-child(3) .node-icon {
-    background: radial-gradient(circle, #4a2a6a, #14081f);
-    border: 2px solid #bb66ff;
-}
+
+
+
 
 /* TREE */
 .tree {
@@ -586,19 +551,18 @@ body.orcsWar {
             <div class="branch-title">Guard</div>
 
             <div class="node available" data-id="orc_g1" data-cost="2">
-                <div class="node-icon"></div>
                 <h3>Hold Through Pain</h3>
                 <p>Reduce damage by 1 when below half HP</p>
             </div>
 
             <div class="node locked" data-id="orc_g2" data-cost="3" data-prereq="orc_g1">
-                <div class="node-icon" style="background: red;"></div>
+                
                 <h3>Break Upon Me</h3>
                 <p>Attackers suffer 1 damage</p>
             </div>
 
             <div class="node locked" data-id="orc_g3" data-cost="4" data-prereq="orc_g2">
-                <div class="node-icon"></div>
+                
                 <h3>The Line Is Ours</h3>
                 <p>Cannot be Trampled</p>
             </div>
@@ -609,19 +573,19 @@ body.orcsWar {
             <div class="branch-title">Knight</div>
 
             <div class="node available" data-id="orc_k1" data-cost="2">
-                <div class="node-icon"></div>
+                
                 <h3>Blood Momentum</h3>
                 <p>Heal 1 HP after a kill</p>
             </div>
 
             <div class="node locked" data-id="orc_k2" data-cost="4" data-prereq="orc_k1">
-                <div class="node-icon"></div>
+                
                 <h3>Ritual Execution</h3>
                 <p>+2 Damage below half HP</p>
             </div>
 
             <div class="node locked" data-id="orc_k3" data-cost="5" data-prereq="orc_k2">
-                <div class="node-icon"></div>
+                
                 <h3>No Time to Rest</h3>
                 <p>Move 3 after a kill</p>
             </div>
@@ -632,19 +596,19 @@ body.orcsWar {
             <div class="branch-title">Archer</div>
 
             <div class="node available" data-id="orc_a1" data-cost="3">
-                <div class="node-icon"></div>
+                
                 <h3>Bleeding Marks</h3>
                 <p>May attack the same target with a target 2</p>
             </div>
 
             <div class="node locked" data-id="orc_a2" data-cost="4" data-prereq="orc_a1">
-                <div class="node-icon"></div>
+                
                 <h3>Cruel Patience</h3>
                 <p>+1 Damage to wounded enemies</p>
             </div>
 
             <div class="node locked" data-id="orc_a3" data-cost="5" data-prereq="orc_a2">
-                <div class="node-icon"></div>
+                
                 <h3>Chosen Prey</h3>
                 <p>Marked an enemy, marked targeted suffers +1 Damage from attacks</p>
             </div>
@@ -654,7 +618,7 @@ body.orcsWar {
 
     <!-- CAPSTONE -->
     <div class="capstone locked" id="capstone-orcs" data-id="cap_orcs" data-cost="9">
-        <div class="node-icon"></div>
+        
         <h2>Doctrine of the Blooded Path</h2>
         <p><b>Cost: 9 SM</b></p>
         <p>Once per mission (one phase):</p>
@@ -676,19 +640,19 @@ body.orcsWar {
             <div class="branch-title">Rider</div>
 
             <div class="node available" data-id="orc_w1" data-cost="2">
-                <div class="node-icon"></div>
+                
                 <h3>Thunder Through</h3>
                 <p>Riders deal 1 damage to all trampled units</p>
             </div>
 
             <div class="node locked" data-id="orc_w2" data-cost="3" data-prereq="orc_w1">
-                <div class="node-icon"></div>
+                
                 <h3>Break and Run</h3>
                 <p>After attacking, disengage and move 3</p>
             </div>
 
             <div class="node locked" data-id="orc_w3" data-cost="5" data-prereq="orc_w2">
-                <div class="node-icon"></div>
+                
                 <h3>Deterministic Chaos</h3>
                 <p>Follow 1 enemy this Phase who disengage your unit and attack that enemy</p>
             </div>
@@ -699,19 +663,19 @@ body.orcsWar {
             <div class="branch-title">Commander</div>
 
             <div class="node available" data-id="orc_w4" data-cost="2">
-                <div class="node-icon"></div>
+                
                 <h3>Words in Blood</h3>
                 <p>Adjacent units gain +2 Retaliate</p>
             </div>
 
             <div class="node locked" data-id="orc_w5" data-cost="3" data-prereq="orc_w4">
-                <div class="node-icon"></div>
+                
                 <h3>Sacrifice is Strength</h3>
                 <p>Once per round lose 1 HP to grant +2 Damage or +3 Movement to an adjacent unit</p>
             </div>
 
             <div class="node locked" data-id="orc_w6" data-cost="5" data-prereq="orc_w5">
-                <div class="node-icon"></div>
+                
                 <h3>War Without End</h3>
                 <p>Adjacent units gain +1 OD while wounded</p>
             </div>
@@ -722,19 +686,19 @@ body.orcsWar {
             <div class="branch-title">Industry</div>
 
             <div class="node available" data-id="orc_w7" data-cost="2">
-                <div class="node-icon"></div>
+                
                 <h3>Blood-Forged Tribute</h3>
                 <p>Gain +20 Gold once per mission</p>
             </div>
 
             <div class="node locked" data-id="orc_w8" data-cost="4" data-prereq="orc_w7">
-                <div class="node-icon"></div>
+                
                 <h3>Relentless Muster</h3>
                 <p>Spawned units gain free Move 5</p>
             </div>
 
             <div class="node locked" data-id="orc_w9" data-cost="6" data-prereq="orc_w8">
-                <div class="node-icon"></div>
+                
                 <h3>War Machine</h3>
                 <p>Units cost +1 Energy to spawn</p>
             </div>
@@ -744,7 +708,7 @@ body.orcsWar {
 
     <!-- CAPSTONE -->
     <div class="capstone locked" id="capstone-orcsWar" data-id="cap_orcsWar" data-cost="9">
-        <div class="node-icon"></div>
+        
         <h2>Doctrine of the War Path</h2>
         <p><b>Cost: 9 SM</b></p>
         <p>Once per mission (one phase):</p>
