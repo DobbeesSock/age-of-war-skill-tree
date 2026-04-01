@@ -999,6 +999,16 @@ body.elves {
 <div id="barbarians" class="tree"></div>
 <div id="orcs" class="tree">
 
+    <div class="doctrine-wrapper">
+    <div class="node root" data-id="orcs_root" data-cost="1">
+        <h3>Doctrine of the Bloodied Path</h3>
+        <p>
+            Guards & Knights gain +1 OD while below half HP<br>
+            Unlocks all branches
+        </p>
+    </div>
+</div>
+
     <div class="branch-container">
 
         <!-- Gaurd -->
@@ -1087,6 +1097,16 @@ body.elves {
 
 </div>
 <div id="orcsWar" class="tree">
+
+    <div class="doctrine-wrapper">
+    <div class="node root" data-id="orcsWar_root" data-cost="1">
+        <h3>Doctrine of the War Path</h3>
+        <p>
+            Units heal 2 HP while in a friendly Province per round<br>
+            Unlocks all branches
+        </p>
+    </div>
+</div>
 
     <div class="branch-container">
 
@@ -1477,17 +1497,25 @@ function applySkills(){
     // =========================
     if (
         (currentFaction === "order" && !skills["order_root"]) ||
-        (currentFaction === "order2" && !skills["order2_root"])
+        (currentFaction === "order2" && !skills["order2_root"]) ||
+        (currentFaction === "orcs" && !skills["orcs_root"]) ||
+        (currentFaction === "orcsWar" && !skills["orcsWar_root"])
     ){
         document.querySelectorAll("#" + currentFaction + " .node").forEach(n => {
 
-            if (
-                n.dataset.id !== "order_root" &&
-                n.dataset.id !== "order2_root"
-            ){
-                n.classList.remove("available");
-                n.classList.add("locked");
-            }
+        const rootMap = {
+            order: "order_root",
+            order2: "order2_root",
+            orcs: "orcs_root",
+            orcsWar: "orcsWar_root"
+        };
+
+        const rootId = rootMap[currentFaction];
+
+        if (n.dataset.id !== rootId){
+            n.classList.remove("available");
+            n.classList.add("locked");
+        }
 
         });
 
@@ -1646,7 +1674,19 @@ function updateAvailability(){
         let prereq = n.dataset.prereq;
 
         // ✅ Doctrine always available
-        if(id === "elves_root" || id === "elves2_root"){
+        const rootMap = {
+            elves: "elves_root",
+            elves2: "elves2_root",
+            orcs: "orcs_root",
+            orcsWar: "orcsWar_root",
+            order: "order_root",
+            order2: "order2_root"
+        };
+
+        const rootId = rootMap[currentFaction];
+
+        // ✅ Doctrine always available
+        if(id === rootId){
             n.classList.add("available");
             n.classList.remove("locked");
             return;
@@ -1655,7 +1695,9 @@ function updateAvailability(){
         // 🚨 Lock behind doctrine
         if(
             (currentFaction === "elves" && !skills["elves_root"]) ||
-            (currentFaction === "elves2" && !skills["elves2_root"])
+            (currentFaction === "elves2" && !skills["elves2_root"]) ||
+            (currentFaction === "orcs" && !skills["orcs_root"]) ||
+            (currentFaction === "orcsWar" && !skills["orcsWar_root"])
         ){
             n.classList.remove("available");
             n.classList.add("locked");
