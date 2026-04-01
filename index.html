@@ -670,6 +670,17 @@ body.elves {
     <!-- dwarves content -->
 <div id="dwarves" class="tree active">
 
+<div class="doctrine-wrapper">
+    <div class="node root" data-id="dwarves_root" data-cost="1">
+        <h3>Doctrine of the Mountain Hold</h3>
+        <p>
+            Guards & Knights gain +2 Movement upgrade<br>
+            Structures gain +1 Armour<br>
+            Unlocks all branches
+        </p>
+    </div>
+</div>
+
     <div class="branch-container">
 
          <!-- Guard -->
@@ -750,6 +761,17 @@ body.elves {
 </div>
     <!-- Infrastructure -->
        <div id="dwarves2" class="tree">
+
+    <div class="doctrine-wrapper">
+        <div class="node root" data-id="dwarves2_root" data-cost="1">
+            <h3>Doctrine of the Deep Forge</h3>
+            <p>
+                Dwarf units heal 1 HP per round while adjacent to a friendly structure<br>
+                Unlocks all branches
+            </p>
+        </div>
+    </div>
+
     <div class="branch-container">
 
         <!-- Infrastructure -->
@@ -1496,6 +1518,8 @@ function applySkills(){
     // ORDER ROOT LOCK
     // =========================
     if (
+        (currentFaction === "dwarves" && !skills["dwarves_root"]) ||
+        (currentFaction === "dwarves2" && !skills["dwarves2_root"]) ||
         (currentFaction === "order" && !skills["order_root"]) ||
         (currentFaction === "order2" && !skills["order2_root"]) ||
         (currentFaction === "orcs" && !skills["orcs_root"]) ||
@@ -1675,6 +1699,8 @@ function updateAvailability(){
 
         // ✅ Doctrine always available
         const rootMap = {
+            dwarves: "dwarves_root",
+            dwarves2: "dwarves2_root",
             elves: "elves_root",
             elves2: "elves2_root",
             orcs: "orcs_root",
@@ -1694,6 +1720,8 @@ function updateAvailability(){
 
         // 🚨 Lock behind doctrine
         if(
+            (currentFaction === "dwarves" && !skills["dwarves_root"]) ||
+            (currentFaction === "dwarves2" && !skills["dwarves2_root"]) ||
             (currentFaction === "elves" && !skills["elves_root"]) ||
             (currentFaction === "elves2" && !skills["elves2_root"]) ||
             (currentFaction === "orcs" && !skills["orcs_root"]) ||
