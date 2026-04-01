@@ -206,6 +206,11 @@ h1 {
     100% { transform: translateY(0px); opacity: 0.6; }
 }
 
+.node.root {
+    border: 2px solid gold;
+    box-shadow: 0 0 12px rgba(255,215,0,0.5);
+}
+
 
 /* make content sit above */
 .tree > * {
@@ -1161,6 +1166,12 @@ body.elves {
 
 <div id="order" class="tree">
 
+    <div class="node root" data-id="order_root" data-cost="1">
+        <h3>Doctrine of the Divine Mandate</h3>
+        <p>Units gain +1 OD when attacking targets adjacent to an invisibility token<br>
+        Unlocks all branches</p>
+    </div>
+
     <div class="branch-container">
 
         <!-- Archers -->
@@ -1253,6 +1264,12 @@ body.elves {
 </div>
 </div>
 <div id="order2" class="tree">
+
+    <div class="node root" data-id="order2_root" data-cost="1">
+    <h3>Doctrine of Silent Judgment</h3>
+    <p>Units attacking from stealth gain target 2<br>
+    Unlocks all branches</p>
+</div>
 
     <div class="branch-container">
 
@@ -1403,6 +1420,7 @@ function loadProfile(){
     sm = profile.sm ?? 0;
 
     applySkills();
+    updateUI(); 
     updateSM();
     
     
@@ -1426,8 +1444,84 @@ function applySkills(){
     });
 
     updateAvailability();
+    updateUI();        
     updateCapstones();
+    
+      
+    }
+
+    function updateUI(){
+
+    let skills = data[currentProfile][currentFaction].skills;
+
+    // =========================
+    // ORDER ROOT LOCK
+    // =========================
+    if (
+        (currentFaction === "order" && !skills["order_root"]) ||
+        (currentFaction === "order2" && !skills["order2_root"])
+    ){
+        document.querySelectorAll("#" + currentFaction + " .node").forEach(n => {
+
+            if (
+                n.dataset.id !== "order_root" &&
+                n.dataset.id !== "order2_root"
+            ){
+                n.classList.remove("available");
+                n.classList.add("locked");
+            }
+
+        });
+
+        return;
+    }
+
+    // =========================
+    // NORMAL AVAILABILITY
+    // =========================
+    document.querySelectorAll("#" + currentFaction + " .node").forEach(n => {
+
+        if(n.classList.contains("unlocked")) return;
+
+        let prereq = n.dataset.prereq;
+
+        if(!prereq || skills[prereq]){
+            n.classList.add("available");
+            n.classList.remove("locked");
+        } else {
+            n.classList.remove("available");
+            n.classList.add("locked");
+        }
+
+    });
+
+    // =========================
+    // CAPSTONE UNLOCK
+    // =========================
+    if(currentFaction === "order"){
+        const allFilled = document.querySelectorAll("#order .node.unlocked").length >= 6;
+
+        if(allFilled){
+            document.querySelector('#order [data-id="cap_order"]')
+                ?.classList.add("available");
+        }
+    }
+
+    if(currentFaction === "order2"){
+        const allFilled = document.querySelectorAll("#order2 .node.unlocked").length >= 6;
+
+        if(allFilled){
+            document.querySelector('#order2 [data-id="cap_orderSpec"]')
+                ?.classList.add("available");
+        }
+    }
 }
+
+    
+    
+
+
+
 
     function updateCapstones(){
 
@@ -1474,6 +1568,7 @@ document.querySelectorAll(".capstone").forEach(cap=>{
 
                 saveProfiles();
                 applySkills();
+                updateUI();
                 updateSM();
 
             } else {
@@ -1513,6 +1608,7 @@ document.querySelectorAll(".node").forEach(node=>{
 
         saveProfiles();
         applySkills();
+        updateUI();
         updateSM();
 
         
@@ -1521,15 +1617,17 @@ document.querySelectorAll(".node").forEach(node=>{
 
 // AVAILABILITY
 function updateAvailability(){
+
+    let skills = data[currentProfile][currentFaction].skills;
+
     document.querySelectorAll(".node").forEach(n=>{
 
         if(n.classList.contains("unlocked")) return;
 
         let id = n.dataset.id;
         let prereq = n.dataset.prereq;
-        let skills = data[currentProfile][currentFaction].skills;
 
-        // ✅ Doctrine nodes always available
+        // ✅ Doctrine always available
         if(id === "elves_root" || id === "elves2_root"){
             n.classList.add("available");
             n.classList.remove("locked");
@@ -1546,7 +1644,7 @@ function updateAvailability(){
             return;
         }
 
-        // ✅ normal prereq logic
+        // ✅ normal prereq
         if(!prereq || skills[prereq]){
             n.classList.add("available");
             n.classList.remove("locked");
@@ -1554,6 +1652,7 @@ function updateAvailability(){
             n.classList.remove("available");
             n.classList.add("locked");
         }
+
     });
 }
         
@@ -1573,10 +1672,11 @@ function changeSM(amount){
 
     saveProfiles();
     updateSM();
+
 }
-
-
     
+
+ 
 
     
 
