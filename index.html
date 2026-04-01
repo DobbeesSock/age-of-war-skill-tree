@@ -558,15 +558,25 @@ body.orcsWar {
 }
 
 .doctrine-wrapper {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
+    justify-content: center;
     margin-bottom: 20px;
 }
 
 .doctrine-wrapper .node {
-    grid-column: 2 / span 2;
-    justify-self: center;
+    width: 260px;
 }
+
+.doctrine-wrapper::after {
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.node.root {
+    transform: scale(1.05);
+}
+
+
 
 /* ===== ELF THEME ===== */
 
