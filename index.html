@@ -17,6 +17,11 @@ body {
     width: 320px;
 }
 
+#dwarves::before,
+#dwarves2::before {
+    background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.7));
+}
+
 h1 {
     color:#d4af37;
     letter-spacing: 2px;
@@ -225,14 +230,12 @@ h1 {
     background-image: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/orcs2.jpg");
 }
 
-#orcs::before,
-#orcs2::before {
-    background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.75));
+#dwarves::after {
+    background-image: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/dwarves.jpg");
 }
 
-#dwarves::before,
-#deep::before {
-    background-image: url("images/mountain.jpg");
+#dwarves2::after {
+    background-image: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/dwarves2.jpg");
 }
 
 #order::after {
@@ -626,7 +629,7 @@ body.elves {
 <div id="factionBar">
     <select id="factionSelect" onchange="setFaction(this.value)">
         <option value="dwarves">Dwarves - Mountain</option>
-        <option value="deep">Dwarves - Deep Holds</option>
+        <option value="dwarves2">Dwarves - Deep Holds</option>
         <option value="elves">Elves - Swift Action</option>
         <option value="elves2">Elves - Veiled Horizon</option>
         <option value="men">Men</option>
@@ -727,7 +730,7 @@ body.elves {
     </div>
 </div>
     <!-- Infrastructure -->
-       <div id="deep" class="tree">
+       <div id="dwarves2" class="tree">
     <div class="branch-container">
 
         <!-- Infrastructure -->
@@ -1359,7 +1362,7 @@ function createProfile(){
 
     data[name] = {
         dwarves: { sm:0, skills:{} },
-        deep: { sm:0, skills:{} },
+        dwarves2: { sm:0, skills:{} },
         elves: { sm:0, skills:{} },
         elves2: { sm:0, skills:{} }, 
         men: { sm:0, skills:{} },
