@@ -176,6 +176,10 @@ h1 {
     box-shadow: 0 0 6px #d4af37;
 }
 
+.node.root {
+    width: 260px;
+}
+
 .tree {
     position: relative;
     overflow: hidden;
@@ -1176,11 +1180,13 @@ body.elves {
 
 <div id="order" class="tree">
 
+    <div class="doctrine-wrapper">
     <div class="node root" data-id="order_root" data-cost="1">
         <h3>Doctrine of the Divine Mandate</h3>
         <p>Units gain +1 OD when attacking targets adjacent to an invisibility token<br>
         Unlocks all branches</p>
     </div>
+</div>
 
     <div class="branch-container">
 
@@ -1275,10 +1281,12 @@ body.elves {
 </div>
 <div id="order2" class="tree">
 
+    <div class="doctrine-wrapper">
     <div class="node root" data-id="order2_root" data-cost="1">
-    <h3>Doctrine of Silent Judgment</h3>
-    <p>Units attacking from stealth gain target 2<br>
-    Unlocks all branches</p>
+        <h3>Doctrine of Silent Judgment</h3>
+        <p>Units attacking from stealth gain target 2<br>
+        Unlocks all branches</p>
+    </div>
 </div>
 
     <div class="branch-container">
