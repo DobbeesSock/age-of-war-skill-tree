@@ -151,26 +151,21 @@ h1 {
     overflow: hidden;
 }
 
-/* background layer */
-.tree::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-
-    background-size: cover;
-    background-position: center;
-    opacity: 0.4; /* subtle */
-    pointer-events: none;
-}
 
 .tree::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.6));
-    z-index: 0;
+
+    background-size: cover;
+    background-position: center;
+
+    opacity: 0.4;
+    z-index: -1;
+    pointer-events: none;
 }
+
+
 
 /* make content sit above */
 .tree > * {
@@ -178,21 +173,15 @@ h1 {
     z-index: 1;
 }
 
-#elves {
-    background: red !important;
-}
 
-#elves {
-    background-image: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/elves.jpg") !important;
-    background-size: cover;
-    background-position: center;
-}
 
-#elves::before {
+
+
+#elves::after {
     background-image: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/elves.jpg");
 }
 
-#elves2::before {
+#elves2::after {
     background-image: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/elves2.jpg");
 }
 
@@ -211,13 +200,7 @@ h1 {
     background-image: url("images/arcane.jpg");
 }
 
-.tree::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.6));
-    z-index: 0;
-}
+
 
 @keyframes slowPan {
     0% { background-position: center; }
