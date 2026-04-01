@@ -164,15 +164,26 @@ h1 {
     pointer-events: none;
 }
 
+.tree::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.6));
+    z-index: 0;
+}
+
 /* make content sit above */
 .tree > * {
     position: relative;
     z-index: 1;
 }
 
-#elves::before,
+#elves::before {
+    background-image: url("images/elves.jpg");
+}
+
 #elves2::before {
-    background-image: url("C:\Users\dobbe\OneDrive\Desktop\images\elves2.jpg");
+    background-image: url("images/elves2.jpg");
 }
 
 #orcs::before,
