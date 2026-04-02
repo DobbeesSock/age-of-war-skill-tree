@@ -259,6 +259,10 @@ h1 {
     background-image: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/barbarians.jpg");
 }
 
+#barbarians2::after {
+    background-image: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/barbarians2.jpg");
+}
+
 
 
 @keyframes slowPan {
@@ -655,6 +659,7 @@ body.elves {
         <option value="elves2">Elves - Veiled Horizon</option>
         <option value="men">Men</option>
         <option value="barbarians">Barbarians</option>
+        <option value="barbarians2">Barbarians - Ragin Host</option>
         <option value="orcs">Orcs – Bloodied Path</option>
         <option value="orcsWar">Orcs – War Path</option>
         <option value="order">Order – Core</option>
@@ -1114,6 +1119,97 @@ body.elves {
 
 </div>
 
+<div id="barbarians2" class="tree">
+
+    <!-- DOCTRINE -->
+    <div class="doctrine-wrapper">
+        <div class="node root" data-id="barbarians2_root" data-cost="1">
+            <h3>Doctrine of the Raging Host</h3>
+            <p>
+                Units gain bonuses for coordinated attacks, if 2 or more units attack the same target each unit deals +1 OD & heal 1 HP<br>
+                Unlocks all branches
+            </p>
+        </div>
+    </div>
+
+    <div class="branch-container">
+
+        <!-- Shieldbreakers Guard -->
+        <div class="branch">
+            <div class="branch-title">Shieldbreakers Guard</div>
+
+            <div class="node locked" data-id="bb1" data-cost="2">
+                <h3>Iron Shoulders</h3>
+                <p>Guards gain +1 Armour while adjacent to an enemy</p>
+            </div>
+
+            <div class="node locked" data-id="bb2" data-cost="3" data-prereq="bb1">
+                <h3>Punish the Force</h3>
+                <p>If adjacent to 3+ enemies gain Retaliate 2</p>
+            </div>
+
+            <div class="node locked" data-id="bb3" data-cost="5" data-prereq="bb2">
+                <h3>Stand or Die</h3>
+                <p>First time each phase a unit is defeated: remain at 1 HP and may attack</p>
+            </div>
+        </div>
+
+        <!-- Reavers Knight -->
+        <div class="branch">
+            <div class="branch-title">Reavers Knight</div>
+
+            <div class="node locked" data-id="bb4" data-cost="2">
+                <h3>Driving Blows</h3>
+                <p>After a Knight attacks, it may move 2, does not trigger engagement</p>
+            </div>
+
+            <div class="node locked" data-id="bb5" data-cost="4" data-prereq="bb4">
+                <h3>Overrun</h3>
+                <p>If a Knight kills an enemy any excess damage is applied to an adjacent enemy</p>
+            </div>
+
+            <div class="node locked" data-id="bb6" data-cost="5" data-prereq="bb5">
+                <h3>Battle Frenzy</h3>
+                <p>Once per phase: may attack twice in a round</p>
+            </div>
+        </div>
+
+        <!-- Warband Leaders -->
+        <div class="branch">
+            <div class="branch-title">Warband Leaders</div>
+
+            <div class="node locked" data-id="bb7" data-cost="2">
+                <h3>Call the Charge</h3>
+                <p>When a Rider or Coammander activates an adjacent unit may move 3</p>
+            </div>
+
+            <div class="node locked" data-id="bb8" data-cost="4" data-prereq="bb7">
+                <h3>Ruthless Timing</h3>
+                <p>Omce per round, after a friendly unit attacks, another friendly unit may immediately attack the same target</p>
+            </div>
+
+            <div class="node locked" data-id="bb9" data-cost="6" data-prereq="bb8">
+                <h3>Unstoppable Advance</h3>
+                <p>First time each phase an Elite & Commander gain +1 RC on first attack</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- CAPSTONE -->
+    <div class="capstone locked" data-id="cap_barbarians2" data-cost="9">
+        <h2>Rage Unbound</h2>
+        <p><b>Cost: 9 SM</b></p>
+        <p>
+            Once per phase:<br>
+            All units gain +2 Movement<br>
+            First attack chains to another adjacent enemy<br>
+            Killing an enemy refreshes 1 movement action this phase
+        </p>
+    </div>
+
+</div>
+
 <div id="orcs" class="tree">
 
     <div class="doctrine-wrapper">
@@ -1539,6 +1635,7 @@ function createProfile(){
         elves2: { sm:0, skills:{} }, 
         men: { sm:0, skills:{} },
         barbarians: { sm:0, skills:{} },
+        barbarians2: { sm:0, skills:{} },
         orcs: { sm:0, skills:{} },
         orcsWar: { sm:0, skills:{} },
         order: { sm:0, skills:{} },
@@ -1619,7 +1716,8 @@ function applySkills(){
         (currentFaction === "order2" && !skills["order2_root"]) ||
         (currentFaction === "orcs" && !skills["orcs_root"]) ||
         (currentFaction === "orcsWar" && !skills["orcsWar_root"]) ||
-        (currentFaction === "barbarians" && !skills["barbarians_root"])
+        (currentFaction === "barbarians" && !skills["barbarians_root"]) ||
+        (currentFaction === "barbarians2" && !skills["barbarians2_root"])
     ){
         document.querySelectorAll("#" + currentFaction + " .node").forEach(n => {
 
@@ -1630,7 +1728,8 @@ function applySkills(){
             order2: "order2_root",
             orcs: "orcs_root",
             orcsWar: "orcsWar_root",
-            barbarians: "barbarians_root"
+            barbarians: "barbarians_root",
+            barbarians2: "barbarians2_root"
         };
 
         const rootId = rootMap[currentFaction];
@@ -1806,7 +1905,9 @@ function updateAvailability(){
             orcsWar: "orcsWar_root",
             order: "order_root",
             order2: "order2_root",
-            barbarians: "barbarians_root"
+            barbarians: "barbarians_root",
+            barbarians2: "barbarians2_root"
+            
         };
 
         const rootId = rootMap[currentFaction];
@@ -1826,7 +1927,8 @@ function updateAvailability(){
             (currentFaction === "elves2" && !skills["elves2_root"]) ||
             (currentFaction === "orcs" && !skills["orcs_root"]) ||
             (currentFaction === "orcsWar" && !skills["orcsWar_root"]) ||
-            (currentFaction === "barbarians" && !skills["barbarians_root"])
+            (currentFaction === "barbarians" && !skills["barbarians_root"]) ||
+            (currentFaction === "barbarians2" && !skills["barbarians2_root"])
         ){
             n.classList.remove("available");
             n.classList.add("locked");
