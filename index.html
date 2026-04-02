@@ -370,10 +370,31 @@ body.men {
     flex-wrap:wrap;
 }
 
+#furyContainer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+    color: #ff4444;
+    font-weight: bold;
+}
 
+#furyBar {
+    width: 150px;
+    height: 12px;
+    background: #222;
+    border: 1px solid #aa0000;
+    border-radius: 6px;
+    overflow: hidden;
+}
 
-
-
+#furyFill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, #ff0000, #ff8800);
+    transition: width 0.3s ease;
+}
 
 /* TREE */
 .tree {
@@ -637,6 +658,17 @@ body.elves {
     <div id="smDisplay">SM: 0</div>
     <button onclick="changeSM(1)">+1 SM</button>
     <button onclick="changeSM(-1)">-1 SM</button>
+
+<div id="furyContainer">
+    <span>Fury:</span>
+    <div id="furyBar">
+        <div id="furyFill"></div>
+    </div>
+    <span id="furyValue">0</span>
+
+    <button onclick="changeFury(1)">+1</button>
+    <button onclick="changeFury(-1)">-1</button>
+</div>    
     
    
 
@@ -1634,8 +1666,8 @@ function createProfile(){
         elves: { sm:0, skills:{} },
         elves2: { sm:0, skills:{} }, 
         men: { sm:0, skills:{} },
-        barbarians: { sm:0, skills:{} },
-        barbarians2: { sm:0, skills:{} },
+        barbarians: { sm:0, skills:{}, fury:0 },
+        barbarians2: { sm:0, skills:{}, fury:0 },
         orcs: { sm:0, skills:{} },
         orcsWar: { sm:0, skills:{} },
         order: { sm:0, skills:{} },
@@ -1674,6 +1706,7 @@ function loadProfile(){
     applySkills();
     updateUI(); 
     updateSM();
+    updateFury();
     
     
 
@@ -1946,13 +1979,46 @@ function updateAvailability(){
 
     });
 }
-        
+
+function updateFury(){
+    if(!currentProfile) return;
+
+    if(!currentFaction.startsWith("barbarians")) return;
+
+    let fury = data[currentProfile][currentFaction].fury || 0;
+
+    document.getElementById("furyValue").innerText = fury;
+
+    let percent = Math.min(fury * 10, 100);
+    document.getElementById("furyFill").style.width = percent + "%";
+}
+
+function changeFury(amount){
+    if(!currentProfile) return;
+
+    let factionData = data[currentProfile][currentFaction];
+
+    if(!factionData.fury) factionData.fury = 0;
+
+    factionData.fury += amount;
+
+    if(factionData.fury < 0) factionData.fury = 0;
+    if(factionData.fury > 10) factionData.fury = 10;
+
+    saveProfiles();
+    updateFury();
+}
 
 
 // UI
 function updateSM(){
     document.getElementById("smDisplay").innerText = "SM: " + sm;
 }
+
+
+
+    
+
 
 function changeSM(amount){
     if(!currentProfile) return;
@@ -1965,6 +2031,8 @@ function changeSM(amount){
     updateSM();
 
 }
+
+
     
 
  
@@ -2041,6 +2109,11 @@ function setFaction(f){
     if(currentProfile){
         loadProfile();
     }
+
+    updateFury();
+
+    document.getElementById("furyContainer").style.display =
+    currentFaction.startsWith("barbarians") ? "flex" : "none";
 }
 
 // INIT
