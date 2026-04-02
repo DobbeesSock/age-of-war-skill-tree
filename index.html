@@ -1856,8 +1856,6 @@ function createProfile(){
         elves2: { sm:0, skills:{} }, 
         men: { sm:0, skills:{} },
         men2: { sm:0, skills:{} },
-        barbarians: { sm:0, skills:{}, fury:0 },
-        barbarians2: { sm:0, skills:{}, fury:0 },
         orcs: { sm:0, skills:{} },
         orcsWar: { sm:0, skills:{} },
         order: { sm:0, skills:{} },
@@ -1865,7 +1863,12 @@ function createProfile(){
         redacted1: { sm:0, skills:{} },
         redacted2: { sm:0, skills:{} },
         redacted3: { sm:0, skills:{} },
-        redacted4: { sm:0, skills:{} }
+        redacted4: { sm:0, skills:{} },
+        barbarians: { sm:0, skills:{} },
+        barbarians2: { sm:0, skills:{} },
+        shared: {
+            fury: 0
+        }
     };
 
     currentProfile = name;
@@ -2181,30 +2184,34 @@ function updateAvailability(){
 function updateFury(){
     if(!currentProfile) return;
 
-    if(!currentFaction.startsWith("barbarians")) return;
+    let container = document.getElementById("furyContainer");
 
-    let fury = data[currentProfile][currentFaction].fury || 0;
+    if(currentFaction === "barbarians" || currentFaction === "barbarians2"){
+        container.style.display = "flex";
+    } else {
+        container.style.display = "none";
+        return;
+    }
+
+    let fury = data[currentProfile].shared.fury ?? 0;
 
     document.getElementById("furyValue").innerText = fury;
-
-    let percent = Math.min(fury * 10, 100);
-    document.getElementById("furyFill").style.width = percent + "%";
+    document.getElementById("furyFill").style.width = (fury * 10) + "%";
 }
 
 function changeFury(amount){
     if(!currentProfile) return;
 
-    let factionData = data[currentProfile][currentFaction];
+    let fury = data[currentProfile].shared.fury ?? 0;
 
-    if(!factionData.fury) factionData.fury = 0;
+    fury += amount;
+    if(fury < 0) fury = 0;
+    if(fury > 10) fury = 10;
 
-    factionData.fury += amount;
+    data[currentProfile].shared.fury = fury;
 
-    if(factionData.fury < 0) factionData.fury = 0;
-    if(factionData.fury > 10) factionData.fury = 10;
-
-    saveProfiles();
     updateFury();
+    saveProfiles();
 }
 
 
