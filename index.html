@@ -255,6 +255,10 @@ h1 {
     background-image: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/order2.jpg");
 }
 
+#barbarians::after {
+    background-image: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/barbarians.jpg");
+}
+
 
 
 @keyframes slowPan {
@@ -361,8 +365,6 @@ body.men {
     gap:10px;
     flex-wrap:wrap;
 }
-/* ===== ORC ICONS ===== */
-
 
 
 
@@ -1018,7 +1020,100 @@ body.elves {
 </div>
 
 <div id="men" class="tree"></div>
-<div id="barbarians" class="tree"></div>
+
+<div id="barbarians" class="tree">
+
+    <!-- DOCTRINE -->
+    <div class="doctrine-wrapper">
+        <div class="node root" data-id="barbarians_root" data-cost="1">
+            <h3>Doctrine of the Long War</h3>
+            <p>
+                Gain +1 Fury whenever a unit with 6+ HP takes damage<br>
+                Fury resets at end of mission<br>
+                Unlocks all branches
+            </p>
+        </div>
+    </div>
+
+    <div class="branch-container">
+
+        <!-- Blood Momentum -->
+        <div class="branch">
+            <div class="branch-title">Blood Momentum</div>
+
+            <div class="node locked" data-id="b1" data-cost="2">
+                <h3>Fury Rising</h3>
+                <p>+1 OD while you have 1+ Fury</p>
+            </div>
+
+            <div class="node locked" data-id="b2" data-cost="3" data-prereq="b1">
+                <h3>Blood Tribute</h3>
+                <p>Kill an enemy: Gain 1 Fury</p>
+            </div>
+        </div>
+
+        <!-- Relentless Advance -->
+        <div class="branch">
+            <div class="branch-title">Relentless Advance</div>
+
+            <div class="node locked" data-id="b3" data-cost="2">
+                <h3>Forward Push</h3>
+                <p>After attacking, Move 1</p>
+            </div>
+
+            <div class="node locked" data-id="b4" data-cost="6" data-prereq="b3">
+                <h3>Unstoppable</h3>
+                <p>May disengage at 2+ Fury, move 3, does not trigger engagement</p>
+            </div>
+        </div>
+
+        <!-- Sacred Hide -->
+        <div class="branch">
+            <div class="branch-title">Sacred Hide</div>
+
+            <div class="node locked" data-id="b5" data-cost="2">
+                <h3>Battle Hardened</h3>
+                <p>+1 Armour below half HP</p>
+            </div>
+
+            <div class="node locked" data-id="b6" data-cost="4" data-prereq="b5">
+                <h3>Refuse Death</h3>
+                <p>1 units Survives at 1 HP once per mission</p>
+            </div>
+        </div>
+
+        <!-- Oath of Slaughter -->
+        <div class="branch">
+            <div class="branch-title">Oath of Slaughter</div>
+
+            <div class="node locked" data-id="b7" data-cost="3">
+                <h3>Opening Strike</h3>
+                <p>First attack gains +1 OD</p>
+            </div>
+
+            <div class="node locked" data-id="b8" data-cost="5" data-prereq="b7">
+                <h3>Berserker Oath</h3>
+                <p>At 3+ Fury: Gain +1 Attack action each phase</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- CAPSTONE -->
+    <div class="capstone locked" data-id="cap_barbarians" data-cost="9">
+        <h2>Avatar of War</h2>
+        <p><b>Cost: 9 SM</b></p>
+        <p>
+            Once per mission (one phase):<br>
+            Gain 3 Fury instantly<br>
+            All units gain +1 OD<br>
+            Units cannot be reduced below 1 HP this phase<br>
+            Kills grant +1 additional Fury
+        </p>
+    </div>
+
+</div>
+
 <div id="orcs" class="tree">
 
     <div class="doctrine-wrapper">
@@ -1524,6 +1619,7 @@ function applySkills(){
         (currentFaction === "order2" && !skills["order2_root"]) ||
         (currentFaction === "orcs" && !skills["orcs_root"]) ||
         (currentFaction === "orcsWar" && !skills["orcsWar_root"])
+        (currentFaction === "barbarians" && !skills["barbarians_root"])
     ){
         document.querySelectorAll("#" + currentFaction + " .node").forEach(n => {
 
@@ -1533,7 +1629,8 @@ function applySkills(){
             order: "order_root",
             order2: "order2_root",
             orcs: "orcs_root",
-            orcsWar: "orcsWar_root"
+            orcsWar: "orcsWar_root",
+            barbarians: "barbarians_root"
         };
 
         const rootId = rootMap[currentFaction];
