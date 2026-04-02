@@ -735,7 +735,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Guard</div>
 
-            <div class="node available" data-id="m1" data-cost="1">
+            <div class="node locked" data-id="m1" data-cost="1">
                 <h3>Shield Wall Doctrine</h3>
                 <p>+1 Retaliate near allies/structures</p>
             </div>
@@ -750,7 +750,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Knight</div>
 
-            <div class="node available" data-id="m3" data-cost="2">
+            <div class="node locked" data-id="m3" data-cost="2">
                 <h3>Mounted Assault</h3>
                 <p>+1 OD if moved ≤6</p>
             </div>
@@ -765,7 +765,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Elite</div>
 
-            <div class="node available" data-id="m5" data-cost="3">
+            <div class="node locked" data-id="m5" data-cost="3">
                 <h3>Elite Training</h3>
                 <p>+1 OD vs Elite units</p>
             </div>
@@ -780,7 +780,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Commander</div>
 
-            <div class="node available" data-id="m6" data-cost="2">
+            <div class="node locked" data-id="m6" data-cost="2">
                 <h3>Battlefield Orders</h3>
                 <p>Adjacent Commanders heal structures 2 HP per round</p>
             </div>
@@ -826,7 +826,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Infrastructure</div>
 
-            <div class="node available" data-id="d1" data-cost="2">
+            <div class="node locked" data-id="d1" data-cost="2">
                 <h3>Infrastructure</h3>
                 <p>Structures are immune to ranged attacks, excluding siege</p>
             </div>
@@ -846,7 +846,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">World Boss</div>
 
-            <div class="node available" data-id="d4" data-cost="3">
+            <div class="node locked" data-id="d4" data-cost="3">
                 <h3>World Bosses</h3>
                 <p>First hit vs boss deals +2 damage</p>
             </div>
@@ -866,7 +866,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Treasure</div>
 
-            <div class="node available" data-id="d7" data-cost="2">
+            <div class="node locked" data-id="d7" data-cost="2">
                 <h3>Treasure</h3>
                 <p>Gain +2 Gold when discovering a POI or Cave</p>
             </div>
@@ -902,11 +902,11 @@ body.elves {
 
 
 
-<div id="elves" class="tree active">
+<div id="elves" class="tree">
 
     <!-- DOCTRINE -->
     <div class="doctrine-wrapper">
-    <div class="node available" id="elves-doctrine" data-id="elves_root" data-cost="1">
+    <div class="node root available" id="elves-doctrine" data-id="elves_root">
         <h2>Doctrine of Twin Canopies</h2>
         <p><b>Cost: 1 SM</b></p>
         <p>
@@ -963,17 +963,17 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Forwardline Guard & Knight</div>
 
-            <div class="node locked" data-id="elf_e1" data-cost="2">
+            <div class="node locked" data-id="elf_f1" data-cost="2">
                 <h3>Shield the Weak</h3>
                 <p>Guards or Knights adjacent to friendly units can take the damage that would've been applied to that adjacent unit</p>
             </div>
 
-            <div class="node locked" data-id="elf_e2" data-cost="4" data-prereq="elf_e1">
+            <div class="node locked" data-id="elf_f2" data-cost="4" data-prereq="elf_f1">
                 <h3>Toxin Soaked Blades</h3>
                 <p>Apply +1 damage to all attacks targeting units who are undamaged</p>
             </div>
 
-            <div class="node locked" data-id="elf_e3" data-cost="7" data-prereq="elf_e2">
+            <div class="node locked" data-id="elf_f3" data-cost="7" data-prereq="elf_f2">
                 <h3>Superior Tactics</h3>
                 <p>Once per phase after moving immediately perform an attack with one Guard or Knight</p>
             </div>
@@ -999,7 +999,7 @@ body.elves {
 
     <!-- DOCTRINE -->
     <div class="doctrine-wrapper">
-    <div class="node available" data-id="elves2_root" data-cost="1">
+    <div class="node root available" data-id="elves2_root" data-cost="1">
         <h2>Doctrine of the Veiled Horizon</h2>
         <p><b>Cost: 1 SM</b></p>
         <p>
@@ -1289,7 +1289,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Guard</div>
 
-            <div class="node available" data-id="orc_g1" data-cost="2">
+            <div class="node locked" data-id="orc_g1" data-cost="2">
                 <h3>Hold Through Pain</h3>
                 <p>Reduce damage by 1 when below half HP</p>
             </div>
@@ -1311,7 +1311,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Knight</div>
 
-            <div class="node available" data-id="orc_k1" data-cost="2">
+            <div class="node locked" data-id="orc_k1" data-cost="2">
                 
                 <h3>Blood Momentum</h3>
                 <p>Heal 1 HP after a kill</p>
@@ -1334,7 +1334,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Archer</div>
 
-            <div class="node available" data-id="orc_a1" data-cost="3">
+            <div class="node locked" data-id="orc_a1" data-cost="3">
                 
                 <h3>Bleeding Marks</h3>
                 <p>May attack the same target with a target 2</p>
@@ -1388,7 +1388,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Rider</div>
 
-            <div class="node available" data-id="orc_w1" data-cost="2">
+            <div class="node locked" data-id="orc_w1" data-cost="2">
                 
                 <h3>Thunder Through</h3>
                 <p>Riders deal 1 damage to all trampled units</p>
@@ -1411,7 +1411,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Commander</div>
 
-            <div class="node available" data-id="orc_w4" data-cost="2">
+            <div class="node locked" data-id="orc_w4" data-cost="2">
                 
                 <h3>Words in Blood</h3>
                 <p>Adjacent units gain +2 Retaliate</p>
@@ -1434,7 +1434,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Industry</div>
 
-            <div class="node available" data-id="orc_w7" data-cost="2">
+            <div class="node locked" data-id="orc_w7" data-cost="2">
                 
                 <h3>Blood-Forged Tribute</h3>
                 <p>Gain +20 Gold once per mission</p>
@@ -1488,7 +1488,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Archers</div>
 
-            <div class="node available" data-id="o1" data-cost="1">
+            <div class="node locked" data-id="o1" data-cost="1">
                 <h3>Distant Execution</h3>
                 <p>First attack each phase gains +1 OD</p>
             </div>
@@ -1508,7 +1508,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Guards</div>
 
-            <div class="node available" data-id="o4" data-cost="2">
+            <div class="node locked" data-id="o4" data-cost="2">
                 <h3>False Walls</h3>
                 <p>First attack against Guards deals -2 damage</p>
             </div>
@@ -1528,7 +1528,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Elites</div>
 
-            <div class="node available" data-id="o7" data-cost="2">
+            <div class="node locked" data-id="o7" data-cost="2">
                 <h3>Reign of the Goats</h3>
                 <p>Heal 2 HP when adjacent to another Elite each round</p>
             </div>
@@ -1548,7 +1548,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Assassins</div>
 
-            <div class="node available" data-id="o10" data-cost="2">
+            <div class="node locked" data-id="o10" data-cost="2">
                 <h3>The Knife in the Dark</h3>
                 <p>Movemnet does not cause engagement</p>
             </div>
@@ -1589,7 +1589,7 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Shadow</div>
 
-            <div class="node available" data-id="os_s1" data-cost="1">
+            <div class="node locked" data-id="os_s1" data-cost="1">
                 <h3>Shadow Instinct</h3>
                 <p>+1 OD while Invisible</p>
             </div>
@@ -1599,7 +1599,7 @@ body.elves {
                 <p>Attacks ignore Armor while Invisible</p>
             </div>
             
-            <div class="node available" data-id="os_s3" data-cost="4" data-prereq="os_s2">
+            <div class="node locked" data-id="os_s3" data-cost="4" data-prereq="os_s2">
                 <h3>Swift</h3>
                 <p>While invisilbe roll D20 when moving</p>
             </div>
@@ -1609,17 +1609,17 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Veil</div>
 
-            <div class="node available" data-id="os_v1" data-cost="1">
+            <div class="node locked" data-id="os_v1" data-cost="1">
                 <h3>Veil of Silence</h3>
                 <p>Invisibility lasts until an attack</p>
             </div>
 
-            <div class="node available" data-id="os_v2" data-cost="4" data-prereq="os_v1">
+            <div class="node locked" data-id="os_v2" data-cost="4" data-prereq="os_v1">
                 <h3>Anticipate</h3>
                 <p>Twice per mission when a token is attacked move it making attack fail</p>
             </div>
 
-            <div class="node available" data-id="os_v3" data-cost="6" data-prereq="os_v2">
+            <div class="node locked" data-id="os_v3" data-cost="6" data-prereq="os_v2">
                 <h3>Old Wounds</h3>
                 <p>While invisible heal 2 HP per round</p>
             </div>
@@ -1629,17 +1629,17 @@ body.elves {
         <div class="branch">
             <div class="branch-title">Execution</div>
 
-            <div class="node available" data-id="os_e1" data-cost="4">
+            <div class="node locked" data-id="os_e1" data-cost="4">
                 <h3>Execution Step</h3>
                 <p>After attacking, move 3 and become Invisible</p>
             </div>
 
-            <div class="node available" data-id="os_e2" data-cost="4" data-prereq="os_e1">
+            <div class="node locked" data-id="os_e2" data-cost="4" data-prereq="os_e1">
                 <h3>Aggression</h3>
                 <p>No RC on Elites while Invisilbe</p>
             </div>
 
-            <div class="node available" data-id="os_e3" data-cost="4" data-prereq="os_e2">
+            <div class="node locked" data-id="os_e3" data-cost="4" data-prereq="os_e2">
                 <h3>Calculated</h3>
                 <p>No RC on Commanders while Invisible</p>
             </div>
@@ -1965,7 +1965,9 @@ function applySkills(){
         (currentFaction === "barbarians" && !skills["barbarians_root"]) ||
         (currentFaction === "barbarians2" && !skills["barbarians2_root"]) ||
         (currentFaction === "men" && !skills["men_root"]) ||
-        (currentFaction === "men2" && !skills["men2_root"])
+        (currentFaction === "men2" && !skills["men2_root"]) ||
+        (currentFaction === "elves" && !skills["elves_root"]) ||
+        (currentFaction === "elves2" && !skills["elves2_root"])
     ){
         document.querySelectorAll("#" + currentFaction + " .node").forEach(n => {
 
@@ -1979,7 +1981,9 @@ function applySkills(){
             barbarians: "barbarians_root",
             barbarians2: "barbarians2_root",
             men: "men_root",
-            men2: "men2_root"
+            men2: "men2_root",
+            elves: "elves_root",
+            elves2: "elves2_root"
         };
 
         const rootId = rootMap[currentFaction];
