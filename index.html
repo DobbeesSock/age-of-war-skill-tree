@@ -1618,7 +1618,7 @@ function applySkills(){
         (currentFaction === "order" && !skills["order_root"]) ||
         (currentFaction === "order2" && !skills["order2_root"]) ||
         (currentFaction === "orcs" && !skills["orcs_root"]) ||
-        (currentFaction === "orcsWar" && !skills["orcsWar_root"])
+        (currentFaction === "orcsWar" && !skills["orcsWar_root"]) ||
         (currentFaction === "barbarians" && !skills["barbarians_root"])
     ){
         document.querySelectorAll("#" + currentFaction + " .node").forEach(n => {
@@ -1805,7 +1805,8 @@ function updateAvailability(){
             orcs: "orcs_root",
             orcsWar: "orcsWar_root",
             order: "order_root",
-            order2: "order2_root"
+            order2: "order2_root",
+            barbarians: "barbarians_root"
         };
 
         const rootId = rootMap[currentFaction];
@@ -1824,7 +1825,8 @@ function updateAvailability(){
             (currentFaction === "elves" && !skills["elves_root"]) ||
             (currentFaction === "elves2" && !skills["elves2_root"]) ||
             (currentFaction === "orcs" && !skills["orcs_root"]) ||
-            (currentFaction === "orcsWar" && !skills["orcsWar_root"])
+            (currentFaction === "orcsWar" && !skills["orcsWar_root"]) ||
+            (currentFaction === "barbarians" && !skills["barbarians_root"])
         ){
             n.classList.remove("available");
             n.classList.add("locked");
