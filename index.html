@@ -689,7 +689,8 @@ body.elves {
         <option value="dwarves2">Dwarves - Deep Holds</option>
         <option value="elves">Elves - Swift Action</option>
         <option value="elves2">Elves - Veiled Horizon</option>
-        <option value="men">Men</option>
+        <option value="men">Men - Industry</option>
+        <option value="men2">Men - War Council</option>
         <option value="barbarians">Barbarians - Fury</option>
         <option value="barbarians2">Barbarians - Ragin Host</option>
         <option value="orcs">Orcs – Bloodied Path</option>
@@ -1630,7 +1631,182 @@ body.elves {
         </p>
 
 </div>
-</div>        
+</div>   
+
+<div id="men" class="tree">
+
+    <div class="doctrine-wrapper">
+        <div class="node root" data-id="men_root" data-cost="1">
+            <h3>Doctrine of the Crowned Realm</h3>
+            <p>
+                Structures gain +1 Armour<br>
+                Adjacent units heal +1 HP per round<br>
+                Unlocks all branches
+            </p>
+        </div>
+    </div>
+
+    <div class="branch-container">
+
+        <!-- Infrastructure -->
+        <div class="branch">
+            <div class="branch-title">Infrastructure</div>
+
+            <div class="node locked" data-id="mA1" data-cost="2">
+                <h3>Fortified Borders</h3>
+                <p>Walls gain +2 Armour</p>
+            </div>
+
+            <div class="node locked" data-id="mA2" data-cost="4" data-prereq="mA1">
+                <h3>Expanded Holdings</h3>
+                <p>Gain +2 Gold Collection</p>
+            </div>
+
+            <div class="node locked" data-id="mA3" data-cost="6" data-prereq="mA2">
+                <h3>Unbreakable Walls</h3>
+                <p>Structures cannot suffer more than 6 damage in an attack</p>
+            </div>
+        </div>
+
+        <!-- Economy -->
+        <div class="branch">
+            <div class="branch-title">Economy</div>
+
+            <div class="node locked" data-id="mA4" data-cost="2">
+                <h3>Trade Routes</h3>
+                <p>Gain +1 Gold per kill</p>
+            </div>
+
+            <div class="node locked" data-id="mA5" data-cost="4" data-prereq="mA4">
+                <h3>Vault Networks</h3>
+                <p>Gain +1 Metal Collection</p>
+            </div>
+
+            <div class="node locked" data-id="mA6" data-cost="6" data-prereq="mA5">
+                <h3>Royal Treasury</h3>
+                <p>Gain +15 Gold now
+            <div class="branch-title">Sustain</div>
+
+            <div class="node locked" data-id="mA7" data-cost="2">
+                <h3>Castle Doctrine</h3>
+                <p>Castle heals adjacent units +3 HP per round</p>
+            </div>
+
+            <div class="node locked" data-id="mA8" data-cost="4" data-prereq="mA7">
+                <h3>Field Repairs</h3>
+                <p>One unit may heal 4 HP at the end of Production phase</p>
+            </div>
+
+            <div class="node locked" data-id="mA9" data-cost="6" data-prereq="mA8">
+                <h3>Enduring Kingdom</h3>
+                <p>1 unit cannot be reduced below 1 HP twice per mission</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="capstone locked" data-id="cap_men" data-cost="9">
+        <h2>Empire Eternal</h2>
+        <p>
+            Once per mission (one Phase):<br>
+            All units heal 3 HP<br>
+            Structures gain +2 Armour<br>
+            Gain +5 Gold & +3 Metal<br>
+            Units gain +1 OD while in Province
+        </p>
+    </div>
+
+</div>
+
+<div id="men2" class="tree">
+
+    <div class="doctrine-wrapper">
+        <div class="node root" data-id="men2_root" data-cost="1">
+            <h3>Doctrine of Unified Command</h3>
+            <p>
+                Units gain bonuses when fighting adjacent allies<br>
+                Multi-unit attacks gain +1 OD<br>
+                Unlocks all branches
+            </p>
+        </div>
+    </div>
+
+    <div class="branch-container">
+
+        <!-- Legion -->
+        <div class="branch">
+            <div class="branch-title">Legion</div>
+
+            <div class="node locked" data-id="mB1" data-cost="4">
+                <h3>Shield Cohesion Guards</h3>
+                <p>Guards gain +1 Armour when adjacent to any friendly unit</p>
+            </div>
+
+            <div class="node locked" data-id="mB2" data-cost="6" data-prereq="mB1">
+                <h3>Legion Formation</h3>
+                <p>Legionary + adjacent Guards gain +1 OD</p>
+            </div>
+
+            <div class="node locked" data-id="mB3" data-cost="6" data-prereq="mB2">
+                <h3>Unyielding Line Guards</h3>
+                <p>Guards gain Retaliate 2</p>
+            </div>
+        </div>
+
+        <!-- Cavalry -->
+        <div class="branch">
+            <div class="branch-title">Cavalry</div>
+
+            <div class="node locked" data-id="mB4" data-cost="2">
+                <h3>Charge Doctrine</h3>
+                <p>Riders gain +3 Movement upgrade</p>
+            </div>
+
+            <div class="node locked" data-id="mB5" data-cost="4" data-prereq="mB4">
+                <h3>Trample Force</h3>
+                <p>Trample deals 1 damage regardless of evade</p>
+            </div>
+
+            <div class="node locked" data-id="mB6" data-cost="6" data-prereq="mB5">
+                <h3>Shock Assault</h3>
+                <p>Riders first attack each phase gains +1 RC</p>
+            </div>
+        </div>
+
+        <!-- Command -->
+        <div class="branch">
+            <div class="branch-title">Command</div>
+
+            <div class="node locked" data-id="mB7" data-cost="2">
+                <h3>Rally Orders</h3>
+                <p>Units adjacent to Commander who move away gain +3 movement</p>
+            </div>
+
+            <div class="node locked" data-id="mB8" data-cost="4" data-prereq="mB7">
+                <h3>Coordinated Strike</h3>
+                <p>2 units attacking the same target gain +1 OD</p>
+            </div>
+
+            <div class="node locked" data-id="mB9" data-cost="6" data-prereq="mB8">
+                <h3>Battlefield Supremacy</h3>
+                <p>Commanders gain +1 free Attack Action each phase</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="capstone locked" data-id="cap_men2" data-cost="9">
+        <h2>For the Crown</h2>
+        <p>
+            Once per phase:<br>
+            All units gain +2 Movement<br>
+            1 Coordinated attack gains +1 OD & +1 RC for 1 unit involved<br>
+            Gain +1 Attack Action upgrade (once)<br>
+            Killing an enemy allows another unit to act
+        </p>
+    </div>
+
+</div>
  
    
 
@@ -1666,6 +1842,7 @@ function createProfile(){
         elves: { sm:0, skills:{} },
         elves2: { sm:0, skills:{} }, 
         men: { sm:0, skills:{} },
+        men2: { sm:0, skills:{} },
         barbarians: { sm:0, skills:{}, fury:0 },
         barbarians2: { sm:0, skills:{}, fury:0 },
         orcs: { sm:0, skills:{} },
@@ -1750,7 +1927,9 @@ function applySkills(){
         (currentFaction === "orcs" && !skills["orcs_root"]) ||
         (currentFaction === "orcsWar" && !skills["orcsWar_root"]) ||
         (currentFaction === "barbarians" && !skills["barbarians_root"]) ||
-        (currentFaction === "barbarians2" && !skills["barbarians2_root"])
+        (currentFaction === "barbarians2" && !skills["barbarians2_root"]) ||
+        (currentFaction === "men" && !skills["men_root"]) ||
+        (currentFaction === "men2" && !skills["men2_root"])
     ){
         document.querySelectorAll("#" + currentFaction + " .node").forEach(n => {
 
@@ -1762,7 +1941,9 @@ function applySkills(){
             orcs: "orcs_root",
             orcsWar: "orcsWar_root",
             barbarians: "barbarians_root",
-            barbarians2: "barbarians2_root"
+            barbarians2: "barbarians2_root",
+            men: "men_root",
+            men2: "men2_root"
         };
 
         const rootId = rootMap[currentFaction];
@@ -1939,7 +2120,9 @@ function updateAvailability(){
             order: "order_root",
             order2: "order2_root",
             barbarians: "barbarians_root",
-            barbarians2: "barbarians2_root"
+            barbarians2: "barbarians2_root",
+            men: "men_root",
+            men2: "men2_root"
             
         };
 
@@ -1961,7 +2144,9 @@ function updateAvailability(){
             (currentFaction === "orcs" && !skills["orcs_root"]) ||
             (currentFaction === "orcsWar" && !skills["orcsWar_root"]) ||
             (currentFaction === "barbarians" && !skills["barbarians_root"]) ||
-            (currentFaction === "barbarians2" && !skills["barbarians2_root"])
+            (currentFaction === "barbarians2" && !skills["barbarians2_root"]) ||
+            (currentFaction === "men" && !skills["men_root"]) ||
+            (currentFaction === "men2" && !skills["men2_root"])
         ){
             n.classList.remove("available");
             n.classList.add("locked");
