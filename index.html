@@ -5,12 +5,7 @@
 <title>Age of War Companion</title>
 
 <style>
-#resourceView {
-    background: radial-gradient(circle at top, #2a1f14, #0f0b07 80%);
-    color:#e6d3a3;
-    font-family: 'Georgia', serif;
-    text-align:center;
-}
+
 
 #elves-doctrine {
     margin: 20px auto;
@@ -652,7 +647,60 @@ body.elves {
 }
 
 
-</style>
+  #resourceView {
+    position: relative;   /* ← we add this too (Step 2) */
+    background: url("...") no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 20px;
+  }
+
+  #resourceView::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 0;
+  }
+
+  #resourceView > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  button {
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+    padding: 10px 14px;
+    margin: 4px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  button:hover {
+    background: #555;
+  }
+
+  select {
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+    padding: 5px;
+  }
+
+  #app {
+    max-width: 900px;
+    margin: auto;
+    background: rgba(30, 30, 30, 0.85);
+    padding: 20px;
+    border-radius: 12px;
+    backdrop-filter: blur(6px);
+  }
+</style>   
+
 
 
 
@@ -1878,7 +1926,7 @@ body.elves {
 
   <div id="app"></div>
 
-
+</div>
 
 <script>
 
@@ -1922,24 +1970,24 @@ function render() {
       : res.value;
 
     row.innerHTML = `
-      <div style="min-width:180px; font-size:18px;">
-  <strong>${res.icon} ${res.name}</strong>
-</div>
- <div style="font-size:28px; font-weight:bold; min-width:120px; text-align:center;">
-  ${displayValue}
- </div>
-    <button onclick="change(${i}, 1)">+1</button>
-    <button onclick="change(${i}, 5)">+5</button>
-    <button onclick="change(${i}, -1)">-1</button>
-    <button onclick="change(${i}, -5)">-5</button>
+  <div style="min-width:180px; font-size:18px;">
+    <strong>${res.icon} ${res.name}</strong>
+  </div>
+  <div style="font-size:28px; font-weight:bold; min-width:120px; text-align:center;">
+    ${displayValue}
+  </div>
 
-    ${res.name === "Energy" ? `
-      <button onclick="increaseMaxEnergy(1)">Max +1</button>
-      <button onclick="increaseMaxEnergy(5)">Max +5</button>
-      <button onclick="increaseMaxEnergy(-1)">Max -1</button>
+  <button onclick="change(${i}, 1)">+1</button>
+  <button onclick="change(${i}, 5)">+5</button>
+  <button onclick="change(${i}, -1)">-1</button>
+  <button onclick="change(${i}, -5)">-5</button>
+
+  ${res.name === "Energy" ? `
+    <button onclick="increaseMaxEnergy(1)">Max +1</button>
+    <button onclick="increaseMaxEnergy(5)">Max +5</button>
+    <button onclick="increaseMaxEnergy(-1)">Max -1</button>
   ` : ""}
-</div>
-    `;
+`;
 
     app.appendChild(row);
   });
@@ -2048,7 +2096,7 @@ if (document.getElementById("resourceProfileSelect").options.length > 0) {
 <script>
 
 // GLOBAL STATE
-let currentFaction = "dwarves";
+
 let data = JSON.parse(localStorage.getItem("profiles")) || {};
 let sm = 0;
 
@@ -2550,61 +2598,12 @@ refreshProfiles();
 
 
 </div>
+`;
 
 
 
 
-    #resourceView {
-    background: url("https://tse3.mm.bing.net/th/id/OIP.ar83qfSeXYWj44vPuMmJggHaEJ?rs=1&pid=ImgDetMain&o=7&rm=3") no-repeat center center fixed;
-    background-size: cover;
-    color: white;
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    }
-
-    #resourceView::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.65);
-    z-index: 0;
-}
-
-#resourceView > * {
-    position: relative;
-    z-index: 1;
-}
-
-    button {
-  background: #333;
-  color: white;
-  border: 1px solid #555;
-  padding: 10px 14px;
-  margin: 4px;
-  cursor: pointer;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-    button:hover {
-      background: #555;
-    }
-
-    select {
-      background: #333;
-      color: white;
-      border: 1px solid #555;
-      padding: 5px;
-    }
-
-    #app {
-  max-width: 900px;
-  margin: auto;
-  background: rgba(30, 30, 30, 0.85);
-  padding: 20px;
-  border-radius: 12px;
-  backdrop-filter: blur(6px);
-}
+    
 
 
 
@@ -2654,12 +2653,15 @@ function render() {
       : res.value;
 
     row.innerHTML = `
-      <div style="min-width:180px; font-size:18px;">
-  <strong>${res.icon} ${res.name}</strong>
-</div>
- <div style="font-size:28px; font-weight:bold; min-width:120px; text-align:center;">
-  ${displayValue}
- </div>
+  <div style="min-width:180px; font-size:18px;">
+    <strong>${res.icon} ${res.name}</strong>
+  </div>
+
+  <div style="font-size:28px; font-weight:bold; min-width:120px; text-align:center;">
+    ${displayValue}
+  </div>
+
+  <div>
     <button onclick="change(${i}, 1)">+1</button>
     <button onclick="change(${i}, 5)">+5</button>
     <button onclick="change(${i}, -1)">-1</button>
@@ -2669,9 +2671,9 @@ function render() {
       <button onclick="increaseMaxEnergy(1)">Max +1</button>
       <button onclick="increaseMaxEnergy(5)">Max +5</button>
       <button onclick="increaseMaxEnergy(-1)">Max -1</button>
-  ` : ""}
-</div>
-    `;
+    ` : ""}
+  </div>
+`;
 
     app.appendChild(row);
   });
