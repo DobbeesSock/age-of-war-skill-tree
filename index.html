@@ -5,7 +5,7 @@
 <title>Age of War Companion</title>
 
 <style>
-body {
+#resourceView {
     background: radial-gradient(circle at top, #2a1f14, #0f0b07 80%);
     color:#e6d3a3;
     font-family: 'Georgia', serif;
@@ -67,45 +67,49 @@ h1 {
 }
 
 .tree {
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    position: absolute;
+    display: none;
+    position: relative;
     width: 100%;
-}
-
-.tree.active {
-    opacity: 1;
-    position: relative;
-}
-
-.tree {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 20px auto;
+    overflow: hidden;
 }
 
-.tree::before {
-    background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.6));
-}
 
-.node.unlocked {
-    box-shadow: 0 0 12px rgba(100,255,150,0.6);
-}
+.tree::after {
+    content: "";
+    position: absolute;
+    inset: 0;
 
-.tree {
-    position: relative;
+    background-size: cover;
+    background-position: center;
+
+    opacity: 0.4;
+    z-index: -1;
+    pointer-events: none;
 }
 
 .tree::before {
     content: "";
     position: absolute;
-    top: 120px; /* below doctrine */
-    bottom: 120px; /* above capstone */
+    top: 120px;
+    bottom: 120px;
     left: 50%;
     width: 2px;
+
     background: linear-gradient(to bottom, transparent, #d4af37, transparent);
     transform: translateX(-50%);
     opacity: 0.4;
 }
+
+
+
+
+
+.node.unlocked {
+    box-shadow: 0 0 12px rgba(100,255,150,0.6);
+}
+
 
 .doctrine-wrapper {
     position: relative;
@@ -204,24 +208,7 @@ h1 {
     width: 260px;
 }
 
-.tree {
-    position: relative;
-    overflow: hidden;
-}
 
-
-.tree::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-
-    background-size: cover;
-    background-position: center;
-
-    opacity: 0.4;
-    z-index: -1;
-    pointer-events: none;
-}
 
 #order::before,
 #order2::before {
@@ -240,11 +227,7 @@ h1 {
 }
 
 
-/* make content sit above */
-.tree > * {
-    position: relative;
-    z-index: 1;
-}
+
 
 
 #elves::after {
@@ -428,11 +411,7 @@ body.men {
     transition: width 0.3s ease;
 }
 
-/* TREE */
-.tree {
-    display:none;
-    margin-top:20px;
-}
+
 
 .tree.active {
     display: block;
@@ -674,9 +653,8 @@ body.elves {
 
 
 </style>
-</head>
 
-<body>
+
 
 
 
@@ -684,6 +662,13 @@ body.elves {
 
 
 <h1>Age of War Companion</h1>
+
+<div style="margin-bottom:15px;">
+  <button onclick="showView('skill')">Skill Tree</button>
+  <button onclick="showView('resources')">Resources</button>
+</div>
+
+<div id="skillTreeView">
 
 <!-- PROFILE -->
 <div id="topbar">
@@ -711,7 +696,7 @@ body.elves {
     <button onclick="loadProfile()">Load</button>
     <button onclick="deleteProfile()">Delete</button>
 
-    <select id="profileSelect"></select>
+    <select id="skillProfileSelect"></select>
 </div>
 
 <!-- FACTION -->
@@ -735,6 +720,9 @@ body.elves {
         <option value="redacted4" disabled>??? (Locked)</option>
     </select>
 </div>
+
+
+
 
 <!-- ================= DWARVES ================= -->
 
@@ -965,7 +953,7 @@ body.elves {
 
         <!-- SILVERBLADE Elite -->
         <div class="branch">
-            <div class="branch-title">Silverblaade Elite</div>
+            <div class="branch-title">Silverblade Elite</div>
 
             <div class="node locked" data-id="elf_e1" data-cost="2">
                 <h3>Forest Striders</h3>
@@ -1070,13 +1058,13 @@ body.elves {
 
             <div class="node locked" data-id="e2_e3" data-cost="7" data-prereq="e2_e2">
                 <h3>Aggravated</h3>
-                <p>1 Sepcail Elite unit may attack twice per action per round</p>
+                <p>1 Special Elite unit may attack twice per action per round</p>
             </div>
         </div>
 
         <!-- UTILITY -->
         <div class="branch">
-            <div class="branch-title">Intuned</div>
+            <div class="branch-title">Attuned</div>
 
             <div class="node locked" data-id="e2_u1" data-cost="3">
                 <h3>Wounding Wealth</h3>
@@ -1265,12 +1253,12 @@ body.elves {
 
             <div class="node locked" data-id="bb7" data-cost="2">
                 <h3>Call the Charge</h3>
-                <p>When a Rider or Coammander activates an adjacent unit may move 3</p>
+                <p>When a Rider or Commander activates an adjacent unit may move 3</p>
             </div>
 
             <div class="node locked" data-id="bb8" data-cost="4" data-prereq="bb7">
                 <h3>Ruthless Timing</h3>
-                <p>Omce per round, after a friendly unit attacks, another friendly unit may immediately attack the same target</p>
+                <p>Once per round, after a friendly unit attacks, another friendly unit may immediately attack the same target</p>
             </div>
 
             <div class="node locked" data-id="bb9" data-cost="6" data-prereq="bb8">
@@ -1309,7 +1297,7 @@ body.elves {
 
     <div class="branch-container">
 
-        <!-- Gaurd -->
+        <!-- Guard -->
         <div class="branch">
             <div class="branch-title">Guard</div>
 
@@ -1373,7 +1361,7 @@ body.elves {
             <div class="node locked" data-id="orc_a3" data-cost="5" data-prereq="orc_a2">
                 
                 <h3>Chosen Prey</h3>
-                <p>Marked an enemy, marked targeted suffers +1 Damage from attacks</p>
+                <p>Mark an enemy, marked targeted suffers +1 Damage from attacks</p>
             </div>
         </div>
 
@@ -1574,7 +1562,7 @@ body.elves {
 
             <div class="node locked" data-id="o10" data-cost="2">
                 <h3>The Knife in the Dark</h3>
-                <p>Movemnet does not cause engagement</p>
+                <p>Movement does not cause engagement</p>
             </div>
 
             <div class="node locked" data-id="o11" data-cost="5" data-prereq="o10">
@@ -1625,7 +1613,7 @@ body.elves {
             
             <div class="node locked" data-id="os_s3" data-cost="4" data-prereq="os_s2">
                 <h3>Swift</h3>
-                <p>While invisilbe roll D20 when moving</p>
+                <p>While invisible roll D20 when moving</p>
             </div>
         </div>
 
@@ -1660,7 +1648,7 @@ body.elves {
 
             <div class="node locked" data-id="os_e2" data-cost="4" data-prereq="os_e1">
                 <h3>Aggression</h3>
-                <p>No RC on Elites while Invisilbe</p>
+                <p>No RC on Elites while Invisible</p>
             </div>
 
             <div class="node locked" data-id="os_e3" data-cost="4" data-prereq="os_e2">
@@ -1676,7 +1664,7 @@ body.elves {
         <p><b>Cost: 9 SM</b></p>
         <p>Once per Phase:</p>
         <p>
-            An Assassin rolls 2 D20's when moving, choosing whichh result to use<br>
+            An Assassin rolls 2 D20's when moving, choosing which result to use<br>
             1 Assassin may perform a Range 4 attack while Invisible<br>
             Assassin tokens gain Stealth check 4-6<br>
             
@@ -1874,9 +1862,186 @@ body.elves {
 <div id="redacted4" class="tree"></div>
 
 
+</div>
 
 
 
+
+<div id="resourceView" style="display:none;">
+
+  <div style="margin-bottom:10px;">
+    <select id="resourceProfileSelect" onchange="loadProfile()"></select>
+    <button onclick="newProfile()">New Profile</button>
+    <button onclick="saveProfile()">Save</button>
+    <button onclick="resetResources()">Reset</button>
+  </div>
+
+  <div id="app"></div>
+
+
+
+<script>
+
+let resourceProfile = "";
+
+
+
+const defaultResources = [
+  { name: "Food", value: 0, color: "#4CAF50", icon: "🍖" },
+  { name: "Gold", value: 0, color: "#D4AF37", icon: "🪙" },
+  { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "⚡" },
+  { name: "Metal", value: 0, color: "#9E9E9E", icon: "⛓️" },
+  { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "🐉" },
+  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "🌑" }
+];
+
+let resources = [];
+
+
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+
+  resources.forEach((res, i) => {
+    const row = document.createElement("div");
+    row.style.margin = "10px";
+    row.style.padding = "10px";
+    row.style.border = "1px solid #ccc";
+    row.style.borderLeft = `6px solid ${res.color}`;
+    row.style.display = "flex";
+    row.style.justifyContent = "space-between";
+    row.style.alignItems = "center";
+    row.style.flexWrap = "wrap";
+    row.style.gap = "10px";
+    row.style.borderRadius = "8px";
+    row.style.background = "rgba(50, 50, 50, 0.85)";
+    row.style.boxShadow = "0 0 8px rgba(0,0,0,0.5)";
+
+    const displayValue = res.max !== undefined 
+      ? `${res.value} / ${res.max}` 
+      : res.value;
+
+    row.innerHTML = `
+      <div style="min-width:180px; font-size:18px;">
+  <strong>${res.icon} ${res.name}</strong>
+</div>
+ <div style="font-size:28px; font-weight:bold; min-width:120px; text-align:center;">
+  ${displayValue}
+ </div>
+    <button onclick="change(${i}, 1)">+1</button>
+    <button onclick="change(${i}, 5)">+5</button>
+    <button onclick="change(${i}, -1)">-1</button>
+    <button onclick="change(${i}, -5)">-5</button>
+
+    ${res.name === "Energy" ? `
+      <button onclick="increaseMaxEnergy(1)">Max +1</button>
+      <button onclick="increaseMaxEnergy(5)">Max +5</button>
+      <button onclick="increaseMaxEnergy(-1)">Max -1</button>
+  ` : ""}
+</div>
+    `;
+
+    app.appendChild(row);
+  });
+}
+
+function change(index, amount) {
+  const res = resources[index];
+  res.value += amount;
+
+  // Handle Energy cap
+  if (res.max !== undefined) {
+    if (res.value > res.max) res.value = res.max;
+  }
+
+  // Prevent negative values
+  if (res.value < 0) res.value = 0;
+
+  saveProfile();
+  render();
+}
+
+function resetResources() {
+  resources = JSON.parse(JSON.stringify(defaultResources));
+  saveProfile();
+  render();
+}
+
+function saveProfile() {
+  if (!resourceProfile) return;
+  localStorage.setItem("profile_" + resourceProfile, JSON.stringify(resources));
+  updateProfileList();
+}
+
+function loadProfile() {
+  const select = document.getElementById("resourceProfileSelect");
+  resourceProfile = select.value;
+
+  const data = localStorage.getItem("profile_" + resourceProfile);
+  if (data) {
+    resources = JSON.parse(data);
+  } else {
+    resources = JSON.parse(JSON.stringify(defaultResources));
+  }
+
+  render();
+}
+
+function newProfile() {
+  const name = prompt("Enter profile name:");
+  if (!name) return;
+
+  resourceProfile = name;
+  resources = JSON.parse(JSON.stringify(defaultResources));
+  saveProfile();
+  updateProfileList();
+  render();
+}
+
+function updateProfileList() {
+  const select = document.getElementById("resourceProfileSelect");
+  select.innerHTML = "";
+
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith("profile_")) {
+      const name = key.replace("profile_", "");
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      if (name === resourceProfile) option.selected = true;
+      select.appendChild(option);
+    }
+  });
+}
+
+function increaseMaxEnergy(amount) {
+  const energy = resources.find(r => r.name === "Energy");
+  if (!energy) return;
+
+  energy.max += amount;
+
+  // Prevent max from going below 1
+  if (energy.max < 1) energy.max = 1;
+
+  // Clamp current value if it exceeds new max
+  if (energy.value > energy.max) {
+    energy.value = energy.max;
+  }
+
+  saveProfile();
+  render();
+}
+
+// INIT
+updateProfileList();
+
+if (document.getElementById("resourceProfileSelect").options.length > 0) {
+  loadProfile();
+} else {
+  newProfile();
+}
+</script>
+</div>
 
   
 
@@ -1884,12 +2049,12 @@ body.elves {
 
 // GLOBAL STATE
 let currentFaction = "dwarves";
-let currentProfile = null;
 let data = JSON.parse(localStorage.getItem("profiles")) || {};
 let sm = 0;
 
 // CREATE / LOAD PROFILE
 function createProfile(){
+    console.log("profile object loaded");
     let name = document.getElementById("playerName").value;
     if(!name) return;
 
@@ -1909,19 +2074,19 @@ function createProfile(){
         redacted3: { sm:0, skills:{} },
         redacted4: { sm:0, skills:{} },
         barbarians: { sm:0, skills:{} },
-        barbarians2: { sm:0, skills:{} },
-        shared: {
-            fury: 0
-        }
-    };
+        barbarians2: { sm:0, skills:{} }
+        };
 
-    currentProfile = name;
+
+    
+
+    resourceProfile = name;
     // 
 
     
 
     refreshProfiles();
-    document.getElementById("profileSelect").value = name;
+    document.getElementById("resourceProfileSelect").value = name;
 
     loadProfile();
     
@@ -1929,12 +2094,12 @@ function createProfile(){
 
 // LOAD PROFILE
 function loadProfile(){
-    let select = document.getElementById("profileSelect");
+    let select = document.getElementById("resourceProfileSelect");
     let name = select.value;
 
     if(!name) return;
 
-    currentProfile = name;
+    resourceProfile = name;
 
     let profile = data[name][currentFaction];
 
@@ -1944,10 +2109,21 @@ function loadProfile(){
     updateUI(); 
     updateSM();
     updateFury();
-    
-    
 
 
+}
+
+function showView(view) {
+  document.getElementById("skillTreeView").style.display = "none";
+  document.getElementById("resourceView").style.display = "none";
+
+  if (view === "skill") {
+    document.getElementById("skillTreeView").style.display = "block";
+  }
+
+  if (view === "resources") {
+    document.getElementById("resourceView").style.display = "block";
+  }
 }
 
 // APPLY SAVED SKILLS
@@ -1956,7 +2132,7 @@ function applySkills(){
         n.classList.remove("unlocked","available","locked");
 
         let id = n.dataset.id;
-        let skills = data[currentProfile][currentFaction].skills;
+        let skills = data[resourceProfile][currentFaction].skills;
 
         if(skills[id]){
             n.classList.add("unlocked");
@@ -1974,7 +2150,7 @@ function applySkills(){
 
     function updateUI(){
 
-    let skills = data[currentProfile][currentFaction].skills;
+    let skills = data[resourceProfile][currentFaction].skills;
 
     // =========================
     // ORDER ROOT LOCK
@@ -2078,7 +2254,7 @@ function applySkills(){
     let unlockedNodes = document.querySelectorAll(`#${currentFaction} > .branch-container .node.unlocked`);
 
     let id = cap.dataset.id;
-    let skills = data[currentProfile][currentFaction].skills;
+    let skills = data[resourceProfile][currentFaction].skills;
     let unlocked = skills[id];
 
     if(unlocked){
@@ -2098,7 +2274,7 @@ function applySkills(){
 document.querySelectorAll(".capstone").forEach(cap=>{
     cap.addEventListener("click", ()=>{
 
-        if(!currentProfile) return;
+        if(!resourceProfile) return;
 
         let id = cap.dataset.id;
         let cost = parseInt(cap.dataset.cost);
@@ -2107,7 +2283,7 @@ document.querySelectorAll(".capstone").forEach(cap=>{
 
         if(cap.classList.contains("available")){
             if(sm >= cost){
-                data[currentProfile][currentFaction].skills[id] = true;
+                data[resourceProfile][currentFaction].skills[id] = true;
                 sm -= cost;
 
                 
@@ -2131,11 +2307,11 @@ document.querySelectorAll(".capstone").forEach(cap=>{
 document.querySelectorAll(".node").forEach(node=>{
     node.addEventListener("click", ()=>{
 
-        if(!currentProfile) return;
+        if(!resourceProfile) return;
 
         let id = node.dataset.id;
         let cost = parseInt(node.dataset.cost);
-        let skills = data[currentProfile][currentFaction].skills;
+        let skills = data[resourceProfile][currentFaction].skills;
 
         // REMOVE
         if(node.classList.contains("unlocked")){
@@ -2164,7 +2340,7 @@ document.querySelectorAll(".node").forEach(node=>{
 // AVAILABILITY
 function updateAvailability(){
 
-    let skills = data[currentProfile][currentFaction].skills;
+    let skills = data[resourceProfile][currentFaction].skills;
 
     document.querySelectorAll(".node").forEach(n=>{
 
@@ -2230,7 +2406,7 @@ function updateAvailability(){
 }
 
 function updateFury(){
-    if(!currentProfile) return;
+    if(!resourceProfile) return;
 
     let container = document.getElementById("furyContainer");
 
@@ -2241,22 +2417,22 @@ function updateFury(){
         return;
     }
 
-    let fury = data[currentProfile].shared.fury ?? 0;
+    let fury = data[resourceProfile].shared.fury ?? 0;
 
     document.getElementById("furyValue").innerText = fury;
     document.getElementById("furyFill").style.width = (fury * 10) + "%";
 }
 
 function changeFury(amount){
-    if(!currentProfile) return;
+    if(!resourceProfile) return;
 
-    let fury = data[currentProfile].shared.fury ?? 0;
+    let fury = data[resourceProfile].shared.fury ?? 0;
 
     fury += amount;
     if(fury < 0) fury = 0;
     if(fury > 10) fury = 10;
 
-    data[currentProfile].shared.fury = fury;
+    data[resourceProfile].shared.fury = fury;
 
     updateFury();
     saveProfiles();
@@ -2274,7 +2450,7 @@ function updateSM(){
 
 
 function changeSM(amount){
-    if(!currentProfile) return;
+    if(!resourceProfile) return;
 
     sm += amount;
 
@@ -2297,15 +2473,15 @@ function changeSM(amount){
 
 // SAVE
 function saveProfiles(){
-    if(!currentProfile) return;
+    if(!resourceProfile) return;
 
-    data[currentProfile][currentFaction].sm = sm;
+    data[resourceProfile][currentFaction].sm = sm;
     localStorage.setItem("profiles", JSON.stringify(data));
 }
 
 // PROFILE LIST
 function refreshProfiles(){
-    let select = document.getElementById("profileSelect");
+    let select = document.getElementById("resourceProfileSelect");
     select.innerHTML = "";
 
     for(let name in data){
@@ -2318,16 +2494,16 @@ function refreshProfiles(){
 
 // RESET
 function resetProfile(){
-    if(!currentProfile) return;
+    if(!resourceProfile) return;
 
-    data[currentProfile][currentFaction].sm = sm;
+    data[resourceProfile][currentFaction].sm = sm;
     saveProfiles();
     loadProfile();
 }
 
 // 👇 ADD IT HERE
 function deleteProfile(){
-    let select = document.getElementById("profileSelect");
+    let select = document.getElementById("resourceProfileSelect");
     let name = select.value;
 
     if(!name) return;
@@ -2338,7 +2514,7 @@ function deleteProfile(){
 
     localStorage.setItem("profiles", JSON.stringify(data));
 
-    currentProfile = null;
+    resourceProfile = null;
     sm = 0;
 
     refreshProfiles();
@@ -2359,7 +2535,7 @@ function setFaction(f){
     let tree = document.getElementById(f);
     if(tree) tree.classList.add("active");
 
-    if(currentProfile){
+    if(resourceProfile){
         loadProfile();
     }
 
@@ -2371,6 +2547,230 @@ function setFaction(f){
 
 // INIT
 refreshProfiles();
+
+
+</div>
+
+
+
+
+    #resourceView {
+    background: url("https://tse3.mm.bing.net/th/id/OIP.ar83qfSeXYWj44vPuMmJggHaEJ?rs=1&pid=ImgDetMain&o=7&rm=3") no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    }
+
+    #resourceView::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 0;
+}
+
+#resourceView > * {
+    position: relative;
+    z-index: 1;
+}
+
+    button {
+  background: #333;
+  color: white;
+  border: 1px solid #555;
+  padding: 10px 14px;
+  margin: 4px;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+    button:hover {
+      background: #555;
+    }
+
+    select {
+      background: #333;
+      color: white;
+      border: 1px solid #555;
+      padding: 5px;
+    }
+
+    #app {
+  max-width: 900px;
+  margin: auto;
+  background: rgba(30, 30, 30, 0.85);
+  padding: 20px;
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+}
+
+
+
+<div style="margin-bottom:10px;">
+  <select id="resourceProfileSelect" onchange="loadProfile()"></select>
+  <button onclick="newProfile()">New Profile</button>
+  <button onclick="saveProfile()">Save</button>
+  <button onclick="resetResources()">Reset</button>
+</div>
+
+<div id="app"></div>
+
+<script>
+const defaultResources = [
+  { name: "Food", value: 0, color: "#4CAF50", icon: "🍖" },
+  { name: "Gold", value: 0, color: "#D4AF37", icon: "🪙" },
+  { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "⚡" },
+  { name: "Metal", value: 0, color: "#9E9E9E", icon: "⛓️" },
+  { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "🐉" },
+  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "🌑" }
+];
+
+let resources = [];
+let resourceProfile = "";
+
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+
+  resources.forEach((res, i) => {
+    const row = document.createElement("div");
+    row.style.margin = "10px";
+    row.style.padding = "10px";
+    row.style.border = "1px solid #ccc";
+    row.style.borderLeft = `6px solid ${res.color}`;
+    row.style.display = "flex";
+    row.style.justifyContent = "space-between";
+    row.style.alignItems = "center";
+    row.style.flexWrap = "wrap";
+    row.style.gap = "10px";
+    row.style.borderRadius = "8px";
+    row.style.background = "rgba(50, 50, 50, 0.85)";
+    row.style.boxShadow = "0 0 8px rgba(0,0,0,0.5)";
+
+    const displayValue = res.max !== undefined 
+      ? `${res.value} / ${res.max}` 
+      : res.value;
+
+    row.innerHTML = `
+      <div style="min-width:180px; font-size:18px;">
+  <strong>${res.icon} ${res.name}</strong>
+</div>
+ <div style="font-size:28px; font-weight:bold; min-width:120px; text-align:center;">
+  ${displayValue}
+ </div>
+    <button onclick="change(${i}, 1)">+1</button>
+    <button onclick="change(${i}, 5)">+5</button>
+    <button onclick="change(${i}, -1)">-1</button>
+    <button onclick="change(${i}, -5)">-5</button>
+
+    ${res.name === "Energy" ? `
+      <button onclick="increaseMaxEnergy(1)">Max +1</button>
+      <button onclick="increaseMaxEnergy(5)">Max +5</button>
+      <button onclick="increaseMaxEnergy(-1)">Max -1</button>
+  ` : ""}
+</div>
+    `;
+
+    app.appendChild(row);
+  });
+}
+
+function change(index, amount) {
+  const res = resources[index];
+  res.value += amount;
+
+  // Handle Energy cap
+  if (res.max !== undefined) {
+    if (res.value > res.max) res.value = res.max;
+  }
+
+  // Prevent negative values
+  if (res.value < 0) res.value = 0;
+
+  saveProfile();
+  render();
+}
+
+function resetResources() {
+  resources = JSON.parse(JSON.stringify(defaultResources));
+  saveProfile();
+  render();
+}
+
+function saveProfile() {
+  if (!resourceProfile) return;
+  localStorage.setItem("profile_" + resourceProfile, JSON.stringify(resources));
+  updateProfileList();
+}
+
+function loadProfile() {
+  const select = document.getElementById("resourceProfileSelect");
+  resourceProfile = select.value;
+
+  const data = localStorage.getItem("profile_" + resourceProfile);
+  if (data) {
+    resources = JSON.parse(data);
+  } else {
+    resources = JSON.parse(JSON.stringify(defaultResources));
+  }
+
+  render();
+}
+
+function newProfile() {
+  const name = prompt("Enter profile name:");
+  if (!name) return;
+
+  resourceProfile = name;
+  resources = JSON.parse(JSON.stringify(defaultResources));
+  saveProfile();
+  updateProfileList();
+  render();
+}
+
+function updateProfileList() {
+  const select = document.getElementById("resourceProfileSelect");
+  select.innerHTML = "";
+
+  Object.keys(localStorage).forEach(key => {
+  if (key.startsWith("profile_")) {
+    const name = key.replace("profile_", "");
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  }
+});
+}
+
+function increaseMaxEnergy(amount) {
+  const energy = resources.find(r => r.name === "Energy");
+  if (!energy) return;
+
+  energy.max += amount;
+
+  // Prevent max from going below 1
+  if (energy.max < 1) energy.max = 1;
+
+  // Clamp current value if it exceeds new max
+  if (energy.value > energy.max) {
+    energy.value = energy.max;
+  }
+
+  saveProfile();
+  render();
+}
+
+// INIT
+updateProfileList();
+
+if (document.getElementById("resourceProfileSelect").options.length > 0) {
+  loadProfile();
+} else {
+  newProfile();
+}
 
 
 
