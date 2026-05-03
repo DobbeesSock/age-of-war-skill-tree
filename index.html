@@ -1926,7 +1926,7 @@ body.elves {
 
   <div id="app"></div>
 
-</div>
+
 
 <script>
 
@@ -2622,12 +2622,6 @@ refreshProfiles();
 `;
 
 
-
-
-    
-
-
-
 <div style="margin-bottom:10px;">
   <select id="resourceProfileSelect" onchange="loadProfile()"></select>
   <button onclick="newProfile()">New Profile</button>
@@ -2635,7 +2629,13 @@ refreshProfiles();
   <button onclick="resetResources()">Reset</button>
 </div>
 
+    
+
+
+
 <div id="app"></div>
+
+
 
 <script>
 const defaultResources = [
@@ -2649,6 +2649,8 @@ const defaultResources = [
 
 let resources = [];
 let resourceProfile = "";
+
+
 
 function render() {
   const app = document.getElementById("app");
@@ -2795,20 +2797,6 @@ if (document.getElementById("resourceProfileSelect").options.length > 0) {
   newProfile();
 }
 
-
-
-
-
-
-
-
-
-
-
-
 </script>
-
-
-
 </body>
 </html>
