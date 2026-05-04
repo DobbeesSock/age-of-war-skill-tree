@@ -222,8 +222,83 @@ h1 {
     box-shadow: 0 0 12px rgba(255,215,0,0.5);
 }
 
+#potionsView {
+    margin: 20px;
+    color: white;
+    min-height: 100vh;
+    background: url("https://wallpapercave.com/wp/lDhWEkW.jpg") no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    padding: 20px;
+}
 
+#potionsView::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 0;
+}
 
+#potionsView > * {
+    position: relative;
+    z-index: 1;
+}
+
+#potionsApp {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.potion-zone {
+    background: rgba(25, 25, 25, 0.86);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.35);
+}
+
+.potion-zone h2 {
+    margin-top: 0;
+    color: gold;
+}
+
+.potion-card {
+    background: rgba(55, 55, 55, 0.9);
+    border-left: 6px solid #888;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.potion-card.common { border-left-color: #b0b0b0; }
+.potion-card.rare { border-left-color: #3fa9f5; }
+.potion-card.legendary { border-left-color: #ff9800; }
+.potion-card.mythic { border-left-color: #c44dff; }
+
+.potion-card h3 {
+    margin: 0 0 6px 0;
+    color: #fff2b2;
+}
+
+.potion-card p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: #ddd;
+}
+
+.potion-card small {
+    display: block;
+    margin-bottom: 8px;
+    color: #bbb;
+}
+
+.potion-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
 
 
 #elves::after {
@@ -734,6 +809,7 @@ body.elves {
 <div style="margin-bottom:15px;">
   <button onclick="showView('skill')">Skill Tree</button>
   <button onclick="showView('resources')">Resources</button>
+  <button onclick="showView('potions')">Potions</button>
 </div>
 
 <div id="skillTreeView">
@@ -1936,7 +2012,6 @@ body.elves {
 
 
 <div id="resourceView" style="display:none;">
-
   <div style="margin-bottom:10px;">
     <select id="resourceProfileSelect" onchange="loadResourceProfile()"></select>
     <button onclick="newProfile()">New Profile</button>
@@ -1945,6 +2020,18 @@ body.elves {
   </div>
 
   <div id="app"></div>
+</div>
+
+<div id="potionsView" style="display:none;">
+  <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap;">
+    <button onclick="drawPotion()">Draw From Deck</button>
+    <button onclick="shuffleDiscardIntoDeck()">Shuffle Discard Into Deck</button>
+    <button onclick="resetPotions()">Reset Potions</button>
+  </div>
+
+  <div id="potionsApp"></div>
+</div>
+
 
 
 
@@ -2138,6 +2225,13 @@ function createProfile(){
         barbarians2: { sm:0, skills:{} }
         };
 
+    data[name].potions = {
+    deck: JSON.parse(JSON.stringify(defaultPotionCards)),
+    inventory: [],
+    discard: []
+        };
+
+
 
     
 
@@ -2149,8 +2243,28 @@ function createProfile(){
     refreshProfiles();
     document.getElementById("skillProfileSelect").value = name;
 
+    if(!name) return;
 
+    resourceProfile = name;
+
+    updateProfileList();
+    document.getElementById("resourceProfileSelect").value = name;
     loadResourceProfile();
+
+    let profile = data[name][currentFaction];
+
+
+
+    refreshProfiles();
+    document.getElementById("skillProfileSelect").value = name;
+
+    loadProfile();
+    saveResourceProfile();
+    updateProfileList();
+    document.getElementById("resourceProfileSelect").value = name;
+    loadResourceProfile();
+    renderPotions();
+
 
     
 }
@@ -2174,6 +2288,10 @@ function loadProfile() {
     updateSM();
     updateFury();
 
+    ensurePotionState(resourceProfile);
+    renderPotions();
+
+
 
 }
 
@@ -2185,7 +2303,11 @@ function showView(view) {
 
   document.getElementById("resourceView").style.display =
     view === "resources" ? "block" : "none";
+
+  document.getElementById("potionsView").style.display =
+    view === "potions" ? "block" : "none";
 }
+
 
 // APPLY SAVED SKILLS
 function applySkills(){
@@ -2552,9 +2674,9 @@ function resetProfile(){
 
     data[resourceProfile][currentFaction].sm = sm;
     saveProfiles();
-    loadResourceProfile();
-
+    loadProfile();
 }
+
 
 // 👇 ADD IT HERE
 function deleteProfile(){
@@ -2569,6 +2691,8 @@ function deleteProfile(){
     delete data[name];
 
     localStorage.setItem("skillTreeData", JSON.stringify(data));
+    localStorage.removeItem("profile_" + name);
+
 
 
     resourceProfile = null;
@@ -2593,6 +2717,219 @@ function setFaction(f) {
     currentFaction.startsWith("barbarians") ? "flex" : "none";
 }
 
+const defaultPotionCards = [
+  {
+    id: "heal_minor",
+    name: "Minor Healing Potion",
+    rarity: "Common",
+    text: "Restore 3 HP."
+  },
+  {
+    id: "heal_major",
+    name: "Major Healing Potion",
+    rarity: "Rare",
+    text: "Restore 6 HP."
+  },
+  {
+    id: "iron_skin",
+    name: "Iron Skin Draught",
+    rarity: "Rare",
+    text: "Gain +1 Armour this phase."
+  },
+  {
+    id: "phoenix_blood",
+    name: "Phoenix Blood",
+    rarity: "Legendary",
+    text: "A defeated unit returns at 1 HP."
+  },
+  {
+    id: "godspark_elixir",
+    name: "Godspark Elixir",
+    rarity: "Mythic",
+    text: "Gain a powerful mission bonus."
+  }
+];
+
+function ensurePotionState(profileName) {
+    if (!data[profileName].potions) {
+        data[profileName].potions = {
+            deck: JSON.parse(JSON.stringify(defaultPotionCards)),
+            inventory: [],
+            discard: []
+        };
+    }
+}
+
+function renderPotions() {
+    const app = document.getElementById("potionsApp");
+    if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+    ensurePotionState(resourceProfile);
+
+    const potionState = data[resourceProfile].potions;
+
+    app.innerHTML = `
+        <div class="potion-zone">
+            <h2>Deck (${potionState.deck.length})</h2>
+            ${potionState.deck.map((card, index) => renderPotionCard(card, "deck", index)).join("")}
+        </div>
+
+        <div class="potion-zone">
+            <h2>Inventory (${potionState.inventory.length})</h2>
+            ${potionState.inventory.map((card, index) => renderPotionCard(card, "inventory", index)).join("")}
+        </div>
+
+        <div class="potion-zone">
+            <h2>Discard (${potionState.discard.length})</h2>
+            ${potionState.discard.map((card, index) => renderPotionCard(card, "discard", index)).join("")}
+        </div>
+    `;
+}
+
+function renderPotionCard(card, zone, index) {
+    const rarityClass = card.rarity.toLowerCase();
+
+    let buttons = "";
+
+    if (zone === "deck") {
+        buttons = `
+            <button onclick="gainPotionFromDeck(${index})">Gain to Inventory</button>
+        `;
+    }
+
+    if (zone === "inventory") {
+        buttons = `
+            <button onclick="usePotion(${index})">Use / Discard</button>
+            <button onclick="returnPotionToDeck(${index})">Return to Deck</button>
+        `;
+    }
+
+    if (zone === "discard") {
+        buttons = `
+            <button onclick="returnDiscardToDeck(${index})">Return to Deck</button>
+        `;
+    }
+
+    return `
+        <div class="potion-card ${rarityClass}">
+            <small>${card.rarity}</small>
+            <h3>${card.name}</h3>
+            <p>${card.text}</p>
+            <div class="potion-actions">
+                ${buttons}
+            </div>
+        </div>
+    `;
+}
+
+function gainPotionFromDeck(index) {
+    if (!resourceProfile) return;
+    ensurePotionState(resourceProfile);
+
+    const potionState = data[resourceProfile].potions;
+    const card = potionState.deck.splice(index, 1)[0];
+    if (!card) return;
+
+    potionState.inventory.push(card);
+    saveProfiles();
+    renderPotions();
+}
+
+function drawPotion() {
+    if (!resourceProfile) return;
+    ensurePotionState(resourceProfile);
+
+    const potionState = data[resourceProfile].potions;
+    if (potionState.deck.length === 0) return;
+
+    const card = potionState.deck.shift();
+    potionState.inventory.push(card);
+
+    saveProfiles();
+    renderPotions();
+}
+
+function usePotion(index) {
+    if (!resourceProfile) return;
+    ensurePotionState(resourceProfile);
+
+    const potionState = data[resourceProfile].potions;
+    const card = potionState.inventory.splice(index, 1)[0];
+    if (!card) return;
+
+    potionState.discard.push(card);
+    saveProfiles();
+    renderPotions();
+}
+
+function returnPotionToDeck(index) {
+    if (!resourceProfile) return;
+    ensurePotionState(resourceProfile);
+
+    const potionState = data[resourceProfile].potions;
+    const card = potionState.inventory.splice(index, 1)[0];
+    if (!card) return;
+
+    potionState.deck.push(card);
+    saveProfiles();
+    renderPotions();
+}
+
+function returnDiscardToDeck(index) {
+    if (!resourceProfile) return;
+    ensurePotionState(resourceProfile);
+
+    const potionState = data[resourceProfile].potions;
+    const card = potionState.discard.splice(index, 1)[0];
+    if (!card) return;
+
+    potionState.deck.push(card);
+    saveProfiles();
+    renderPotions();
+}
+
+function shuffleDiscardIntoDeck() {
+    if (!resourceProfile) return;
+    ensurePotionState(resourceProfile);
+
+    const potionState = data[resourceProfile].potions;
+
+    potionState.deck = potionState.deck.concat(potionState.discard);
+    potionState.discard = [];
+    shuffleArray(potionState.deck);
+
+    saveProfiles();
+    renderPotions();
+}
+
+function resetPotions() {
+    if (!resourceProfile) return;
+
+    data[resourceProfile].potions = {
+        deck: JSON.parse(JSON.stringify(defaultPotionCards)),
+        inventory: [],
+        discard: []
+    };
+
+    saveProfiles();
+    renderPotions();
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+refreshProfiles();
+setFaction(currentFaction);
+updateSM();
+updateFury();
+
+if (document.getElementById("skillProfileSelect").options.length > 0) {
+    loadProfile();
+}
 
 
 </script>
