@@ -2935,25 +2935,28 @@ function renderPotionDeckPile(rarity, count) {
 }
 
 function renderDiscardPileByRarity(rarity, discardCards) {
-    const rarityCards = discardCards
-        .map((card, index) => ({ card, index }))
-        .filter(entry => entry.card.rarity === rarity);
+    const rarityCards = discardCards.filter(card => card.rarity === rarity);
 
     if (rarityCards.length === 0) return "";
+
+    const previewCard = rarityCards[0];
 
     return `
         <div class="potion-card ${rarity.toLowerCase()}">
             <small>${rarity} Discard</small>
             <h3>${rarityCards.length} card${rarityCards.length === 1 ? "" : "s"}</h3>
+            ${
+                previewCard && previewCard.frontImage
+                    ? `<img src="${previewCard.frontImage}" alt="${rarity} discard preview" style="width:100%; border-radius:8px; margin:8px 0;">`
+                    : ""
+            }
             <div class="potion-actions">
                 <button onclick="returnDiscardPileToDeck('${rarity}')">Return ${rarity} to Deck</button>
-            </div>
-            <div style="margin-top:10px;">
-                ${rarityCards.map(entry => renderPotionCard(entry.card, "discard", entry.index)).join("")}
             </div>
         </div>
     `;
 }
+
 
 function returnDiscardPileToDeck(rarity) {
     if (!resourceProfile) return;
