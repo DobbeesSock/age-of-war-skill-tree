@@ -2721,36 +2721,101 @@ function setFaction(f) {
 
 const defaultPotionCards = [
   {
-    id: "heal_minor",
-    name: "Minor Healing Potion",
+    id: "heal_1_a",
+    name: "Heal I",
     rarity: "Common",
-    text: "Restore 3 HP."
+    text: "A unit heals 1 HP.",
+    usage: "1 use - 1 unit",
+    sellValue: "+2 Gold",
+    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/ChatGPT Image Apr 14, 2026, 06_21_46 PM.png"
   },
   {
-    id: "heal_major",
-    name: "Major Healing Potion",
-    rarity: "Rare",
-    text: "Restore 6 HP."
+    id: "heal_1_b",
+    name: "Heal I",
+    rarity: "Common",
+    text: "A unit heals 1 HP.",
+    usage: "1 use - 1 unit",
+    sellValue: "+2 Gold",
+    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/ChatGPT Image Apr 14, 2026, 06_21_46 PM.png"
+  },
+
+  {
+    id: "battle_1_a",
+    name: "Battle I",
+    rarity: "Common",
+    text: "A unit gains +1 Roll Check.",
+    usage: "1 use - 1 unit",
+    sellValue: "+2 Metal",
+    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/battle.png"
   },
   {
-    id: "iron_skin",
-    name: "Iron Skin Draught",
-    rarity: "Rare",
-    text: "Gain +1 Armour this phase."
+    id: "battle_1_b",
+    name: "Battle I",
+    rarity: "Common",
+    text: "A unit gains +1 Roll Check.",
+    usage: "1 use - 1 unit",
+    sellValue: "+2 Metal",
+    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/battle.png"
+  },
+
+  {
+    id: "elite_1_a",
+    name: "Elite I",
+    rarity: "Common",
+    text: "An Elite unit gains +1 Target.",
+    usage: "1 use - 1 unit",
+    sellValue: "+1 Metal",
+    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/ChatGPT Image Apr 14, 2026, 06_30_39 PM.png"
   },
   {
-    id: "phoenix_blood",
-    name: "Phoenix Blood",
-    rarity: "Legendary",
-    text: "A defeated unit returns at 1 HP."
+    id: "elite_1_b",
+    name: "Elite I",
+    rarity: "Common",
+    text: "An Elite unit gains +1 Target.",
+    usage: "1 use - 1 unit",
+    sellValue: "+1 Metal",
+    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/ChatGPT Image Apr 14, 2026, 06_30_39 PM.png"
+  },
+
+  {
+    id: "carnage_1_a",
+    name: "Carnage I",
+    rarity: "Common",
+    text: "Gain +2 Gold per enemy killed this phase.",
+    usage: "1 use",
+    sellValue: "0",
+    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/carnage.png"
   },
   {
-    id: "godspark_elixir",
-    name: "Godspark Elixir",
-    rarity: "Mythic",
-    text: "Gain a powerful mission bonus."
+    id: "carnage_1_b",
+    name: "Carnage I",
+    rarity: "Common",
+    text: "Gain +2 Gold per enemy killed this phase.",
+    usage: "1 use",
+    sellValue: "0",
+    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/carnage.png"
+  },
+
+  {
+    id: "high_ground_1_a",
+    name: "High Ground I",
+    rarity: "Common",
+    text: "A 1x1 unit gains Elevation.",
+    usage: "1 use - 1 unit",
+    sellValue: "+1 Metal",
+    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/ChatGPT Image Apr 14, 2026, 05_37_38 PM.png"
+  },
+  {
+    id: "high_ground_1_b",
+    name: "High Ground I",
+    rarity: "Common",
+    text: "A 1x1 unit gains Elevation.",
+    usage: "1 use - 1 unit",
+    sellValue: "+1 Metal",
+    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/ChatGPT Image Apr 14, 2026, 05_37_38 PM.png"
   }
 ];
+
 
 function ensurePotionState(profileName) {
     if (!data[profileName].potions) {
@@ -2820,8 +2885,6 @@ function renderPotionCard(card, zone, index) {
 
     let buttons = "";
 
-    
-
     if (zone === "inventory") {
         buttons = `
             <button onclick="usePotion(${index})">Use / Discard</button>
@@ -2839,13 +2902,17 @@ function renderPotionCard(card, zone, index) {
         <div class="potion-card ${rarityClass}">
             <small>${card.rarity}</small>
             <h3>${card.name}</h3>
-            <p>${card.text}</p>
+            <img src="${card.image}" alt="${card.name}" style="width:100%; border-radius:8px; margin:8px 0;">
+            <p><strong>Effect:</strong> ${card.text}</p>
+            <p><strong>Usage:</strong> ${card.usage}</p>
+            <p><strong>Sell Value:</strong> ${card.sellValue}</p>
             <div class="potion-actions">
                 ${buttons}
             </div>
         </div>
     `;
 }
+
 
 
 
