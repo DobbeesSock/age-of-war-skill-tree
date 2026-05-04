@@ -2262,7 +2262,8 @@ function createProfile(){
 
     refreshProfiles();
     document.getElementById("skillProfileSelect").value = name;
-
+    
+    resources = JSON.parse(JSON.stringify(defaultResources));
     saveResourceProfile();
     updateProfileList();
     document.getElementById("resourceProfileSelect").value = name;
