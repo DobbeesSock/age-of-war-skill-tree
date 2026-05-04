@@ -3029,6 +3029,8 @@ function shufflePotionDeckByRarity(rarity) {
 }
 
 function gainRandomPotionByRarity(rarity) {
+    console.log("gainRandomPotionByRarity fired", rarity, resourceProfile);
+
     if (!resourceProfile) return;
     ensurePotionState(resourceProfile);
 
@@ -3036,6 +3038,8 @@ function gainRandomPotionByRarity(rarity) {
     const matchingIndexes = potionState.deck
         .map((card, index) => ({ card, index }))
         .filter(entry => entry.card.rarity === rarity);
+
+    console.log("matchingIndexes", matchingIndexes);
 
     if (matchingIndexes.length === 0) return;
 
@@ -3046,6 +3050,7 @@ function gainRandomPotionByRarity(rarity) {
     saveProfiles();
     renderPotions();
 }
+
 
 
 
