@@ -2969,10 +2969,9 @@ function returnDiscardPileToDeck(rarity) {
 
     saveProfiles();
     renderPotions();
+
+   
 }
-
-
-
 
 function renderPotionCard(card, zone, index) {
     const rarityClass = card.rarity.toLowerCase();
@@ -3012,8 +3011,6 @@ function renderPotionCard(card, zone, index) {
 
 
 
-
-
 function shufflePotionDeckByRarity(rarity) {
     if (!resourceProfile) return;
     ensurePotionState(resourceProfile);
@@ -3031,6 +3028,24 @@ function shufflePotionDeckByRarity(rarity) {
     renderPotions();
 }
 
+function gainRandomPotionByRarity(rarity) {
+    if (!resourceProfile) return;
+    ensurePotionState(resourceProfile);
+
+    const potionState = data[resourceProfile].potions;
+    const matchingIndexes = potionState.deck
+        .map((card, index) => ({ card, index }))
+        .filter(entry => entry.card.rarity === rarity);
+
+    if (matchingIndexes.length === 0) return;
+
+    const randomPick = matchingIndexes[Math.floor(Math.random() * matchingIndexes.length)];
+    const card = potionState.deck.splice(randomPick.index, 1)[0];
+
+    potionState.inventory.push(card);
+    saveProfiles();
+    renderPotions();
+}
 
 
 
