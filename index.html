@@ -14,8 +14,9 @@
 
 #dwarves::before,
 #dwarves2::before {
-    background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.7));
+    background: radial-gradient(circle at center, rgba(0,0,0,0.2) 20%, rgba(0,0,0,0.82));
 }
+
 
 h1 {
     color:#d4af37;
@@ -497,7 +498,7 @@ body.men {
 .node h3 { margin:0; color:#ffd700; font-size:14px; }
 .node p { margin:5px 0; font-size:12px; }
 
-.locked { opacity:.4; }
+.locked { opacity: 0.75; }
 .available { box-shadow:0 0 6px #c9a66b; }
 .unlocked {
     background: linear-gradient(145deg, #d4af37, #b8962e);
@@ -1940,8 +1941,7 @@ const defaultResources = [
 let resources = [];
 
 
-function renderResources()
-
+function renderResources() {
   const app = document.getElementById("app");
   app.innerHTML = "";
 
@@ -1960,29 +1960,27 @@ function renderResources()
     row.style.background = "rgba(50, 50, 50, 0.85)";
     row.style.boxShadow = "0 0 8px rgba(0,0,0,0.5)";
 
-    const displayValue = res.max !== undefined 
-      ? `${res.value} / ${res.max}` 
+    const displayValue = res.max !== undefined
+      ? `${res.value} / ${res.max}`
       : res.value;
 
     row.innerHTML = `
-  <div style="min-width:180px; font-size:18px;">
-    <strong>${res.icon} ${res.name}</strong>
-  </div>
-  <div style="font-size:28px; font-weight:bold; min-width:120px; text-align:center;">
-    ${displayValue}
-  </div>
-
-  <button onclick="change(${i}, 1)">+1</button>
-  <button onclick="change(${i}, 5)">+5</button>
-  <button onclick="change(${i}, -1)">-1</button>
-  <button onclick="change(${i}, -5)">-5</button>
-
-  ${res.name === "Energy" ? `
-    <button onclick="increaseMaxEnergy(1)">Max +1</button>
-    <button onclick="increaseMaxEnergy(5)">Max +5</button>
-    <button onclick="increaseMaxEnergy(-1)">Max -1</button>
-  ` : ""}
-`;
+      <div style="min-width:180px; font-size:18px;">
+        <strong>${res.icon} ${res.name}</strong>
+      </div>
+      <div style="font-size:28px; font-weight:bold; min-width:120px; text-align:center;">
+        ${displayValue}
+      </div>
+      <button onclick="change(${i}, 1)">+1</button>
+      <button onclick="change(${i}, 5)">+5</button>
+      <button onclick="change(${i}, -1)">-1</button>
+      <button onclick="change(${i}, -5)">-5</button>
+      ${res.name === "Energy" ? `
+        <button onclick="increaseMaxEnergy(1)">Max +1</button>
+        <button onclick="increaseMaxEnergy(5)">Max +5</button>
+        <button onclick="increaseMaxEnergy(-1)">Max -1</button>
+      ` : ""}
+    `;
 
     app.appendChild(row);
   });
@@ -1992,13 +1990,13 @@ function change(index, amount) {
   const res = resources[index];
   res.value += amount;
 
-  // Handle Energy cap
-  if (res.max !== undefined) {
-    if (res.value > res.max) res.value = res.max;
+  if (res.max !== undefined && res.value > res.max) {
+    res.value = res.max;
   }
 
-  // Prevent negative values
-  if (res.value < 0) res.value = 0;
+  if (res.value < 0) {
+    res.value = 0;
+  }
 
   saveResourceProfile();
   renderResources();
@@ -2010,21 +2008,19 @@ function resetResources() {
   renderResources();
 }
 
-function saveResourceProfile()
-
+function saveResourceProfile() {
   if (!resourceProfile) return;
   localStorage.setItem("profile_" + resourceProfile, JSON.stringify(resources));
   updateProfileList();
+}
 
-
-function loadResourceProfile()
- {
+function loadResourceProfile() {
   const select = document.getElementById("resourceProfileSelect");
   resourceProfile = select.value;
 
-  const data = localStorage.getItem("profile_" + resourceProfile);
-  if (data) {
-    resources = JSON.parse(data);
+  const saved = localStorage.getItem("profile_" + resourceProfile);
+  if (saved) {
+    resources = JSON.parse(saved);
   } else {
     resources = JSON.parse(JSON.stringify(defaultResources));
   }
@@ -2064,30 +2060,21 @@ function increaseMaxEnergy(amount) {
   if (!energy) return;
 
   energy.max += amount;
-
-  // Prevent max from going below 1
   if (energy.max < 1) energy.max = 1;
-
-  // Clamp current value if it exceeds new max
-  if (energy.value > energy.max) {
-    energy.value = energy.max;
-  }
+  if (energy.value > energy.max) energy.value = energy.max;
 
   saveResourceProfile();
   renderResources();
 }
 
-// INIT
 updateProfileList();
 
 if (document.getElementById("resourceProfileSelect").options.length > 0) {
   loadResourceProfile();
-
 } else {
   newProfile();
 }
 </script>
-</div>
 
   
 
@@ -2556,7 +2543,8 @@ function deleteProfile(){
 
     delete data[name];
 
-    localStorage.setItem("profiles", JSON.stringify(data));
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+
 
     resourceProfile = null;
     sm = 0;
