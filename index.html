@@ -300,6 +300,13 @@ h1 {
     flex-wrap: wrap;
 }
 
+.potion-card img {
+    display: block;
+    width: 100%;
+    border-radius: 8px;
+    margin: 8px 0 10px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.35);
+}
 
 #elves::after {
     background-image: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/elves.jpg");
@@ -2727,7 +2734,7 @@ const defaultPotionCards = [
     text: "A unit heals 1 HP.",
     usage: "1 use - 1 unit",
     sellValue: "+2 Gold",
-    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/ChatGPT Image Apr 14, 2026, 06_21_46 PM.png"
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/heal-1.png"
   },
   {
     id: "heal_1_b",
@@ -2736,7 +2743,7 @@ const defaultPotionCards = [
     text: "A unit heals 1 HP.",
     usage: "1 use - 1 unit",
     sellValue: "+2 Gold",
-    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/ChatGPT Image Apr 14, 2026, 06_21_46 PM.png"
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/heal-1.png"
   },
 
   {
@@ -2746,7 +2753,7 @@ const defaultPotionCards = [
     text: "A unit gains +1 Roll Check.",
     usage: "1 use - 1 unit",
     sellValue: "+2 Metal",
-    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/battle.png"
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/battle-1.png"
   },
   {
     id: "battle_1_b",
@@ -2755,7 +2762,7 @@ const defaultPotionCards = [
     text: "A unit gains +1 Roll Check.",
     usage: "1 use - 1 unit",
     sellValue: "+2 Metal",
-    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/battle.png"
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/battle-1.png"
   },
 
   {
@@ -2765,7 +2772,7 @@ const defaultPotionCards = [
     text: "An Elite unit gains +1 Target.",
     usage: "1 use - 1 unit",
     sellValue: "+1 Metal",
-    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/ChatGPT Image Apr 14, 2026, 06_30_39 PM.png"
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/elite-1.png"
   },
   {
     id: "elite_1_b",
@@ -2774,7 +2781,7 @@ const defaultPotionCards = [
     text: "An Elite unit gains +1 Target.",
     usage: "1 use - 1 unit",
     sellValue: "+1 Metal",
-    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/ChatGPT Image Apr 14, 2026, 06_30_39 PM.png"
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/elite-1.png"
   },
 
   {
@@ -2784,7 +2791,7 @@ const defaultPotionCards = [
     text: "Gain +2 Gold per enemy killed this phase.",
     usage: "1 use",
     sellValue: "0",
-    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/carnage.png"
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/carnage-1.png"
   },
   {
     id: "carnage_1_b",
@@ -2793,7 +2800,7 @@ const defaultPotionCards = [
     text: "Gain +2 Gold per enemy killed this phase.",
     usage: "1 use",
     sellValue: "0",
-    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/carnage.png"
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/carnage-1.png"
   },
 
   {
@@ -2803,7 +2810,7 @@ const defaultPotionCards = [
     text: "A 1x1 unit gains Elevation.",
     usage: "1 use - 1 unit",
     sellValue: "+1 Metal",
-    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/ChatGPT Image Apr 14, 2026, 05_37_38 PM.png"
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/high-ground-1.png"
   },
   {
     id: "high_ground_1_b",
@@ -2812,9 +2819,10 @@ const defaultPotionCards = [
     text: "A 1x1 unit gains Elevation.",
     usage: "1 use - 1 unit",
     sellValue: "+1 Metal",
-    image: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/ChatGPT Image Apr 14, 2026, 05_37_38 PM.png"
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/high-ground-1.png"
   }
 ];
+
 
 
 function ensurePotionState(profileName) {
@@ -2865,7 +2873,7 @@ function renderPotionDeckPile(rarity, count) {
     const rarityClass = rarity.toLowerCase();
 
     const backImages = {
-        Common: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/common potion back.png"
+        Common: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/common%20potion%20back.png"
     };
 
     const backImage = backImages[rarity];
@@ -2887,6 +2895,8 @@ function renderPotionDeckPile(rarity, count) {
         </div>
     `;
 }
+
+
 
 
 
@@ -2914,7 +2924,11 @@ function renderPotionCard(card, zone, index) {
         <div class="potion-card ${rarityClass}">
             <small>${card.rarity}</small>
             <h3>${card.name}</h3>
-            <img src="${card.image}" alt="${card.name}" style="width:100%; border-radius:8px; margin:8px 0;">
+            ${
+                card.frontImage
+                    ? `<img src="${card.frontImage}" alt="${card.name}" style="width:100%; border-radius:8px; margin:8px 0;">`
+                    : ""
+            }
             <p><strong>Effect:</strong> ${card.text}</p>
             <p><strong>Usage:</strong> ${card.usage}</p>
             <p><strong>Sell Value:</strong> ${card.sellValue}</p>
@@ -2924,6 +2938,7 @@ function renderPotionCard(card, zone, index) {
         </div>
     `;
 }
+
 
 
 
