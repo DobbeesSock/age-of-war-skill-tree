@@ -2863,9 +2863,13 @@ function renderPotions() {
         </div>
 
         <div class="potion-zone">
-            <h2>Discard (${potionState.discard.length})</h2>
-            ${potionState.discard.map((card, index) => renderPotionCard(card, "discard", index)).join("")}
-        </div>
+        <h2>Discard (${potionState.discard.length})</h2>
+        ${renderDiscardPileByRarity("Common", potionState.discard)}
+        ${renderDiscardPileByRarity("Rare", potionState.discard)}
+        ${renderDiscardPileByRarity("Legendary", potionState.discard)}
+        ${renderDiscardPileByRarity("Mythic", potionState.discard)}
+    </div>
+
     `;
 }
 
@@ -2891,13 +2895,50 @@ function renderPotionDeckPile(rarity, count) {
                 <button onclick="gainRandomPotionByRarity('${rarity}')" ${count === 0 ? "disabled" : ""}>
                     Gain to Inventory
                 </button>
+                <button onclick="shufflePotionDeckByRarity('${rarity}')" ${count < 2 ? "disabled" : ""}>
+                    Shuffle Deck
+                </button>
             </div>
         </div>
     `;
 }
 
+function renderDiscardPileByRarity(rarity, discardCards) {
+    const rarityCards = discardCards
+        .map((card, index) => ({ card, index }))
+        .filter(entry => entry.card.rarity === rarity);
 
+    if (rarityCards.length === 0) return "";
 
+    return `
+        <div class="potion-card ${rarity.toLowerCase()}">
+            <small>${rarity} Discard</small>
+            <h3>${rarityCards.length} card${rarityCards.length === 1 ? "" : "s"}</h3>
+            <div class="potion-actions">
+                <button onclick="returnDiscardPileToDeck('${rarity}')">Return ${rarity} to Deck</button>
+            </div>
+            <div style="margin-top:10px;">
+                ${rarityCards.map(entry => renderPotionCard(entry.card, "discard", entry.index)).join("")}
+            </div>
+        </div>
+    `;
+}
+
+function returnDiscardPileToDeck(rarity) {
+    if (!resourceProfile) return;
+    ensurePotionState(resourceProfile);
+
+    const potionState = data[resourceProfile].potions;
+
+    const returningCards = potionState.discard.filter(card => card.rarity === rarity);
+    const remainingDiscard = potionState.discard.filter(card => card.rarity !== rarity);
+
+    potionState.deck = potionState.deck.concat(returningCards);
+    potionState.discard = remainingDiscard;
+
+    saveProfiles();
+    renderPotions();
+}
 
 
 
@@ -2915,10 +2956,9 @@ function renderPotionCard(card, zone, index) {
     }
 
     if (zone === "discard") {
-        buttons = `
-            <button onclick="returnDiscardToDeck(${index})">Return to Deck</button>
-        `;
+    buttons = "";
     }
+
 
     return `
         <div class="potion-card ${rarityClass}">
@@ -2943,24 +2983,23 @@ function renderPotionCard(card, zone, index) {
 
 
 
-function gainRandomPotionByRarity(rarity) {
+function shufflePotionDeckByRarity(rarity) {
     if (!resourceProfile) return;
     ensurePotionState(resourceProfile);
 
     const potionState = data[resourceProfile].potions;
-    const matchingIndexes = potionState.deck
-        .map((card, index) => ({ card, index }))
-        .filter(entry => entry.card.rarity === rarity);
 
-    if (matchingIndexes.length === 0) return;
+    const matchingCards = potionState.deck.filter(card => card.rarity === rarity);
+    const otherCards = potionState.deck.filter(card => card.rarity !== rarity);
 
-    const randomPick = matchingIndexes[Math.floor(Math.random() * matchingIndexes.length)];
-    const card = potionState.deck.splice(randomPick.index, 1)[0];
+    shuffleArray(matchingCards);
 
-    potionState.inventory.push(card);
+    potionState.deck = otherCards.concat(matchingCards);
+
     saveProfiles();
     renderPotions();
 }
+
 
 
 
