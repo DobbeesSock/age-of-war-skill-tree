@@ -2041,7 +2041,7 @@ body.elves {
 
 <div id="resourceView" style="display:none;">
   <div style="margin-bottom:10px;">
-    <select id="resourceProfileSelect" onchange="loadResourceProfile()"></select>
+    <select id="resourceProfileSelect" onchange="syncProfileFromResourceSelect()"></select>
     <button onclick="newProfile()">New Profile</button>
     <button onclick="saveResourceProfile()">Save</button>
     <button onclick="resetResources()">Reset</button>
@@ -2153,19 +2153,41 @@ function saveResourceProfile() {
   updateProfileList();
 }
 
-function loadResourceProfile() {
-  const select = document.getElementById("resourceProfileSelect");
-  resourceProfile = select.value;
+function loadResourceProfile(profileName = resourceProfile) {
+  if (!profileName) return;
 
-  const saved = localStorage.getItem("profile_" + resourceProfile);
+  const saved = localStorage.getItem("profile_" + profileName);
   if (saved) {
     resources = JSON.parse(saved);
   } else {
     resources = JSON.parse(JSON.stringify(defaultResources));
   }
 
+  const select = document.getElementById("resourceProfileSelect");
+  if (select) {
+    select.value = profileName;
+  }
+
   renderResources();
 }
+
+function syncProfileFromResourceSelect() {
+  const select = document.getElementById("resourceProfileSelect");
+  const name = select.value;
+
+  if (!name) return;
+
+  resourceProfile = name;
+
+  const skillSelect = document.getElementById("skillProfileSelect");
+  if (skillSelect) {
+    skillSelect.value = name;
+  }
+
+  loadProfile();
+}
+
+
 
 function newProfile() {
   const name = prompt("Enter profile name:");
@@ -2262,7 +2284,7 @@ function createProfile(){
 
     refreshProfiles();
     document.getElementById("skillProfileSelect").value = name;
-    
+
     resources = JSON.parse(JSON.stringify(defaultResources));
     saveResourceProfile();
     updateProfileList();
@@ -2290,7 +2312,8 @@ function loadProfile() {
 
     updateProfileList();
     document.getElementById("resourceProfileSelect").value = name;
-    loadResourceProfile();
+    loadResourceProfile(name);
+
 
 
     let profile = data[name][currentFaction];
