@@ -746,6 +746,27 @@ body.elves {
     box-shadow: 0 0 15px #6bbf59;
 }
 
+.potion-card.common,
+.potion-card.rare,
+.potion-card.legendary,
+.potion-card.mythic {
+    position: relative;
+    overflow: hidden;
+}
+
+.potion-zone:first-child .potion-card h3 {
+    color: #f3e4a2;
+}
+
+.potion-zone:first-child .potion-card::after {
+    content: "🂠";
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 22px;
+    opacity: 0.35;
+}
+
 
   #resourceView {
     position: relative;
@@ -2024,7 +2045,6 @@ body.elves {
 
 <div id="potionsView" style="display:none;">
   <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap;">
-    <button onclick="drawPotion()">Draw From Deck</button>
     <button onclick="shuffleDiscardIntoDeck()">Shuffle Discard Into Deck</button>
     <button onclick="resetPotions()">Reset Potions</button>
   </div>
@@ -2225,45 +2245,20 @@ function createProfile(){
         barbarians2: { sm:0, skills:{} }
         };
 
-    data[name].potions = {
-    deck: JSON.parse(JSON.stringify(defaultPotionCards)),
-    inventory: [],
-    discard: []
-        };
-
-
-
-    
-
     resourceProfile = name;
-    // 
-
-    
 
     refreshProfiles();
     document.getElementById("skillProfileSelect").value = name;
 
-    if(!name) return;
-
-    resourceProfile = name;
-
-    updateProfileList();
-    document.getElementById("resourceProfileSelect").value = name;
-    loadResourceProfile();
-
-    let profile = data[name][currentFaction];
-
-
-
-    refreshProfiles();
-    document.getElementById("skillProfileSelect").value = name;
-
-    loadProfile();
     saveResourceProfile();
     updateProfileList();
     document.getElementById("resourceProfileSelect").value = name;
+
+    loadProfile();
     loadResourceProfile();
     renderPotions();
+
+
 
 
     
@@ -2272,14 +2267,21 @@ function createProfile(){
 // LOAD PROFILE
 function loadProfile() {
     let select = document.getElementById("skillProfileSelect");
-
     let name = select.value;
 
     if(!name) return;
 
     resourceProfile = name;
 
+    updateProfileList();
+    document.getElementById("resourceProfileSelect").value = name;
+    loadResourceProfile();
+
+
     let profile = data[name][currentFaction];
+
+
+    
 
     sm = profile.sm ?? 0;
 
@@ -2768,10 +2770,18 @@ function renderPotions() {
 
     const potionState = data[resourceProfile].potions;
 
+    const commonCount = potionState.deck.filter(card => card.rarity === "Common").length;
+    const rareCount = potionState.deck.filter(card => card.rarity === "Rare").length;
+    const legendaryCount = potionState.deck.filter(card => card.rarity === "Legendary").length;
+    const mythicCount = potionState.deck.filter(card => card.rarity === "Mythic").length;
+
     app.innerHTML = `
         <div class="potion-zone">
-            <h2>Deck (${potionState.deck.length})</h2>
-            ${potionState.deck.map((card, index) => renderPotionCard(card, "deck", index)).join("")}
+            <h2>Deck</h2>
+            ${renderPotionDeckPile("Common", commonCount)}
+            ${renderPotionDeckPile("Rare", rareCount)}
+            ${renderPotionDeckPile("Legendary", legendaryCount)}
+            ${renderPotionDeckPile("Mythic", mythicCount)}
         </div>
 
         <div class="potion-zone">
@@ -2786,16 +2796,31 @@ function renderPotions() {
     `;
 }
 
+function renderPotionDeckPile(rarity, count) {
+    const rarityClass = rarity.toLowerCase();
+
+    return `
+        <div class="potion-card ${rarityClass}">
+            <small>${rarity} Deck</small>
+            <h3>Unknown Potions</h3>
+            <p>${count} card${count === 1 ? "" : "s"} remaining</p>
+            <div class="potion-actions">
+                <button onclick="gainRandomPotionByRarity('${rarity}')" ${count === 0 ? "disabled" : ""}>
+                    Gain to Inventory
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+
+
 function renderPotionCard(card, zone, index) {
     const rarityClass = card.rarity.toLowerCase();
 
     let buttons = "";
 
-    if (zone === "deck") {
-        buttons = `
-            <button onclick="gainPotionFromDeck(${index})">Gain to Inventory</button>
-        `;
-    }
+    
 
     if (zone === "inventory") {
         buttons = `
@@ -2822,32 +2847,29 @@ function renderPotionCard(card, zone, index) {
     `;
 }
 
-function gainPotionFromDeck(index) {
+
+
+function gainRandomPotionByRarity(rarity) {
     if (!resourceProfile) return;
     ensurePotionState(resourceProfile);
 
     const potionState = data[resourceProfile].potions;
-    const card = potionState.deck.splice(index, 1)[0];
-    if (!card) return;
+    const matchingIndexes = potionState.deck
+        .map((card, index) => ({ card, index }))
+        .filter(entry => entry.card.rarity === rarity);
+
+    if (matchingIndexes.length === 0) return;
+
+    const randomPick = matchingIndexes[Math.floor(Math.random() * matchingIndexes.length)];
+    const card = potionState.deck.splice(randomPick.index, 1)[0];
 
     potionState.inventory.push(card);
     saveProfiles();
     renderPotions();
 }
 
-function drawPotion() {
-    if (!resourceProfile) return;
-    ensurePotionState(resourceProfile);
 
-    const potionState = data[resourceProfile].potions;
-    if (potionState.deck.length === 0) return;
 
-    const card = potionState.deck.shift();
-    potionState.inventory.push(card);
-
-    saveProfiles();
-    renderPotions();
-}
 
 function usePotion(index) {
     if (!resourceProfile) return;
