@@ -699,15 +699,9 @@ body.elves {
     border-radius: 12px;
     backdrop-filter: blur(6px);
   }
-</style>   
-
-
-
-
-
-
-
-
+</style>
+</head>
+<body>
 
 <h1>Age of War Companion</h1>
 
@@ -1918,9 +1912,9 @@ body.elves {
 <div id="resourceView" style="display:none;">
 
   <div style="margin-bottom:10px;">
-    <select id="resourceProfileSelect" onchange="loadProfile()"></select>
+    <select id="resourceProfileSelect" onchange="loadResourceProfile()"></select>
     <button onclick="newProfile()">New Profile</button>
-    <button onclick="saveProfile()">Save</button>
+    <button onclick="saveResourceProfile()">Save</button>
     <button onclick="resetResources()">Reset</button>
   </div>
 
@@ -1940,13 +1934,14 @@ const defaultResources = [
   { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "⚡" },
   { name: "Metal", value: 0, color: "#9E9E9E", icon: "⛓️" },
   { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "🐉" },
-  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "🌑" }
+  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "💀" }
 ];
 
 let resources = [];
 
 
-function render() {
+function renderResources()
+
   const app = document.getElementById("app");
   app.innerHTML = "";
 
@@ -2005,23 +2000,25 @@ function change(index, amount) {
   // Prevent negative values
   if (res.value < 0) res.value = 0;
 
-  saveProfile();
-  render();
+  saveResourceProfile();
+  renderResources();
 }
 
 function resetResources() {
   resources = JSON.parse(JSON.stringify(defaultResources));
-  saveProfile();
-  render();
+  saveResourceProfile();
+  renderResources();
 }
 
-function saveProfile() {
+function saveResourceProfile()
+
   if (!resourceProfile) return;
   localStorage.setItem("profile_" + resourceProfile, JSON.stringify(resources));
   updateProfileList();
-}
 
-function loadProfile() {
+
+function loadResourceProfile()
+ {
   const select = document.getElementById("resourceProfileSelect");
   resourceProfile = select.value;
 
@@ -2032,7 +2029,7 @@ function loadProfile() {
     resources = JSON.parse(JSON.stringify(defaultResources));
   }
 
-  render();
+  renderResources();
 }
 
 function newProfile() {
@@ -2041,9 +2038,9 @@ function newProfile() {
 
   resourceProfile = name;
   resources = JSON.parse(JSON.stringify(defaultResources));
-  saveProfile();
+  saveResourceProfile();
   updateProfileList();
-  render();
+  renderResources();
 }
 
 function updateProfileList() {
@@ -2076,15 +2073,16 @@ function increaseMaxEnergy(amount) {
     energy.value = energy.max;
   }
 
-  saveProfile();
-  render();
+  saveResourceProfile();
+  renderResources();
 }
 
 // INIT
 updateProfileList();
 
 if (document.getElementById("resourceProfileSelect").options.length > 0) {
-  loadProfile();
+  loadResourceProfile();
+
 } else {
   newProfile();
 }
@@ -2099,6 +2097,8 @@ if (document.getElementById("resourceProfileSelect").options.length > 0) {
 
 let data = JSON.parse(localStorage.getItem("skillTreeData")) || {};
 let sm = 0;
+let currentFaction = "dwarves";
+
 
 // CREATE / LOAD PROFILE
 function createProfile(){
@@ -2107,6 +2107,7 @@ function createProfile(){
     if(!name) return;
 
     data[name] = {
+        shared: { fury: 0 },
         dwarves: { sm:0, skills:{} },
         dwarves2: { sm:0, skills:{} },
         elves: { sm:0, skills:{} },
@@ -2134,15 +2135,18 @@ function createProfile(){
     
 
     refreshProfiles();
-    document.getElementById("resourceProfileSelect").value = name;
+    document.getElementById("skillProfileSelect").value = name;
 
-    loadProfile();
+
+    loadResourceProfile();
+
     
 }
 
 // LOAD PROFILE
-function loadProfile(){
-    let select = document.getElementById("resourceProfileSelect");
+function loadProfile() {
+    let select = document.getElementById("skillProfileSelect");
+
     let name = select.value;
 
     if(!name) return;
@@ -2161,18 +2165,7 @@ function loadProfile(){
 
 }
 
-function showView(view) {
-  document.getElementById("skillTreeView").style.display = "none";
-  document.getElementById("resourceView").style.display = "none";
 
-  if (view === "skill") {
-    document.getElementById("skillTreeView").style.display = "block";
-  }
-
-  if (view === "resources") {
-    document.getElementById("resourceView").style.display = "block";
-  }
-}
 
 function showView(view) {
   document.getElementById("skillTreeView").style.display =
@@ -2519,25 +2512,18 @@ function changeSM(amount){
 
 
     
-
- 
-
-    
-
-
-
-
-// SAVE
 function saveProfiles(){
     if(!resourceProfile) return;
 
     data[resourceProfile][currentFaction].sm = sm;
-    localStorage.setItem("profiles", JSON.stringify(data));
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
 }
+
 
 // PROFILE LIST
 function refreshProfiles(){
-    let select = document.getElementById("resourceProfileSelect");
+    let select = document.getElementById("skillProfileSelect");
+
     select.innerHTML = "";
 
     for(let name in data){
@@ -2554,12 +2540,14 @@ function resetProfile(){
 
     data[resourceProfile][currentFaction].sm = sm;
     saveProfiles();
-    loadProfile();
+    loadResourceProfile();
+
 }
 
 // 👇 ADD IT HERE
 function deleteProfile(){
-    let select = document.getElementById("resourceProfileSelect");
+    let select = document.getElementById("skillProfileSelect");
+
     let name = select.value;
 
     if(!name) return;
@@ -2577,226 +2565,24 @@ function deleteProfile(){
     updateSM();
 }
 
-function setFaction(faction) {
-  document.querySelectorAll(".tree").forEach(tree => {
-    tree.classList.remove("active");
-  });
-
-  const selected = document.getElementById(faction);
-  if (selected) {
-    selected.classList.add("active");
+function setFaction(f) {
+  currentFaction = f;
+  document.body.className = f;
+  document.getElementById("factionSelect").value = f;
+  document.querySelectorAll(".tree").forEach(t => t.classList.remove("active"));
+  let tree = document.getElementById(f);
+  if (tree) tree.classList.add("active");
+  if (resourceProfile) {
+    loadProfile();
   }
-
-  document.body.className = faction;
-}
-
-// FACTION SWITCH
-function setFaction(f){
-
-    currentFaction = f;
-
-    document.body.className = f;
-
-    document.getElementById("factionSelect").value = f;
-
-    document.querySelectorAll(".tree").forEach(t=>t.classList.remove("active"));
-
-    let tree = document.getElementById(f);
-    if(tree) tree.classList.add("active");
-
-    if(resourceProfile){
-        loadProfile();
-    }
-
-    updateFury();
-
-    document.getElementById("furyContainer").style.display =
+  updateFury();
+  document.getElementById("furyContainer").style.display =
     currentFaction.startsWith("barbarians") ? "flex" : "none";
 }
 
-// INIT
-refreshProfiles();
 
-
-</div>
-`;
-
-
-<div style="margin-bottom:10px;">
-  <select id="resourceProfileSelect" onchange="loadProfile()"></select>
-  <button onclick="newProfile()">New Profile</button>
-  <button onclick="saveProfile()">Save</button>
-  <button onclick="resetResources()">Reset</button>
-</div>
-
-    
-
-
-
-<div id="app"></div>
-
-
-
-<script>
-const defaultResources = [
-  { name: "Food", value: 0, color: "#4CAF50", icon: "🍖" },
-  { name: "Gold", value: 0, color: "#D4AF37", icon: "🪙" },
-  { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "⚡" },
-  { name: "Metal", value: 0, color: "#9E9E9E", icon: "⛓️" },
-  { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "🐉" },
-  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "🌑" }
-];
-
-let resources = [];
-let resourceProfile = "";
-
-
-
-function render() {
-  const app = document.getElementById("app");
-  app.innerHTML = "";
-
-  resources.forEach((res, i) => {
-    const row = document.createElement("div");
-    row.style.margin = "10px";
-    row.style.padding = "10px";
-    row.style.border = "1px solid #ccc";
-    row.style.borderLeft = `6px solid ${res.color}`;
-    row.style.display = "flex";
-    row.style.justifyContent = "space-between";
-    row.style.alignItems = "center";
-    row.style.flexWrap = "wrap";
-    row.style.gap = "10px";
-    row.style.borderRadius = "8px";
-    row.style.background = "rgba(50, 50, 50, 0.85)";
-    row.style.boxShadow = "0 0 8px rgba(0,0,0,0.5)";
-
-    const displayValue = res.max !== undefined 
-      ? `${res.value} / ${res.max}` 
-      : res.value;
-
-    row.innerHTML = `
-  <div style="min-width:180px; font-size:18px;">
-    <strong>${res.icon} ${res.name}</strong>
-  </div>
-
-  <div style="font-size:28px; font-weight:bold; min-width:120px; text-align:center;">
-    ${displayValue}
-  </div>
-
-  <div>
-    <button onclick="change(${i}, 1)">+1</button>
-    <button onclick="change(${i}, 5)">+5</button>
-    <button onclick="change(${i}, -1)">-1</button>
-    <button onclick="change(${i}, -5)">-5</button>
-
-    ${res.name === "Energy" ? `
-      <button onclick="increaseMaxEnergy(1)">Max +1</button>
-      <button onclick="increaseMaxEnergy(5)">Max +5</button>
-      <button onclick="increaseMaxEnergy(-1)">Max -1</button>
-    ` : ""}
-  </div>
-`;
-
-    app.appendChild(row);
-  });
-}
-
-function change(index, amount) {
-  const res = resources[index];
-  res.value += amount;
-
-  // Handle Energy cap
-  if (res.max !== undefined) {
-    if (res.value > res.max) res.value = res.max;
-  }
-
-  // Prevent negative values
-  if (res.value < 0) res.value = 0;
-
-  saveProfile();
-  render();
-}
-
-function resetResources() {
-  resources = JSON.parse(JSON.stringify(defaultResources));
-  saveProfile();
-  render();
-}
-
-function saveProfile() {
-  if (!resourceProfile) return;
-  localStorage.setItem("profile_" + resourceProfile, JSON.stringify(resources));
-  updateProfileList();
-}
-
-function loadProfile() {
-  const select = document.getElementById("resourceProfileSelect");
-  resourceProfile = select.value;
-
-  const data = localStorage.getItem("profile_" + resourceProfile);
-  if (data) {
-    resources = JSON.parse(data);
-  } else {
-    resources = JSON.parse(JSON.stringify(defaultResources));
-  }
-
-  render();
-}
-
-function newProfile() {
-  const name = prompt("Enter profile name:");
-  if (!name) return;
-
-  resourceProfile = name;
-  resources = JSON.parse(JSON.stringify(defaultResources));
-  saveProfile();
-  updateProfileList();
-  render();
-}
-
-function updateProfileList() {
-  const select = document.getElementById("resourceProfileSelect");
-  select.innerHTML = "";
-
-  Object.keys(localStorage).forEach(key => {
-  if (key.startsWith("profile_")) {
-    const name = key.replace("profile_", "");
-    const option = document.createElement("option");
-    option.value = name;
-    option.textContent = name;
-    select.appendChild(option);
-  }
-});
-}
-
-function increaseMaxEnergy(amount) {
-  const energy = resources.find(r => r.name === "Energy");
-  if (!energy) return;
-
-  energy.max += amount;
-
-  // Prevent max from going below 1
-  if (energy.max < 1) energy.max = 1;
-
-  // Clamp current value if it exceeds new max
-  if (energy.value > energy.max) {
-    energy.value = energy.max;
-  }
-
-  saveProfile();
-  render();
-}
-
-// INIT
-updateProfileList();
-
-if (document.getElementById("resourceProfileSelect").options.length > 0) {
-  loadProfile();
-} else {
-  newProfile();
-}
 
 </script>
+
 </body>
 </html>
