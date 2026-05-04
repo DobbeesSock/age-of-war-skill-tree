@@ -2864,10 +2864,20 @@ function renderPotions() {
 function renderPotionDeckPile(rarity, count) {
     const rarityClass = rarity.toLowerCase();
 
+    const backImages = {
+        Common: "C:/Users/dobbe/OneDrive/Desktop/Age of War/Table Top Assets/Potions/Common/common potion back.png"
+    };
+
+    const backImage = backImages[rarity];
+
     return `
         <div class="potion-card ${rarityClass}">
             <small>${rarity} Deck</small>
-            <h3>Unknown Potions</h3>
+            ${
+                backImage
+                    ? `<img src="${backImage}" alt="${rarity} Potion Back" style="width:100%; border-radius:8px; margin:8px 0;">`
+                    : `<h3>Facedown Potion Cards</h3>`
+            }
             <p>${count} card${count === 1 ? "" : "s"} remaining</p>
             <div class="potion-actions">
                 <button onclick="gainRandomPotionByRarity('${rarity}')" ${count === 0 ? "disabled" : ""}>
@@ -2877,6 +2887,8 @@ function renderPotionDeckPile(rarity, count) {
         </div>
     `;
 }
+
+
 
 
 
