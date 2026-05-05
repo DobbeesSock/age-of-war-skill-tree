@@ -3666,10 +3666,13 @@ function renderPotions() {
 function renderPotionDeckPile(rarity, count) {
     const rarityClass = rarity.toLowerCase();
 
-    const backImages = {
-        Common: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/common%20potion%20back.png"
-        Rare: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/background.png"
-    };
+const backImages = {
+    Common: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/common%20potion%20back.png",
+    Rare: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/background.png",
+    Legendary: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/legendary%20background.png"
+
+};
+
 
     const backImage = backImages[rarity];
 
