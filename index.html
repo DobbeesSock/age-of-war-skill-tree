@@ -3177,7 +3177,429 @@ const commonPotionCards = [
   }
 ];
 
-const rarePotionCards = [];
+const rarePotionCards = [
+  {
+    id: "bypass_2_a",
+    name: "Bypass II",
+    rarity: "Rare",
+    text: "Negate up to 2 Armour of an enemy target.",
+    usage: "1 use - 1 unit",
+    sellValue: "+4 Gold",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/bypass-2.png"
+  },
+  {
+    id: "bypass_2_b",
+    name: "Bypass II",
+    rarity: "Rare",
+    text: "Negate up to 2 Armour of an enemy target.",
+    usage: "1 use - 1 unit",
+    sellValue: "+4 Gold",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/bypass-2.png"
+  },
+
+  {
+    id: "aggression_2_a",
+    name: "Aggression II",
+    rarity: "Rare",
+    text: "Move up to 2 units for free this Game Phase and heal those moved units 1 HP.",
+    usage: "1 use - 2 unit(s)",
+    sellValue: "+1 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/aggression-2.png"
+  },
+  {
+    id: "aggression_2_b",
+    name: "Aggression II",
+    rarity: "Rare",
+    text: "Move up to 2 units for free this Game Phase and heal those moved units 1 HP.",
+    usage: "1 use - 2 unit(s)",
+    sellValue: "+1 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/aggression-2.png"
+  },
+
+  {
+    id: "carnage_2_a",
+    name: "Carnage II",
+    rarity: "Rare",
+    text: "Gain +3 Gold per enemy killed this Phase.",
+    usage: "1 use",
+    sellValue: "0",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/carnage-2.png"
+  },
+  {
+    id: "carnage_2_b",
+    name: "Carnage II",
+    rarity: "Rare",
+    text: "Gain +3 Gold per enemy killed this Phase.",
+    usage: "1 use",
+    sellValue: "0",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/carnage-2.png"
+  },
+
+  {
+    id: "battle_2_a",
+    name: "Battle II",
+    rarity: "Rare",
+    text: "A unit gains +1 Roll Check and +1 Output Damage.",
+    usage: "1 use - 1 unit",
+    sellValue: "+3 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/battle-2.png"
+  },
+  {
+    id: "battle_2_b",
+    name: "Battle II",
+    rarity: "Rare",
+    text: "A unit gains +1 Roll Check and +1 Output Damage.",
+    usage: "1 use - 1 unit",
+    sellValue: "+3 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/battle-2.png"
+  },
+
+  {
+    id: "blindside_2_a",
+    name: "Blindside II",
+    rarity: "Rare",
+    text: "Ignore an enemy Shield check and gain +1 Output Damage.",
+    usage: "1 use - 1 unit",
+    sellValue: "+4 Food",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/blindside-2.png"
+  },
+  {
+    id: "blindside_2_b",
+    name: "Blindside II",
+    rarity: "Rare",
+    text: "Ignore an enemy Shield check and gain +1 Output Damage.",
+    usage: "1 use - 1 unit",
+    sellValue: "+4 Food",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/blindside-2.png"
+  },
+
+    {
+    id: "gamble_2_a",
+    name: "Gamble II",
+    rarity: "Rare",
+    text: "Roll a D6. On a 1-2 a unit suffers 3 damage, on a 5-6 gain a Legendary potion.",
+    usage: "1 use",
+    sellValue: "0",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/gamble-2.png"
+  },
+  {
+    id: "gamble_2_b",
+    name: "Gamble II",
+    rarity: "Rare",
+    text: "Roll a D6. On a 1-2 a unit suffers 3 damage, on a 5-6 gain a Legendary potion.",
+    usage: "1 use",
+    sellValue: "0",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/gamble-2.png"
+  },
+
+  {
+    id: "charge_2_a",
+    name: "Charge II",
+    rarity: "Rare",
+    text: "Move a unit 4 and perform an attack.",
+    usage: "1 use - 1 unit",
+    sellValue: "+5 Gold",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/charge-2.png"
+  },
+  {
+    id: "charge_2_b",
+    name: "Charge II",
+    rarity: "Rare",
+    text: "Move a unit 4 and perform an attack.",
+    usage: "1 use - 1 unit",
+    sellValue: "+5 Gold",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/charge-2.png"
+  },
+
+  {
+    id: "cloaked_2_a",
+    name: "Cloaked II",
+    rarity: "Rare",
+    text: "A 1x1 unit adjacent to an Elite gains +2 Armour and +1 Retaliate.",
+    usage: "1 use - 1 unit",
+    sellValue: "+1 Metal & +2 Gold",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/cloaked-2.png"
+  },
+  {
+    id: "cloaked_2_b",
+    name: "Cloaked II",
+    rarity: "Rare",
+    text: "A 1x1 unit adjacent to an Elite gains +2 Armour and +1 Retaliate.",
+    usage: "1 use - 1 unit",
+    sellValue: "+1 Metal & +2 Gold",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/cloaked-2.png"
+  },
+
+  {
+    id: "commander_2_a",
+    name: "Commander II",
+    rarity: "Rare",
+    text: "1 Commander may move 8 for free",
+    usage: "1 use - 1 unit",
+    sellValue: "+4 Gold",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/commander-2.png"
+  },
+  {
+    id: "commander_2_b",
+    name: "Commander II",
+    rarity: "Rare",
+    text: "1 Commander may move 8 for free",
+    usage: "1 use - 1 unit",
+    sellValue: "+4 Gold",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/commander-2.png"
+  },
+
+  {
+    id: "elite_2_a",
+    name: "Elite II",
+    rarity: "Rare",
+    text: "An Elite unit gains +1 Target and heals 2 self.",
+    usage: "1 use - 1 unit",
+    sellValue: "+1 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/elite-2.png"
+  },
+  {
+    id: "elite_2_b",
+    name: "Elite II",
+    rarity: "Rare",
+    text: "An Elite unit gains +1 Target and heals 2 self.",
+    usage: "1 use - 1 unit",
+    sellValue: "+1 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/elite-2.png"
+  },
+
+  {
+    id: "fate_2_a",
+    name: "Fate II",
+    rarity: "Rare",
+    text: "Choose Battle Table die result for a Knight.",
+    usage: "1 use - 1 unit",
+    sellValue: "+5 Gold",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/fate-2.png"
+  },
+  {
+    id: "fate_2_b",
+    name: "Fate II",
+    rarity: "Rare",
+    text: "Choose Battle Table die result for a Knight.",
+    usage: "1 use - 1 unit",
+    sellValue: "+5 Gold",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/fate-2.png"
+  },
+
+    {
+    id: "guard_2_a",
+    name: "Guard II",
+    rarity: "Rare",
+    text: "+4 movement for Guard units this Game Phase.",
+    usage: "1 use",
+    sellValue: "+5 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/guard-2.png"
+  },
+  {
+    id: "guard_2_b",
+    name: "Guard II",
+    rarity: "Rare",
+    text: "+4 movement for Guard units this Game Phase.",
+    usage: "1 use",
+    sellValue: "+5 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/guard-2.png"
+  },
+
+  {
+    id: "heal_2_a",
+    name: "Heal II",
+    rarity: "Rare",
+    text: "A unit heals 2 HP.",
+    usage: "1 use - 1 unit",
+    sellValue: "+3 Gold",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/heal-2.png"
+  },
+  {
+    id: "heal_2_b",
+    name: "Heal II",
+    rarity: "Rare",
+    text: "A unit heals 2 HP.",
+    usage: "1 use - 1 unit",
+    sellValue: "+3 Gold",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/heal-2.png"
+  },
+
+  {
+    id: "harvest_2_a",
+    name: "Harvest II",
+    rarity: "Rare",
+    text: "+4 Food.",
+    usage: "1 use",
+    sellValue: "+1 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/harvest-2.png"
+  },
+  {
+    id: "harvest_2_b",
+    name: "Harvest II",
+    rarity: "Rare",
+    text: "+4 Food.",
+    usage: "1 use",
+    sellValue: "+1 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/harvest-2.png"
+  },
+
+  {
+    id: "healing_aura_2_a",
+    name: "Healing Aura II",
+    rarity: "Rare",
+    text: "A unit heals 3 HP.",
+    usage: "1 use - 1 unit",
+    sellValue: "+1 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/healing-aura-2.png"
+  },
+  {
+    id: "healing_aura_2_b",
+    name: "Healing Aura II",
+    rarity: "Rare",
+    text: "A unit heals 3 HP.",
+    usage: "1 use - 1 unit",
+    sellValue: "+1 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/healing-aura-2.png"
+  },
+
+  {
+    id: "high_ground_2_a",
+    name: "High Ground II",
+    rarity: "Rare",
+    text: "Up to 2 1x1 units gain Elevation.",
+    usage: "1 use - 2 unit(s)",
+    sellValue: "+1 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/high-ground-2.png"
+  },
+  {
+    id: "high_ground_2_b",
+    name: "High Ground II",
+    rarity: "Rare",
+    text: "Up to 2 1x1 units gain Elevation.",
+    usage: "1 use - 2 unit(s)",
+    sellValue: "+1 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/high-ground-2.png"
+  },
+
+  {
+    id: "mount_2_a",
+    name: "Mount II",
+    rarity: "Rare",
+    text: "Riders gain +3 movement this Game Phase.",
+    usage: "1 use",
+    sellValue: "+1 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/mount-2.png"
+  },
+  {
+    id: "mount_2_b",
+    name: "Mount II",
+    rarity: "Rare",
+    text: "Riders gain +3 movement this Game Phase.",
+    usage: "1 use",
+    sellValue: "+1 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/mount-2.png"
+  },
+
+    {
+    id: "riches_2_a",
+    name: "Riches II",
+    rarity: "Rare",
+    text: "+4 Gold.",
+    usage: "1 use",
+    sellValue: "+2 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/riches-2.png"
+  },
+  {
+    id: "riches_2_b",
+    name: "Riches II",
+    rarity: "Rare",
+    text: "+4 Gold.",
+    usage: "1 use",
+    sellValue: "+2 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/riches-2.png"
+  },
+
+  {
+    id: "war_cry_2_a",
+    name: "War Cry II",
+    rarity: "Rare",
+    text: "Up to 2 Elite units can perform a free attack action this Game Phase.",
+    usage: "1 use",
+    sellValue: "+1 Dragon Coin",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/war-cry-2.png"
+  },
+  {
+    id: "war_cry_2_b",
+    name: "War Cry II",
+    rarity: "Rare",
+    text: "Up to 2 Elite units can perform a free attack action this Game Phase.",
+    usage: "1 use",
+    sellValue: "+1 Dragon Coin",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/war-cry-2.png"
+  },
+
+  {
+    id: "stand_2_a",
+    name: "Stand II",
+    rarity: "Rare",
+    text: "A unit gains +2 Armour.",
+    usage: "1 use - 1 unit",
+    sellValue: "+6 Food",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/stand-2.png"
+  },
+  {
+    id: "stand_2_b",
+    name: "Stand II",
+    rarity: "Rare",
+    text: "A unit gains +2 Armour.",
+    usage: "1 use - 1 unit",
+    sellValue: "+6 Food",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/stand-2.png"
+  },
+
+  {
+    id: "swift_2_a",
+    name: "Swift II",
+    rarity: "Rare",
+    text: "A unit gains +4 Movement.",
+    usage: "1 use - 1 unit",
+    sellValue: "+4 Food",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/swift-2.png"
+  },
+  {
+    id: "swift_2_b",
+    name: "Swift II",
+    rarity: "Rare",
+    text: "A unit gains +4 Movement.",
+    usage: "1 use - 1 unit",
+    sellValue: "+4 Food",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/swift-2.png"
+  },
+
+  {
+    id: "skill_2_a",
+    name: "Skill II",
+    rarity: "Rare",
+    text: "+1 Roll Check and move 3 after attack.",
+    usage: "1 use - 1 unit",
+    sellValue: "+2 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/skill-2.png"
+  },
+  {
+    id: "skill_2_b",
+    name: "Skill II",
+    rarity: "Rare",
+    text: "+1 Roll Check and move 3 after attack.",
+    usage: "1 use - 1 unit",
+    sellValue: "+2 Metal",
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/skill-2.png"
+  }
+
+];
+
+
+
 
 const legendaryPotionCards = [];
 
@@ -3246,6 +3668,7 @@ function renderPotionDeckPile(rarity, count) {
 
     const backImages = {
         Common: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/common%20potion%20back.png"
+        Rare: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/background.png"
     };
 
     const backImage = backImages[rarity];
