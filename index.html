@@ -66,7 +66,7 @@ h1 {
     margin: 20px;
     color: white;
     min-height: 100vh;
-    background: url("hhttps://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/Relic%20Background.png");
+    background: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/Relic%20Background.png") no-repeat center center fixed;
     background-size: cover;
     position: relative;
     padding: 20px;
@@ -2396,6 +2396,8 @@ function createProfile() {
     saveProfiles();
     loadProfile();
     renderPotions();
+    renderRelics();
+
 }
 
 
@@ -4427,7 +4429,108 @@ const relicCards = [
     sellValue: "+2 Metal",
     startsUnlocked: false,
     frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relics/timed/t-2.png"
+  },
+    {
+    id: "timed_guard_damage_remainder_1",
+    name: "Timed Relic - Guard Damage",
+    type: "Timed Relic",
+    text: "+1 Output Damage to Guards or +4 Metal",
+    usage: "Remainder of Mission",
+    sellValue: "+4 Metal",
+    startsUnlocked: false,
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relics/timed/t-14.png"
+  },
+  {
+    id: "timed_special_movement_remainder_1",
+    name: "Timed Relic - Special Unit Movement",
+    type: "Timed Relic",
+    text: "+2 Movement for Special Units or +4 Metal",
+    usage: "Remainder of Mission",
+    sellValue: "+4 Metal",
+    startsUnlocked: false,
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relics/timed/t-12.png"
+  },
+  {
+    id: "timed_knight_movement_remainder_1",
+    name: "Timed Relic - Knight Movement",
+    type: "Timed Relic",
+    text: "+3 Movement for Knights or +4 Metal",
+    usage: "Remainder of Mission",
+    sellValue: "+4 Metal",
+    startsUnlocked: false,
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relics/timed/t-16.png"
+  },
+  {
+    id: "timed_commander_movement_remainder_1",
+    name: "Timed Relic - Commander Movement",
+    type: "Timed Relic",
+    text: "+2 Movement for Commanders or +4 Metal",
+    usage: "Remainder of Mission",
+    sellValue: "+4 Metal",
+    startsUnlocked: false,
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relics/timed/t-11.png"
+  },
+  {
+    id: "timed_armour_remainder_1",
+    name: "Timed Relic - Armour",
+    type: "Timed Relic",
+    text: "+1 Armour to a unit type for the remainder of the mission or +4 Metal",
+    usage: "Remainder of Mission",
+    sellValue: "+4 Metal",
+    startsUnlocked: false,
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relics/timed/t-15.png"
+  },
+  {
+    id: "timed_guard_movement_remainder_1",
+    name: "Timed Relic - Guard Movement",
+    type: "Timed Relic",
+    text: "+3 Movement for Guards or +4 Metal",
+    usage: "Remainder of Mission",
+    sellValue: "+4 Metal",
+    startsUnlocked: false,
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relics/timed/t-13.png"
+  },
+  {
+    id: "timed_elite_movement_remainder_1",
+    name: "Timed Relic - Elite Movement",
+    type: "Timed Relic",
+    text: "+2 Movement for Elites or +4 Metal",
+    usage: "Remainder of Mission",
+    sellValue: "+4 Metal",
+    startsUnlocked: false,
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relics/timed/t-10.png"
+  },
+  {
+    id: "timed_archer_movement_once_1",
+    name: "Timed Relic - Archer Movement",
+    type: "Timed Relic",
+    text: "+2 Movement for Archers or +2 Metal",
+    usage: "1 time use",
+    sellValue: "+2 Metal",
+    startsUnlocked: false,
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relics/timed/t-8.png"
+  },
+  {
+    id: "timed_knight_rc_once_1",
+    name: "Timed Relic - Knight Roll Check",
+    type: "Timed Relic",
+    text: "+1 Roll Check for Knight or +2 Metal",
+    usage: "1 time use",
+    sellValue: "+2 Metal",
+    startsUnlocked: false,
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relics/timed/t-7.png"
+  },
+  {
+    id: "timed_rider_movement_remainder_1",
+    name: "Timed Relic - Rider Movement",
+    type: "Timed Relic",
+    text: "+2 Movement for Riders or +4 Metal",
+    usage: "Remainder of Mission",
+    sellValue: "+4 Metal",
+    startsUnlocked: false,
+    frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relics/timed/t-9.png"
   }
+
 ];
 
 
@@ -4760,6 +4863,15 @@ function renderRelics() {
 
     const lockedRelics = relicCards.filter(card => !sharedRelicState.unlocked.includes(card.id));
 
+    const lockedRelicGroups = {};
+    lockedRelics.forEach(card => {
+    if (!lockedRelicGroups[card.type]) {
+        lockedRelicGroups[card.type] = [];
+    }
+    lockedRelicGroups[card.type].push(card);
+});
+
+
     app.innerHTML = `
         <div class="potion-zone">
             <h2>Relic Deck (${sharedRelicState.deck.length})</h2>
@@ -4776,7 +4888,8 @@ function renderRelics() {
             ${sharedRelicState.discard.map((card, index) => renderRelicCard(card, "discard", index)).join("") || "<p>No discarded relics.</p>"}
 
             <h2 style="margin-top:20px;">Locked Relics</h2>
-            ${lockedRelics.map(card => renderRelicCard(card, "locked")).join("") || "<p>All relics unlocked.</p>"}
+            ${Object.entries(lockedRelicGroups).map(([type, cards]) => renderLockedRelicPile(type, cards)).join("") || "<p>All relics unlocked.</p>"}
+
         </div>
     `;
 }
@@ -4803,11 +4916,7 @@ function renderRelicCard(card, zone, index) {
         `;
     }
 
-    if (zone === "locked") {
-        buttons = `
-            <button onclick="unlockRelic('${card.id}')">Unlock</button>
-        `;
-    }
+   
 
     return `
         <div class="relic-card ${zone}">
@@ -4828,23 +4937,48 @@ function renderRelicCard(card, zone, index) {
     `;
 }
 
-function unlockRelic(relicId) {
+function renderLockedRelicPile(type, cards) {
+    const previewCard = cards[0];
+
+    return `
+        <div class="relic-card locked">
+            <small>${type}</small>
+            <h3>${type}</h3>
+            ${
+                previewCard && previewCard.frontImage
+                    ? `<img src="${previewCard.frontImage}" alt="${type}" style="width:100%; border-radius:8px; margin:8px 0;">`
+                    : ""
+            }
+            <p><strong>${cards.length}</strong> card${cards.length === 1 ? "" : "s"} locked</p>
+            <div class="potion-actions">
+                <button onclick="unlockRelicType('${type}')">Unlock</button>
+            </div>
+        </div>
+    `;
+}
+
+
+function unlockRelicType(type) {
     if (!resourceProfile) return;
     ensureRelicState(resourceProfile);
 
     const sharedRelicState = data.sharedRelics;
 
-    if (sharedRelicState.unlocked.includes(relicId)) return;
+    const cardsToUnlock = relicCards.filter(card =>
+        card.type === type && !sharedRelicState.unlocked.includes(card.id)
+    );
 
-    const relic = relicCards.find(card => card.id === relicId);
-    if (!relic) return;
+    if (cardsToUnlock.length === 0) return;
 
-    sharedRelicState.unlocked.push(relicId);
-    sharedRelicState.deck.push({ ...relic });
+    cardsToUnlock.forEach(card => {
+        sharedRelicState.unlocked.push(card.id);
+        sharedRelicState.deck.push({ ...card });
+    });
 
     saveProfiles();
     renderRelics();
 }
+
 
 function gainRelicFromDeck(index) {
     if (!resourceProfile) return;
