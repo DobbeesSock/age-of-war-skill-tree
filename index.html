@@ -109,6 +109,60 @@ h1 {
     color: #ffe08a;
 }
 
+.relic-zone {
+    position: relative;
+    background: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/Relic%20Background.png?v=1") no-repeat center center;
+    background-size: cover;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.35);
+    overflow: hidden;
+}
+
+.relic-zone::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 14, 10, 0.82);
+    z-index: 0;
+}
+
+.relic-zone > * {
+    position: relative;
+    z-index: 1;
+}
+
+.relic-zone h2 {
+    margin-top: 0;
+    color: gold;
+}
+
+#relicsView .potion-zone {
+    position: relative;
+    background: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/Relic%20Background.png?v=1") no-repeat center center;
+    background-size: cover;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.35);
+    overflow: hidden;
+}
+
+#relicsView .potion-zone::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 14, 10, 0.82);
+    z-index: 0;
+}
+
+#relicsView .potion-zone > * {
+    position: relative;
+    z-index: 1;
+}
+
+
 .relic-card p {
     margin: 4px 0;
     font-size: 14px;
@@ -4577,7 +4631,8 @@ function renderPotions() {
     const mythicCount = sharedPotionState.deck.filter(card => card.rarity === "Mythic").length;
 
     app.innerHTML = `
-        <div class="potion-zone">
+        <div class="relic-zone">
+
             <h2>Deck</h2>
             ${renderPotionDeckPile("Common", commonCount)}
             ${renderPotionDeckPile("Rare", rareCount)}
@@ -4585,12 +4640,14 @@ function renderPotions() {
             ${renderPotionDeckPile("Mythic", mythicCount)}
         </div>
 
-        <div class="potion-zone">
+        <div class="relic-zone">
+
             <h2>Inventory (${playerPotionState.inventory.length})</h2>
             ${playerPotionState.inventory.map((card, index) => renderPotionCard(card, "inventory", index)).join("")}
         </div>
 
-        <div class="potion-zone">
+        <div class="relic-zone">
+
             <h2>Discard (${sharedPotionState.discard.length})</h2>
             ${renderDiscardPileByRarity("Common", sharedPotionState.discard)}
             ${renderDiscardPileByRarity("Rare", sharedPotionState.discard)}
@@ -4877,19 +4934,22 @@ function renderRelics() {
 
 
     app.innerHTML = `
-        <div class="potion-zone">
+        <div class="relic-zone">
+
             <h2>Relic Deck</h2>
             ${renderRelicDeck(sharedRelicState.deck)}
         </div>
 
 
 
-        <div class="potion-zone">
+        <div class="relic-zone">
+
             <h2>Inventory (${playerRelicState.inventory.length})</h2>
             ${playerRelicState.inventory.map((card, index) => renderRelicCard(card, "inventory", index)).join("") || "<p>No relics in inventory.</p>"}
         </div>
 
-        <div class="potion-zone">
+        <div class="relic-zone">
+
             <h2>Discard (${sharedRelicState.discard.length})</h2>
             ${sharedRelicState.discard.map((card, index) => renderRelicCard(card, "discard", index)).join("") || "<p>No discarded relics.</p>"}
 
