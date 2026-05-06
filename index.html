@@ -4874,9 +4874,11 @@ function renderRelics() {
 
     app.innerHTML = `
         <div class="potion-zone">
-            <h2>Relic Deck (${sharedRelicState.deck.length})</h2>
-            ${sharedRelicState.deck.map((card, index) => renderRelicCard(card, "deck", index)).join("") || "<p>No relics in deck.</p>"}
+            <h2>Relic Deck</h2>
+            ${renderRelicDeck(sharedRelicState.deck)}
         </div>
+
+
 
         <div class="potion-zone">
             <h2>Inventory (${playerRelicState.inventory.length})</h2>
@@ -4897,11 +4899,7 @@ function renderRelics() {
 function renderRelicCard(card, zone, index) {
     let buttons = "";
 
-    if (zone === "deck") {
-        buttons = `
-            <button onclick="gainRelicFromDeck(${index})">Gain to Inventory</button>
-        `;
-    }
+    
 
     if (zone === "inventory") {
         buttons = `
@@ -4980,21 +4978,8 @@ function unlockRelicType(type) {
 }
 
 
-function gainRelicFromDeck(index) {
-    if (!resourceProfile) return;
-    ensureRelicState(resourceProfile);
 
-    const sharedRelicState = data.sharedRelics;
-    const playerRelicState = data[resourceProfile].relics;
 
-    const card = sharedRelicState.deck.splice(index, 1)[0];
-    if (!card) return;
-
-    playerRelicState.inventory.push(card);
-
-    saveProfiles();
-    renderRelics();
-}
 
 function useRelic(index) {
     if (!resourceProfile) return;
@@ -5011,6 +4996,35 @@ function useRelic(index) {
     saveProfiles();
     renderRelics();
 }
+
+function gainRandomRelic() {
+    if (!resourceProfile) return;
+    ensureRelicState(resourceProfile);
+
+    const sharedRelicState = data.sharedRelics;
+    const playerRelicState = data[resourceProfile].relics;
+
+    if (sharedRelicState.deck.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random() * sharedRelicState.deck.length);
+    const card = sharedRelicState.deck.splice(randomIndex, 1)[0];
+
+    playerRelicState.inventory.push(card);
+
+    saveProfiles();
+    renderRelics();
+}
+
+function shuffleRelicDeck() {
+    if (!resourceProfile) return;
+    ensureRelicState(resourceProfile);
+
+    shuffleArray(data.sharedRelics.deck);
+
+    saveProfiles();
+    renderRelics();
+}
+
 
 function returnRelicToDeck(index) {
     if (!resourceProfile) return;
@@ -5074,6 +5088,33 @@ function resetRelics() {
     saveProfiles();
     renderRelics();
 }
+
+
+
+function renderRelicDeck(deckCards) {
+    if (!deckCards.length) return "<p>No relics in deck.</p>";
+
+    const previewCard = deckCards[0];
+
+    return `
+        <div class="relic-card deck">
+            <small>Shared Deck</small>
+            <h3>Relic Deck</h3>
+            ${
+                previewCard && previewCard.frontImage
+                    ? `<img src="${previewCard.frontImage}" alt="Relic Deck" style="width:100%; border-radius:8px; margin:8px 0; opacity:0.9;">`
+                    : ""
+            }
+            <p>${deckCards.length} card${deckCards.length === 1 ? "" : "s"} remaining</p>
+            <div class="potion-actions">
+                <button onclick="gainRandomRelic()">Gain to Inventory</button>
+                <button onclick="shuffleRelicDeck()" ${deckCards.length < 2 ? "disabled" : ""}>Shuffle Deck</button>
+            </div>
+        </div>
+    `;
+}
+
+
 
 
 
