@@ -2193,9 +2193,10 @@ body.elves {
 
 <div id="potionsView" style="display:none;">
   <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap;">
-    <button onclick="shuffleDiscardIntoDeck()">Shuffle Discard Into Deck</button>
-    <button onclick="resetPotions()">Reset Potions</button>
-  </div>
+  <button onclick="gainRandomPotionFromAnyDeck()">Gain Random Potion</button>
+  <button onclick="shuffleDiscardIntoDeck()">Shuffle Discard Into Deck</button>
+  <button onclick="resetPotions()">Reset Potions</button>
+</div>
 
   <div id="potionsApp"></div>
 </div>
@@ -4813,10 +4814,6 @@ const relicCards = [
 ];
 
 
-
-
-
-
 function ensurePotionState(profileName) {
     if (!data.sharedPotions) {
         data.sharedPotions = {
@@ -4916,6 +4913,25 @@ const backImages = {
         </div>
     `;
 }
+
+function gainRandomPotionFromAnyDeck() {
+    if (!resourceProfile) return;
+    ensurePotionState(resourceProfile);
+
+    const sharedPotionState = data.sharedPotions;
+
+    const availableRarities = ["Common", "Rare", "Legendary", "Mythic"].filter(rarity =>
+        sharedPotionState.deck.some(card => card.rarity === rarity)
+    );
+
+    if (availableRarities.length === 0) return;
+
+    const randomRarity =
+        availableRarities[Math.floor(Math.random() * availableRarities.length)];
+
+    gainRandomPotionByRarity(randomRarity);
+}
+
 
 function renderDiscardPileByRarity(rarity, discardCards) {
     const rarityCards = discardCards.filter(card => card.rarity === rarity);
