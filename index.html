@@ -2275,10 +2275,16 @@ function createProfile(){
     };
 
     data[name].potions = {
-    deck: JSON.parse(JSON.stringify(defaultPotionCards)),
-    inventory: [],
-    discard: []
+    inventory: []
 };
+
+if (!data.sharedPotions) {
+    data.sharedPotions = {
+        deck: JSON.parse(JSON.stringify(defaultPotionCards)),
+        discard: []
+    };
+}
+
 
     resourceProfile = name;
 
@@ -2306,7 +2312,7 @@ function loadProfile() {
     let select = document.getElementById("skillProfileSelect");
     let name = select.value;
 
-    if(!name) return;
+    if (!name || name === "sharedPotions" || !data[name] || !data[name][currentFaction]) return;
 
     resourceProfile = name;
 
@@ -2314,26 +2320,18 @@ function loadProfile() {
     document.getElementById("resourceProfileSelect").value = name;
     loadResourceProfile(name);
 
-
-
     let profile = data[name][currentFaction];
-
-
-    
-
     sm = profile.sm ?? 0;
 
     applySkills();
-    updateUI(); 
+    updateUI();
     updateSM();
     updateFury();
 
     ensurePotionState(resourceProfile);
     renderPotions();
-
-
-
 }
+
 
 
 
@@ -2695,18 +2693,20 @@ function saveProfiles(){
 
 
 // PROFILE LIST
-function refreshProfiles(){
+function refreshProfiles() {
     let select = document.getElementById("skillProfileSelect");
-
     select.innerHTML = "";
 
-    for(let name in data){
+    for (let name in data) {
+        if (name === "sharedPotions") continue;
+
         let opt = document.createElement("option");
         opt.value = name;
         opt.innerText = name;
         select.appendChild(opt);
     }
 }
+
 
 // RESET
 function resetProfile(){
@@ -4270,14 +4270,20 @@ const defaultPotionCards = [
 
 
 function ensurePotionState(profileName) {
-    if (!data[profileName].potions) {
-        data[profileName].potions = {
+    if (!data.sharedPotions) {
+        data.sharedPotions = {
             deck: JSON.parse(JSON.stringify(defaultPotionCards)),
-            inventory: [],
             discard: []
         };
     }
+
+    if (!data[profileName].potions) {
+        data[profileName].potions = {
+            inventory: []
+        };
+    }
 }
+
 
 function renderPotions() {
     const app = document.getElementById("potionsApp");
@@ -4285,12 +4291,13 @@ function renderPotions() {
 
     ensurePotionState(resourceProfile);
 
-    const potionState = data[resourceProfile].potions;
+    const sharedPotionState = data.sharedPotions;
+    const playerPotionState = data[resourceProfile].potions;
 
-    const commonCount = potionState.deck.filter(card => card.rarity === "Common").length;
-    const rareCount = potionState.deck.filter(card => card.rarity === "Rare").length;
-    const legendaryCount = potionState.deck.filter(card => card.rarity === "Legendary").length;
-    const mythicCount = potionState.deck.filter(card => card.rarity === "Mythic").length;
+    const commonCount = sharedPotionState.deck.filter(card => card.rarity === "Common").length;
+    const rareCount = sharedPotionState.deck.filter(card => card.rarity === "Rare").length;
+    const legendaryCount = sharedPotionState.deck.filter(card => card.rarity === "Legendary").length;
+    const mythicCount = sharedPotionState.deck.filter(card => card.rarity === "Mythic").length;
 
     app.innerHTML = `
         <div class="potion-zone">
@@ -4302,20 +4309,20 @@ function renderPotions() {
         </div>
 
         <div class="potion-zone">
-            <h2>Inventory (${potionState.inventory.length})</h2>
-            ${potionState.inventory.map((card, index) => renderPotionCard(card, "inventory", index)).join("")}
+            <h2>Inventory (${playerPotionState.inventory.length})</h2>
+            ${playerPotionState.inventory.map((card, index) => renderPotionCard(card, "inventory", index)).join("")}
         </div>
 
         <div class="potion-zone">
-        <h2>Discard (${potionState.discard.length})</h2>
-        ${renderDiscardPileByRarity("Common", potionState.discard)}
-        ${renderDiscardPileByRarity("Rare", potionState.discard)}
-        ${renderDiscardPileByRarity("Legendary", potionState.discard)}
-        ${renderDiscardPileByRarity("Mythic", potionState.discard)}
-    </div>
-
+            <h2>Discard (${sharedPotionState.discard.length})</h2>
+            ${renderDiscardPileByRarity("Common", sharedPotionState.discard)}
+            ${renderDiscardPileByRarity("Rare", sharedPotionState.discard)}
+            ${renderDiscardPileByRarity("Legendary", sharedPotionState.discard)}
+            ${renderDiscardPileByRarity("Mythic", sharedPotionState.discard)}
+        </div>
     `;
 }
+
 
 function renderPotionDeckPile(rarity, count) {
     const rarityClass = rarity.toLowerCase();
@@ -4380,19 +4387,18 @@ function returnDiscardPileToDeck(rarity) {
     if (!resourceProfile) return;
     ensurePotionState(resourceProfile);
 
-    const potionState = data[resourceProfile].potions;
+    const sharedPotionState = data.sharedPotions;
 
-    const returningCards = potionState.discard.filter(card => card.rarity === rarity);
-    const remainingDiscard = potionState.discard.filter(card => card.rarity !== rarity);
+    const returningCards = sharedPotionState.discard.filter(card => card.rarity === rarity);
+    const remainingDiscard = sharedPotionState.discard.filter(card => card.rarity !== rarity);
 
-    potionState.deck = potionState.deck.concat(returningCards);
-    potionState.discard = remainingDiscard;
+    sharedPotionState.deck = sharedPotionState.deck.concat(returningCards);
+    sharedPotionState.discard = remainingDiscard;
 
     saveProfiles();
     renderPotions();
-
-   
 }
+
 
 function renderPotionCard(card, zone, index) {
     const rarityClass = card.rarity.toLowerCase();
@@ -4436,43 +4442,40 @@ function shufflePotionDeckByRarity(rarity) {
     if (!resourceProfile) return;
     ensurePotionState(resourceProfile);
 
-    const potionState = data[resourceProfile].potions;
+    const sharedPotionState = data.sharedPotions;
 
-    const matchingCards = potionState.deck.filter(card => card.rarity === rarity);
-    const otherCards = potionState.deck.filter(card => card.rarity !== rarity);
+    const matchingCards = sharedPotionState.deck.filter(card => card.rarity === rarity);
+    const otherCards = sharedPotionState.deck.filter(card => card.rarity !== rarity);
 
     shuffleArray(matchingCards);
 
-    potionState.deck = otherCards.concat(matchingCards);
+    sharedPotionState.deck = otherCards.concat(matchingCards);
 
     saveProfiles();
     renderPotions();
 }
 
-function gainRandomPotionByRarity(rarity) {
-    console.log("gainRandomPotionByRarity fired", rarity, resourceProfile);
 
+function gainRandomPotionByRarity(rarity) {
     if (!resourceProfile) return;
     ensurePotionState(resourceProfile);
 
-    const potionState = data[resourceProfile].potions;
-    const matchingIndexes = potionState.deck
+    const sharedPotionState = data.sharedPotions;
+    const playerPotionState = data[resourceProfile].potions;
+
+    const matchingIndexes = sharedPotionState.deck
         .map((card, index) => ({ card, index }))
         .filter(entry => entry.card.rarity === rarity);
-
-    console.log("matchingIndexes", matchingIndexes);
 
     if (matchingIndexes.length === 0) return;
 
     const randomPick = matchingIndexes[Math.floor(Math.random() * matchingIndexes.length)];
-    const card = potionState.deck.splice(randomPick.index, 1)[0];
+    const card = sharedPotionState.deck.splice(randomPick.index, 1)[0];
 
-    potionState.inventory.push(card);
+    playerPotionState.inventory.push(card);
     saveProfiles();
     renderPotions();
 }
-
-
 
 
 
@@ -4480,67 +4483,81 @@ function usePotion(index) {
     if (!resourceProfile) return;
     ensurePotionState(resourceProfile);
 
-    const potionState = data[resourceProfile].potions;
-    const card = potionState.inventory.splice(index, 1)[0];
+    const playerPotionState = data[resourceProfile].potions;
+    const sharedPotionState = data.sharedPotions;
+
+    const card = playerPotionState.inventory.splice(index, 1)[0];
     if (!card) return;
 
-    potionState.discard.push(card);
+    sharedPotionState.discard.push(card);
     saveProfiles();
     renderPotions();
 }
+
 
 function returnPotionToDeck(index) {
     if (!resourceProfile) return;
     ensurePotionState(resourceProfile);
 
-    const potionState = data[resourceProfile].potions;
-    const card = potionState.inventory.splice(index, 1)[0];
+    const playerPotionState = data[resourceProfile].potions;
+    const sharedPotionState = data.sharedPotions;
+
+    const card = playerPotionState.inventory.splice(index, 1)[0];
     if (!card) return;
 
-    potionState.deck.push(card);
+    sharedPotionState.deck.push(card);
     saveProfiles();
     renderPotions();
 }
+
 
 function returnDiscardToDeck(index) {
     if (!resourceProfile) return;
     ensurePotionState(resourceProfile);
 
-    const potionState = data[resourceProfile].potions;
-    const card = potionState.discard.splice(index, 1)[0];
+    const sharedPotionState = data.sharedPotions;
+    const card = sharedPotionState.discard.splice(index, 1)[0];
     if (!card) return;
 
-    potionState.deck.push(card);
+    sharedPotionState.deck.push(card);
     saveProfiles();
     renderPotions();
 }
+
 
 function shuffleDiscardIntoDeck() {
     if (!resourceProfile) return;
     ensurePotionState(resourceProfile);
 
-    const potionState = data[resourceProfile].potions;
+    const sharedPotionState = data.sharedPotions;
 
-    potionState.deck = potionState.deck.concat(potionState.discard);
-    potionState.discard = [];
-    shuffleArray(potionState.deck);
+    sharedPotionState.deck = sharedPotionState.deck.concat(sharedPotionState.discard);
+    sharedPotionState.discard = [];
+    shuffleArray(sharedPotionState.deck);
 
     saveProfiles();
     renderPotions();
 }
+
 
 function resetPotions() {
     if (!resourceProfile) return;
 
-    data[resourceProfile].potions = {
+    data.sharedPotions = {
         deck: JSON.parse(JSON.stringify(defaultPotionCards)),
-        inventory: [],
         discard: []
     };
+
+    Object.keys(data).forEach(key => {
+        if (data[key] && data[key].potions && data[key].potions.inventory) {
+            data[key].potions.inventory = [];
+        }
+    });
 
     saveProfiles();
     renderPotions();
 }
+
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
