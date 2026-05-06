@@ -2233,10 +2233,80 @@ const defaultResources = [
 
 let resources = [];
 
+function getFactionFamily(faction) {
+  const map = {
+    dwarves: "Dwarves",
+    dwarves2: "Dwarves",
+    elves: "Elves",
+    elves2: "Elves",
+    men: "Men",
+    men2: "Men",
+    barbarians: "Barbarians",
+    barbarians2: "Barbarians",
+    orcs: "Orcs",
+    orcsWar: "Orcs",
+    order: "The Order",
+    order2: "The Order"
+  };
+
+  return map[faction] || "Unknown";
+}
+
+const collectionTables = {
+  Dwarves: [
+    { building: "Fortress", income: "+4 Food & +2 Energy", limit: "1", size: "2x2" },
+    { building: "Upgrade 1", income: "+2 Food", limit: "1", size: "-" },
+    { building: "Treasure Hoard", income: "+4 Gold & +2 Food", limit: "2", size: "2x2" },
+    { building: "Grand Forge", income: "+3 Gold & +2 Energy", limit: "3", size: "2x2" },
+    { building: "Cavern", income: "+1 Metal", limit: "4", size: "-" }
+  ]
+};
+
+function renderCollectionChart() {
+  const factionFamily = getFactionFamily(currentFaction);
+  const rows = collectionTables[factionFamily] || [];
+
+  if (rows.length === 0) {
+    return `
+      <div style="margin-bottom:20px; padding:16px; border-radius:12px; background:rgba(40,40,40,0.85); border:1px solid rgba(255,255,255,0.12);">
+        <h2 style="margin-top:0; color:gold;">${factionFamily} Collection</h2>
+        <p style="margin:0; color:#ddd;">No collection chart added yet.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div style="margin-bottom:20px; padding:16px; border-radius:12px; background:rgba(40,40,40,0.85); border:1px solid rgba(255,255,255,0.12); box-shadow:0 0 12px rgba(0,0,0,0.3);">
+      <h2 style="margin-top:0; color:gold;">${factionFamily} Collection</h2>
+      <table style="width:100%; border-collapse:collapse; color:white;">
+        <thead>
+          <tr>
+            <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Building</th>
+            <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Income</th>
+            <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Limit</th>
+            <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Size</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(row => `
+            <tr>
+              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.building}</td>
+              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.income}</td>
+              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.limit}</td>
+              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.size}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
 
 function renderResources() {
   const app = document.getElementById("app");
-  app.innerHTML = "";
+  app.innerHTML = renderCollectionChart();
+
 
   resources.forEach((res, i) => {
     const row = document.createElement("div");
@@ -2912,8 +2982,10 @@ function setFaction(f) {
   let tree = document.getElementById(f);
   if (tree) tree.classList.add("active");
   if (resourceProfile) {
-    loadProfile();
-  }
+  loadProfile();
+  renderResources();
+}
+
   updateFury();
   document.getElementById("furyContainer").style.display =
     currentFaction.startsWith("barbarians") ? "flex" : "none";
