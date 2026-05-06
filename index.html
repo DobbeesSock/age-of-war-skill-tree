@@ -66,32 +66,11 @@ h1 {
     margin: 20px;
     color: white;
     min-height: 100vh;
+    background: rgba(12, 12, 12, 0.94);
     position: relative;
     padding: 20px;
-    overflow: hidden;
 }
 
-#relicsView::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/Relic%20Background.png?v=1") no-repeat center center;
-    background-size: cover;
-    z-index: 0;
-}
-
-#relicsView::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.72);
-    z-index: 1;
-}
-
-#relicsView > * {
-    position: relative;
-    z-index: 2;
-}
 
 
 #relicsApp {
@@ -101,12 +80,28 @@ h1 {
 }
 
 .relic-card {
-    background: linear-gradient(145deg, rgba(70, 58, 36, 0.95), rgba(35, 28, 18, 0.95));
+    position: relative;
     border-left: 6px solid #d4af37;
     border-radius: 10px;
     padding: 12px;
     margin-bottom: 12px;
     box-shadow: 0 6px 14px rgba(0,0,0,0.35);
+    overflow: hidden;
+    background: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/Relic%20Background.png?v=1") no-repeat center center;
+    background-size: cover;
+}
+
+.relic-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(28, 20, 12, 0.82);
+    z-index: 0;
+}
+
+.relic-card > * {
+    position: relative;
+    z-index: 1;
 }
 
 .relic-card h3 {
