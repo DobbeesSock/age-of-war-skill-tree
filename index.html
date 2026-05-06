@@ -4929,39 +4929,41 @@ function renderRelics() {
 
     const lockedRelicGroups = {};
     lockedRelics.forEach(card => {
-    if (!lockedRelicGroups[card.type]) {
-        lockedRelicGroups[card.type] = [];
-    }
-    lockedRelicGroups[card.type].push(card);
-});
+        if (!lockedRelicGroups[card.type]) {
+            lockedRelicGroups[card.type] = [];
+        }
+        lockedRelicGroups[card.type].push(card);
+    });
 
+    const discardRelicGroups = {};
+    sharedRelicState.discard.forEach(card => {
+        if (!discardRelicGroups[card.type]) {
+            discardRelicGroups[card.type] = [];
+        }
+        discardRelicGroups[card.type].push(card);
+    });
 
     app.innerHTML = `
         <div class="relic-zone">
-
             <h2>Relic Deck</h2>
             ${renderRelicDeck(sharedRelicState.deck)}
         </div>
 
-
-
         <div class="relic-zone">
-
             <h2>Inventory (${playerRelicState.inventory.length})</h2>
             ${playerRelicState.inventory.map((card, index) => renderRelicCard(card, "inventory", index)).join("") || "<p>No relics in inventory.</p>"}
         </div>
 
         <div class="relic-zone">
-
             <h2>Discard (${sharedRelicState.discard.length})</h2>
-            ${sharedRelicState.discard.map((card, index) => renderRelicCard(card, "discard", index)).join("") || "<p>No discarded relics.</p>"}
+            ${Object.entries(discardRelicGroups).map(([type, cards]) => renderDiscardRelicPile(type, cards)).join("") || "<p>No discarded relics.</p>"}
 
             <h2 style="margin-top:20px;">Locked Relics</h2>
             ${Object.entries(lockedRelicGroups).map(([type, cards]) => renderLockedRelicPile(type, cards)).join("") || "<p>All relics unlocked.</p>"}
-
         </div>
     `;
 }
+
 
 function renderRelicCard(card, zone, index) {
     let buttons = "";
@@ -4975,11 +4977,7 @@ function renderRelicCard(card, zone, index) {
         `;
     }
 
-    if (zone === "discard") {
-        buttons = `
-            <button onclick="returnDiscardRelicToDeck(${index})">Return to Deck</button>
-        `;
-    }
+ 
 
    
 
@@ -5001,6 +4999,43 @@ function renderRelicCard(card, zone, index) {
         </div>
     `;
 }
+
+function renderDiscardRelicPile(type, cards) {
+    const previewCard = cards[0];
+
+    return `
+        <div class="relic-card discard">
+            <small>${type}</small>
+            <h3>${type}</h3>
+            ${
+                previewCard && previewCard.frontImage
+                    ? `<img src="${previewCard.frontImage}" alt="${type}" style="width:100%; border-radius:8px; margin:8px 0;">`
+                    : ""
+            }
+            <p><strong>${cards.length}</strong> card${cards.length === 1 ? "" : "s"} discarded</p>
+            <div class="potion-actions">
+                <button onclick="returnDiscardRelicTypeToDeck('${type}')">Return to Deck</button>
+            </div>
+        </div>
+    `;
+}
+
+function returnDiscardRelicTypeToDeck(type) {
+    if (!resourceProfile) return;
+    ensureRelicState(resourceProfile);
+
+    const sharedRelicState = data.sharedRelics;
+
+    const returningCards = sharedRelicState.discard.filter(card => card.type === type);
+    const remainingDiscard = sharedRelicState.discard.filter(card => card.type !== type);
+
+    sharedRelicState.deck = sharedRelicState.deck.concat(returningCards);
+    sharedRelicState.discard = remainingDiscard;
+
+    saveProfiles();
+    renderRelics();
+}
+
 
 function renderLockedRelicPile(type, cards) {
     const previewCard = cards[0];
@@ -5109,19 +5144,7 @@ function returnRelicToDeck(index) {
     renderRelics();
 }
 
-function returnDiscardRelicToDeck(index) {
-    if (!resourceProfile) return;
-    ensureRelicState(resourceProfile);
 
-    const sharedRelicState = data.sharedRelics;
-    const card = sharedRelicState.discard.splice(index, 1)[0];
-    if (!card) return;
-
-    sharedRelicState.deck.push(card);
-
-    saveProfiles();
-    renderRelics();
-}
 
 function shuffleRelicDiscardIntoDeck() {
     if (!resourceProfile) return;
