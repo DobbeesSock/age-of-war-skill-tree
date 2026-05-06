@@ -62,6 +62,87 @@ h1 {
     box-shadow: 0 0 6px #000;
 }
 
+#relicsView {
+    margin: 20px;
+    color: white;
+    min-height: 100vh;
+    background: url("https://wallpapercave.com/wp/lDhWEkW.jpg") no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    padding: 20px;
+}
+
+#relicsView::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.72);
+    z-index: 0;
+}
+
+#relicsView > * {
+    position: relative;
+    z-index: 1;
+}
+
+#relicsApp {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.relic-card {
+    background: linear-gradient(145deg, rgba(70, 58, 36, 0.95), rgba(35, 28, 18, 0.95));
+    border-left: 6px solid #d4af37;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.35);
+}
+
+.relic-card h3 {
+    margin: 0 0 6px 0;
+    color: #ffe08a;
+}
+
+.relic-card p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: #ddd;
+}
+
+.relic-card small {
+    display: block;
+    margin-bottom: 8px;
+    color: #cdbb8c;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.relic-card.locked {
+    opacity: 0.7;
+    border-left-color: #777;
+}
+
+.relic-card.deck {
+    border-left-color: #d4af37;
+}
+
+.relic-card.inventory {
+    border-left-color: #66cc88;
+}
+
+.relic-card.discard {
+    border-left-color: #c96b6b;
+}
+
+@media (max-width: 900px) {
+    #relicsApp {
+        grid-template-columns: 1fr;
+    }
+}
+
+
 .tree {
     display: none;
     position: relative;
@@ -4688,7 +4769,7 @@ function renderRelicCard(card, zone, index) {
     }
 
     return `
-        <div class="potion-card">
+        <div class="relic-card ${zone}">
             <small>${card.type}</small>
             <h3>${card.name}</h3>
             ${
