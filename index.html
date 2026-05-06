@@ -2181,8 +2181,19 @@ body.elves {
 
 
 <div id="resourceView" style="display:none;">
-  <div style="margin-bottom:10px;">
+  <div style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
     <select id="resourceProfileSelect" onchange="syncProfileFromResourceSelect()"></select>
+
+    <select id="collectionFactionSelect" onchange="changeCollectionFaction(this.value)">
+      <option value="auto">Auto (Current Faction)</option>
+      <option value="Dwarves">Dwarves</option>
+      <option value="Elves">Elves</option>
+      <option value="Men">Men</option>
+      <option value="Barbarians">Barbarians</option>
+      <option value="Orcs">Orcs</option>
+      <option value="The Order">The Order</option>
+    </select>
+
     <button onclick="newProfile()">New Profile</button>
     <button onclick="saveResourceProfile()">Save</button>
     <button onclick="resetResources()">Reset</button>
@@ -2190,6 +2201,7 @@ body.elves {
 
   <div id="app"></div>
 </div>
+
 
 <div id="potionsView" style="display:none;">
   <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap;">
@@ -2232,6 +2244,7 @@ const defaultResources = [
 ];
 
 let resources = [];
+let selectedCollectionFaction = "auto";
 
 function getFactionFamily(faction) {
   const map = {
@@ -2251,6 +2264,10 @@ function getFactionFamily(faction) {
 
   return map[faction] || "Unknown";
 }
+function changeCollectionFaction(value) {
+  selectedCollectionFaction = value;
+  renderResources();
+}
 
 const collectionTables = {
   Dwarves: [
@@ -2263,7 +2280,11 @@ const collectionTables = {
 };
 
 function renderCollectionChart() {
-  const factionFamily = getFactionFamily(currentFaction);
+  const factionFamily =
+  selectedCollectionFaction === "auto"
+    ? getFactionFamily(currentFaction)
+    : selectedCollectionFaction;
+
   const rows = collectionTables[factionFamily] || [];
 
   if (rows.length === 0) {
@@ -2392,8 +2413,14 @@ function loadResourceProfile(profileName = resourceProfile) {
         select.value = profileName;
     }
 
+    const collectionSelect = document.getElementById("collectionFactionSelect");
+    if (collectionSelect) {
+        collectionSelect.value = selectedCollectionFaction;
+    }
+
     renderResources();
 }
+
 
 
 function syncProfileFromResourceSelect() {
