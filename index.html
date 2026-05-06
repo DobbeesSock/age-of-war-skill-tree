@@ -5101,7 +5101,22 @@ function resetRelics() {
 
 
 function renderRelicDeck(deckCards) {
-    if (!deckCards.length) return "<p>No relics in deck.</p>";
+    const backImage = "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/timed-relic-back.png";
+
+    if (!deckCards.length) {
+        return `
+            <div class="relic-card deck">
+                <small>Shared Deck</small>
+                <h3>Relic Deck</h3>
+                <img src="${backImage}" alt="Relic Deck Back" style="width:100%; border-radius:8px; margin:8px 0; opacity:0.9;">
+                <p>0 cards remaining</p>
+                <div class="potion-actions">
+                    <button disabled>Gain to Inventory</button>
+                    <button disabled>Shuffle Deck</button>
+                </div>
+            </div>
+        `;
+    }
 
     const previewCard = deckCards[0];
 
@@ -5122,6 +5137,7 @@ function renderRelicDeck(deckCards) {
         </div>
     `;
 }
+
 
 
 
