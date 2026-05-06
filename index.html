@@ -66,31 +66,33 @@ h1 {
     margin: 20px;
     color: white;
     min-height: 100vh;
-    background-image: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/Relic%20Background.png?v=1");
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: cover;
     position: relative;
     padding: 20px;
     overflow: hidden;
 }
 
-
-
-
+#relicsView::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/Relic%20Background.png?v=1") no-repeat center center;
+    background-size: cover;
+    z-index: 0;
+}
 
 #relicsView::before {
     content: "";
     position: absolute;
     inset: 0;
     background: rgba(0,0,0,0.72);
-    z-index: 0;
+    z-index: 1;
 }
 
 #relicsView > * {
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
+
 
 #relicsApp {
     display: grid;
