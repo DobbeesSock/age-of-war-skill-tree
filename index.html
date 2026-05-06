@@ -838,7 +838,9 @@ body.elves {
   <button onclick="showView('skill')">Skill Tree</button>
   <button onclick="showView('resources')">Resources</button>
   <button onclick="showView('potions')">Potions</button>
+  <button onclick="showView('relics')">Relics</button>
 </div>
+
 
 <div id="skillTreeView">
 
@@ -2059,12 +2061,24 @@ body.elves {
   <div id="potionsApp"></div>
 </div>
 
+<div id="relicsView" style="display:none;">
+  <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap;">
+    <button onclick="shuffleRelicDiscardIntoDeck()">Shuffle Discard Into Deck</button>
+    <button onclick="resetRelics()">Reset Relics</button>
+  </div>
+
+  <div id="relicsApp"></div>
+</div>
+
+
+
 
 
 
 <script>
 
 let resourceProfile = "";
+let data = JSON.parse(localStorage.getItem("skillTreeData")) || {};
 
 
 
@@ -2204,7 +2218,8 @@ function updateProfileList() {
     select.innerHTML = "";
 
     for (let name in data) {
-        if (name === "sharedPotions") continue;
+        if (name === "sharedPotions" || name === "sharedRelics") continue;
+
 
         const option = document.createElement("option");
         option.value = name;
@@ -2228,11 +2243,7 @@ function increaseMaxEnergy(amount) {
 
 updateProfileList();
 
-if (document.getElementById("resourceProfileSelect").options.length > 0) {
-  loadResourceProfile();
-} else {
-  newProfile();
-}
+
 </script>
 
   
@@ -2241,7 +2252,7 @@ if (document.getElementById("resourceProfileSelect").options.length > 0) {
 
 // GLOBAL STATE
 
-let data = JSON.parse(localStorage.getItem("skillTreeData")) || {};
+
 let sm = 0;
 let currentFaction = "dwarves";
 
@@ -2255,6 +2266,8 @@ function createProfile() {
         shared: { fury: 0 },
         resources: JSON.parse(JSON.stringify(defaultResources)),
         potions: { inventory: [] },
+        relics: { inventory: [] },
+
 
         dwarves: { sm: 0, skills: {} },
         dwarves2: { sm: 0, skills: {} },
@@ -2281,6 +2294,15 @@ function createProfile() {
         };
     }
 
+    if (!data.sharedRelics) {
+    data.sharedRelics = {
+        deck: relicCards.filter(card => card.startsUnlocked).map(card => ({ ...card })),
+        discard: [],
+        unlocked: relicCards.filter(card => card.startsUnlocked).map(card => card.id)
+    };
+}
+
+
     resourceProfile = name;
     sm = 0;
 
@@ -2302,7 +2324,8 @@ function loadProfile() {
     let select = document.getElementById("skillProfileSelect");
     let name = select.value;
 
-    if (!name || name === "sharedPotions" || !data[name] || !data[name][currentFaction]) return;
+    if (!name || name === "sharedPotions" || name === "sharedRelics" || !data[name] || !data[name][currentFaction]) return;
+
 
     resourceProfile = name;
 
@@ -2320,6 +2343,10 @@ function loadProfile() {
 
     ensurePotionState(resourceProfile);
     renderPotions();
+
+    ensureRelicState(resourceProfile);
+    renderRelics();
+
 }
 
 
@@ -2334,7 +2361,11 @@ function showView(view) {
 
   document.getElementById("potionsView").style.display =
     view === "potions" ? "block" : "none";
+
+  document.getElementById("relicsView").style.display =
+    view === "relics" ? "block" : "none";
 }
+
 
 
 // APPLY SAVED SKILLS
@@ -2688,7 +2719,8 @@ function refreshProfiles() {
     select.innerHTML = "";
 
     for (let name in data) {
-        if (name === "sharedPotions") continue;
+        if (name === "sharedPotions" || name === "sharedRelics") continue;
+
 
         let opt = document.createElement("option");
         opt.value = name;
@@ -4254,6 +4286,30 @@ const defaultPotionCards = [
   ...mythicPotionCards
 ];
 
+const relicCards = [
+  {
+    id: "ancient_coin",
+    name: "Ancient Coin",
+    type: "Passive",
+    text: "Gain +1 Gold at the start of each round.",
+    usage: "Continuous",
+    sellValue: "+5 Gold",
+    startsUnlocked: true,
+    frontImage: ""
+  },
+  {
+    id: "ember_core",
+    name: "Ember Core",
+    type: "Consumable",
+    text: "Gain +2 Output Damage this phase.",
+    usage: "Spend",
+    sellValue: "+1 Dragon Coin",
+    startsUnlocked: false,
+    frontImage: ""
+  }
+];
+
+
 
 
 
@@ -4548,7 +4604,221 @@ function resetPotions() {
 
     saveProfiles();
     renderPotions();
+    
 }
+
+function ensureRelicState(profileName) {
+    if (!data.sharedRelics) {
+        data.sharedRelics = {
+            deck: relicCards.filter(card => card.startsUnlocked).map(card => ({ ...card })),
+            discard: [],
+            unlocked: relicCards.filter(card => card.startsUnlocked).map(card => card.id)
+        };
+    }
+
+    if (!data[profileName].relics) {
+        data[profileName].relics = {
+            inventory: []
+        };
+    } else {
+        data[profileName].relics = {
+            inventory: data[profileName].relics.inventory || []
+        };
+    }
+}
+
+function renderRelics() {
+    const app = document.getElementById("relicsApp");
+    if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+    ensureRelicState(resourceProfile);
+
+    const sharedRelicState = data.sharedRelics;
+    const playerRelicState = data[resourceProfile].relics;
+
+    const lockedRelics = relicCards.filter(card => !sharedRelicState.unlocked.includes(card.id));
+
+    app.innerHTML = `
+        <div class="potion-zone">
+            <h2>Relic Deck (${sharedRelicState.deck.length})</h2>
+            ${sharedRelicState.deck.map((card, index) => renderRelicCard(card, "deck", index)).join("") || "<p>No relics in deck.</p>"}
+        </div>
+
+        <div class="potion-zone">
+            <h2>Inventory (${playerRelicState.inventory.length})</h2>
+            ${playerRelicState.inventory.map((card, index) => renderRelicCard(card, "inventory", index)).join("") || "<p>No relics in inventory.</p>"}
+        </div>
+
+        <div class="potion-zone">
+            <h2>Discard (${sharedRelicState.discard.length})</h2>
+            ${sharedRelicState.discard.map((card, index) => renderRelicCard(card, "discard", index)).join("") || "<p>No discarded relics.</p>"}
+
+            <h2 style="margin-top:20px;">Locked Relics</h2>
+            ${lockedRelics.map(card => renderRelicCard(card, "locked")).join("") || "<p>All relics unlocked.</p>"}
+        </div>
+    `;
+}
+
+function renderRelicCard(card, zone, index) {
+    let buttons = "";
+
+    if (zone === "deck") {
+        buttons = `
+            <button onclick="gainRelicFromDeck(${index})">Gain to Inventory</button>
+        `;
+    }
+
+    if (zone === "inventory") {
+        buttons = `
+            <button onclick="useRelic(${index})">Use / Discard</button>
+            <button onclick="returnRelicToDeck(${index})">Return to Deck</button>
+        `;
+    }
+
+    if (zone === "discard") {
+        buttons = `
+            <button onclick="returnDiscardRelicToDeck(${index})">Return to Deck</button>
+        `;
+    }
+
+    if (zone === "locked") {
+        buttons = `
+            <button onclick="unlockRelic('${card.id}')">Unlock</button>
+        `;
+    }
+
+    return `
+        <div class="potion-card">
+            <small>${card.type}</small>
+            <h3>${card.name}</h3>
+            ${
+                card.frontImage
+                    ? `<img src="${card.frontImage}" alt="${card.name}" style="width:100%; border-radius:8px; margin:8px 0;">`
+                    : ""
+            }
+            <p><strong>Effect:</strong> ${card.text}</p>
+            <p><strong>Usage:</strong> ${card.usage}</p>
+            <p><strong>Sell Value:</strong> ${card.sellValue}</p>
+            <div class="potion-actions">
+                ${buttons}
+            </div>
+        </div>
+    `;
+}
+
+function unlockRelic(relicId) {
+    if (!resourceProfile) return;
+    ensureRelicState(resourceProfile);
+
+    const sharedRelicState = data.sharedRelics;
+
+    if (sharedRelicState.unlocked.includes(relicId)) return;
+
+    const relic = relicCards.find(card => card.id === relicId);
+    if (!relic) return;
+
+    sharedRelicState.unlocked.push(relicId);
+    sharedRelicState.deck.push({ ...relic });
+
+    saveProfiles();
+    renderRelics();
+}
+
+function gainRelicFromDeck(index) {
+    if (!resourceProfile) return;
+    ensureRelicState(resourceProfile);
+
+    const sharedRelicState = data.sharedRelics;
+    const playerRelicState = data[resourceProfile].relics;
+
+    const card = sharedRelicState.deck.splice(index, 1)[0];
+    if (!card) return;
+
+    playerRelicState.inventory.push(card);
+
+    saveProfiles();
+    renderRelics();
+}
+
+function useRelic(index) {
+    if (!resourceProfile) return;
+    ensureRelicState(resourceProfile);
+
+    const playerRelicState = data[resourceProfile].relics;
+    const sharedRelicState = data.sharedRelics;
+
+    const card = playerRelicState.inventory.splice(index, 1)[0];
+    if (!card) return;
+
+    sharedRelicState.discard.push(card);
+
+    saveProfiles();
+    renderRelics();
+}
+
+function returnRelicToDeck(index) {
+    if (!resourceProfile) return;
+    ensureRelicState(resourceProfile);
+
+    const playerRelicState = data[resourceProfile].relics;
+    const sharedRelicState = data.sharedRelics;
+
+    const card = playerRelicState.inventory.splice(index, 1)[0];
+    if (!card) return;
+
+    sharedRelicState.deck.push(card);
+
+    saveProfiles();
+    renderRelics();
+}
+
+function returnDiscardRelicToDeck(index) {
+    if (!resourceProfile) return;
+    ensureRelicState(resourceProfile);
+
+    const sharedRelicState = data.sharedRelics;
+    const card = sharedRelicState.discard.splice(index, 1)[0];
+    if (!card) return;
+
+    sharedRelicState.deck.push(card);
+
+    saveProfiles();
+    renderRelics();
+}
+
+function shuffleRelicDiscardIntoDeck() {
+    if (!resourceProfile) return;
+    ensureRelicState(resourceProfile);
+
+    const sharedRelicState = data.sharedRelics;
+
+    sharedRelicState.deck = sharedRelicState.deck.concat(sharedRelicState.discard);
+    sharedRelicState.discard = [];
+    shuffleArray(sharedRelicState.deck);
+
+    saveProfiles();
+    renderRelics();
+}
+
+function resetRelics() {
+    if (!resourceProfile) return;
+
+    data.sharedRelics = {
+        deck: relicCards.filter(card => card.startsUnlocked).map(card => ({ ...card })),
+        discard: [],
+        unlocked: relicCards.filter(card => card.startsUnlocked).map(card => card.id)
+    };
+
+    Object.keys(data).forEach(key => {
+        if (data[key] && data[key].relics && data[key].relics.inventory) {
+            data[key].relics.inventory = [];
+        }
+    });
+
+    saveProfiles();
+    renderRelics();
+}
+
 
 
 function shuffleArray(array) {
@@ -4559,6 +4829,7 @@ function shuffleArray(array) {
 }
 
 refreshProfiles();
+updateProfileList();
 setFaction(currentFaction);
 updateSM();
 updateFury();
