@@ -2236,11 +2236,12 @@ body.elves {
 </div>
 
 <div id="memoriesView" style="display:none; margin:20px; color:white;">
-  <div style="max-width:1100px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+  <div style="max-width:1400px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
     <h2 style="margin-top:0; color:gold;">Memories</h2>
-    <p>Host-only memory cards will go here.</p>
+    <div id="memoriesApp"></div>
   </div>
 </div>
+
 
 
 
@@ -2930,24 +2931,7 @@ const memoryCards = [
     presence: "none",
     notes: ""
   },
-  {
-    id: 46,
-    title: "Aggressor",
-    effect: "Gain +1 OD on your first attack in each cave.",
-    reward: "",
-    resolution: "Complete a cave without attacking: Remove this card and gain 1 Rare Potion.",
-    presence: "increase",
-    notes: "Increase Presence."
-  },
-  {
-    id: 47,
-    title: "Mocked",
-    effect: "Hostile creatures gain +1 priority targeting your units.",
-    reward: "",
-    resolution: "Defeat a spawned creature tied to this Memory: Remove this card and gain 1 Chest Card.",
-    presence: "none",
-    notes: ""
-  },
+  
     {
     id: 45,
     title: "Aggressor",
@@ -3059,6 +3043,30 @@ const memoryCards = [
 
 
 ];
+
+function renderMemories() {
+  const app = document.getElementById("memoriesApp");
+  if (!app) return;
+
+  app.innerHTML = `
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+      ${memoryCards.map(card => `
+        <div style="background:rgba(45,45,45,0.92); border:1px solid rgba(255,255,255,0.12); border-left:6px solid #d4af37; border-radius:10px; padding:16px; box-shadow:0 0 10px rgba(0,0,0,0.35);">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;">
+            <h3 style="margin:0; color:#ffe08a;">${card.id}. ${card.title}</h3>
+            <span style="font-size:12px; color:#bbb;">${card.presence}</span>
+          </div>
+
+          <p style="margin:0 0 10px 0; color:#ddd;"><strong>Effect:</strong> ${card.effect || "-"}</p>
+          <p style="margin:0 0 10px 0; color:#ddd;"><strong>Reward:</strong> ${card.reward || "-"}</p>
+          <p style="margin:0 0 10px 0; color:#ddd;"><strong>Resolution:</strong> ${card.resolution || "-"}</p>
+          <p style="margin:0; color:#aaa;"><strong>Notes:</strong> ${card.notes || "-"}</p>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
 
 
 function useFactionAbility(cost) {
@@ -3511,7 +3519,12 @@ function showView(view) {
 
   document.getElementById("memoriesView").style.display =
     view === "memories" && isHostMode ? "block" : "none";
+
+  if (view === "memories" && isHostMode) {
+    renderMemories();
+  }
 }
+
 
 function toggleHostMode() {
   if (isHostMode) return;
