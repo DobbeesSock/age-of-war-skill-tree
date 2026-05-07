@@ -990,7 +990,9 @@ body.elves {
 
 <div id="hostTabs" style="display:none; margin-bottom:15px;">
   <button onclick="showView('memories')">Memories</button>
+  <button onclick="showView('worldEvents')">World Events</button>
 </div>
+
 
 
 
@@ -2242,6 +2244,14 @@ body.elves {
   </div>
 </div>
 
+<div id="worldEventsView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1400px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+    <h2 style="margin-top:0; color:gold;">World Events</h2>
+    <div id="worldEventsApp"></div>
+  </div>
+</div>
+
+
 
 
 
@@ -3221,6 +3231,236 @@ function renderMemories() {
   `;
 }
 
+const worldEvents = [
+  {
+    id: 1,
+    title: "Ashen Omen",
+    trigger: "Start of Mission",
+    text: "All factions must reveal 1 hidden intention or lose 2 Gold."
+  },
+  {
+    id: 2,
+    title: "Broken Horizon",
+    trigger: "Mid Mission",
+    text: "The next structure destroyed grants +2 Metal to the attacker."
+  },
+  {
+    id: 3,
+    title: "Whispers in the Soil",
+    trigger: "Any World Event Step",
+    text: "Each faction heals 1 unit for 2 HP or gains +1 Energy."
+  }
+];
+
+let worldEventState = {
+  deck: [],
+  discard: [],
+  current: null,
+  tracker: [
+    { label: "1", type: "normal", checked: false },
+    { label: "2", type: "normal", checked: false },
+    { label: "WE", type: "event", checked: false },
+    { label: "3", type: "normal", checked: false },
+    { label: "4", type: "normal", checked: false },
+    { label: "WE", type: "event", checked: false },
+    { label: "5", type: "normal", checked: false },
+    { label: "Boss", type: "event", checked: false }
+  ]
+};
+
+function initializeWorldEventDeck() {
+  worldEventState.deck = worldEvents.map(event => ({ ...event }));
+  worldEventState.discard = [];
+  worldEventState.current = null;
+  shuffleWorldEventDeck();
+}
+
+function shuffleWorldEventDeck() {
+  for (let i = worldEventState.deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [worldEventState.deck[i], worldEventState.deck[j]] = [worldEventState.deck[j], worldEventState.deck[i]];
+  }
+}
+
+function resetWorldEvents() {
+  initializeWorldEventDeck();
+  worldEventState.tracker = worldEventState.tracker.map(step => ({
+    ...step,
+    checked: false
+  }));
+  renderWorldEvents();
+}
+
+function drawWorldEvent() {
+  if (worldEventState.current) {
+    alert("A World Event is already drawn. Discard or return it first.");
+    return;
+  }
+
+  if (worldEventState.deck.length === 0) {
+    alert("The World Event deck is empty.");
+    return;
+  }
+
+  worldEventState.current = worldEventState.deck.pop();
+  renderWorldEvents();
+}
+
+function discardCurrentWorldEvent() {
+  if (!worldEventState.current) return;
+  worldEventState.discard.push(worldEventState.current);
+  worldEventState.current = null;
+  renderWorldEvents();
+}
+
+function returnCurrentWorldEventToDeck() {
+  if (!worldEventState.current) return;
+  worldEventState.deck.push(worldEventState.current);
+  worldEventState.current = null;
+  shuffleWorldEventDeck();
+  renderWorldEvents();
+}
+
+function reshuffleWorldEventDiscardIntoDeck() {
+  if (worldEventState.discard.length === 0) {
+    alert("No discarded World Events to reshuffle.");
+    return;
+  }
+
+  worldEventState.deck = worldEventState.deck.concat(worldEventState.discard);
+  worldEventState.discard = [];
+  shuffleWorldEventDeck();
+  renderWorldEvents();
+}
+
+function toggleWorldEventTrackerStep(index) {
+  const step = worldEventState.tracker[index];
+  if (!step) return;
+
+  step.checked = !step.checked;
+
+  if (step.checked && step.type === "event") {
+    drawWorldEvent();
+  }
+
+  renderWorldEvents();
+}
+
+function renderCurrentWorldEventCard(card) {
+  if (!card) {
+    return `
+      <div style="background:rgba(45,45,45,0.92); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:16px; min-height:260px; display:flex; align-items:center; justify-content:center; color:#aaa; text-align:center;">
+        No World Event drawn.
+      </div>
+    `;
+  }
+
+  return `
+    <div style="background:rgba(45,45,45,0.96); border:1px solid rgba(255,255,255,0.12); border-left:6px solid #d4af37; border-radius:10px; padding:16px; box-shadow:0 0 10px rgba(0,0,0,0.35); min-height:260px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;">
+        <h3 style="margin:0; color:#ffe08a;">${card.id}. ${card.title}</h3>
+        <span style="font-size:12px; color:#bbb; text-transform:uppercase;">${card.trigger}</span>
+      </div>
+
+      <p style="margin:0; color:#ddd;"><strong>Effect:</strong> ${card.text}</p>
+    </div>
+  `;
+}
+
+function renderWorldEventTracker() {
+  return `
+    <div style="margin-bottom:20px;">
+      <h3 style="margin:0 0 12px 0; color:gold;">Mission Tracker</h3>
+      <div style="display:flex; flex-wrap:wrap; gap:10px;">
+        ${worldEventState.tracker.map((step, index) => `
+          <button
+            onclick="toggleWorldEventTrackerStep(${index})"
+            style="
+              width:64px;
+              height:64px;
+              border-radius:10px;
+              border:2px solid ${step.type === "event" ? "#d4af37" : "#666"};
+              background:${step.checked ? (step.type === "event" ? "#7a5a1a" : "#2f6b3c") : "#2b2b2b"};
+              color:white;
+              font-weight:bold;
+              font-size:14px;
+              cursor:pointer;
+            "
+          >
+            ${step.label}
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderWorldEvents() {
+  const app = document.getElementById("worldEventsApp");
+  if (!app) return;
+
+  const discardTop = worldEventState.discard.length
+    ? worldEventState.discard[worldEventState.discard.length - 1]
+    : null;
+
+  app.innerHTML = `
+    ${renderWorldEventTracker()}
+
+    <div style="display:grid; grid-template-columns: 280px minmax(340px, 1fr) 280px; gap:20px; align-items:start;">
+      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:gold;">Draw Pile</h3>
+
+        <div style="background:linear-gradient(145deg,#3b2f23,#241a12); border:2px solid #8b6a3e; border-radius:10px; min-height:220px; display:flex; align-items:center; justify-content:center; text-align:center; padding:12px; color:#e6d3a3; box-shadow:inset 0 0 10px #000;">
+          <div>
+            <div style="font-size:18px; font-weight:bold;">World Event Deck</div>
+            <div style="margin-top:8px; font-size:14px;">${worldEventState.deck.length} card${worldEventState.deck.length === 1 ? "" : "s"} remaining</div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
+          <button onclick="drawWorldEvent()" ${worldEventState.deck.length === 0 || worldEventState.current ? "disabled" : ""}>Draw</button>
+          <button onclick="resetWorldEvents()">Reset Deck</button>
+        </div>
+      </div>
+
+      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:gold;">Current Event</h3>
+
+        ${renderCurrentWorldEventCard(worldEventState.current)}
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
+          <button onclick="discardCurrentWorldEvent()" ${worldEventState.current ? "" : "disabled"}>Discard</button>
+          <button onclick="returnCurrentWorldEventToDeck()" ${worldEventState.current ? "" : "disabled"}>Return to Deck</button>
+        </div>
+      </div>
+
+      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:gold;">Discard Pile</h3>
+
+        <div style="background:rgba(55,55,55,0.92); border:1px solid rgba(255,255,255,0.1); border-radius:10px; min-height:220px; padding:12px; color:#ddd;">
+          <p style="margin-top:0;"><strong>${worldEventState.discard.length}</strong> card${worldEventState.discard.length === 1 ? "" : "s"} discarded</p>
+
+          ${
+            discardTop
+              ? `
+                <p style="margin:10px 0 4px 0; color:#ffe08a;"><strong>Top Card</strong></p>
+                <p style="margin:0; color:#ddd;">${discardTop.id}. ${discardTop.title}</p>
+              `
+              : `
+                <p style="margin:10px 0 0 0; color:#999;">No discarded events yet.</p>
+              `
+          }
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
+          <button onclick="reshuffleWorldEventDiscardIntoDeck()" ${worldEventState.discard.length ? "" : "disabled"}>Reshuffle Discard</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+
 
 
 
@@ -3677,6 +3917,9 @@ function showView(view) {
   document.getElementById("memoriesView").style.display =
     view === "memories" && isHostMode ? "block" : "none";
 
+  document.getElementById("worldEventsView").style.display =
+    view === "worldEvents" && isHostMode ? "block" : "none";
+
   if (view === "memories" && isHostMode) {
     if (
       memoryState.deck.length === 0 &&
@@ -3685,10 +3928,21 @@ function showView(view) {
     ) {
       initializeMemoryDeck();
     }
-
     renderMemories();
   }
+
+  if (view === "worldEvents" && isHostMode) {
+    if (
+      worldEventState.deck.length === 0 &&
+      worldEventState.discard.length === 0 &&
+      !worldEventState.current
+    ) {
+      initializeWorldEventDeck();
+    }
+    renderWorldEvents();
+  }
 }
+
 
 
 
