@@ -2942,7 +2942,25 @@ const memoryCards = [
     presence: "increase",
     notes: "Increase Presence when entering caves."
   },
-  
+  {
+  id: 46,
+  title: "Commune",
+  effect: "Once per cave, you may reroll a choice outcome.",
+  reward: "",
+  resolution: "If you fail the reroll: Remove this card and suffer 1 damage.",
+  presence: "none",
+  notes: ""
+},
+{
+  id: 47,
+  title: "Marked",
+  effect: "Hostile creatures gain +1 priority targeting your units.",
+  reward: "",
+  resolution: "Defeat a creature spawned by this Memory: Remove this card and gain 1 Chest Card.",
+  presence: "none",
+  notes: ""
+},
+
   {
     id: 48,
     title: "Fool",
@@ -3204,28 +3222,7 @@ function renderMemories() {
 }
 
 
-function renderMemories() {
-  const app = document.getElementById("memoriesApp");
-  if (!app) return;
 
-  app.innerHTML = `
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
-      ${memoryCards.map(card => `
-        <div style="background:rgba(45,45,45,0.92); border:1px solid rgba(255,255,255,0.12); border-left:6px solid #d4af37; border-radius:10px; padding:16px; box-shadow:0 0 10px rgba(0,0,0,0.35);">
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;">
-            <h3 style="margin:0; color:#ffe08a;">${card.id}. ${card.title}</h3>
-            <span style="font-size:12px; color:#bbb;">${card.presence}</span>
-          </div>
-
-          <p style="margin:0 0 10px 0; color:#ddd;"><strong>Effect:</strong> ${card.effect || "-"}</p>
-          <p style="margin:0 0 10px 0; color:#ddd;"><strong>Reward:</strong> ${card.reward || "-"}</p>
-          <p style="margin:0 0 10px 0; color:#ddd;"><strong>Resolution:</strong> ${card.resolution || "-"}</p>
-          <p style="margin:0; color:#aaa;"><strong>Notes:</strong> ${card.notes || "-"}</p>
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
 
 
 
