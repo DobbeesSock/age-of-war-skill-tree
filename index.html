@@ -2531,10 +2531,535 @@ const factionAbilityDescriptions = {
     "Shadow Strikers": "Perform at the beginning of the movement Phase, stop the game and move all Assassins on the board. Movement Roll D20 twice and take the best roll for all Assassins moving. Then after all Assassins are Invisible, if they are each adjacent to an enemy immediately perform an attack. After the attack rearrange your invisibility tokens and play resumes as normal."
   }
 
-
-
-
 };
+
+const memoryCards = [
+    {
+    id: 1,
+    title: "You Walked Alone",
+    effect: "Ignore the next opportunity to receive help or assistance.",
+    reward: "Gain 1 Common Potion.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 2,
+    title: "No One Heard That",
+    effect: "The next time you would speak during a cave, remain silent instead.",
+    reward: "No mechanical effect.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 3,
+    title: "The Exit Looked Smaller",
+    effect: "Suffer 1 damage when leaving your next cave.",
+    reward: "Gain 1 Common Potion.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 4,
+    title: "You Were Observed",
+    effect: "Look at the top card of the Cave Deck, then return it.",
+    reward: "",
+    resolution: "",
+    presence: "increase",
+    notes: "Increase Presence."
+  },
+  {
+    id: 5,
+    title: "It Knows Your Pace",
+    effect: "During your next cave, remove one available option of your choice.",
+    reward: "No Presence change.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 6,
+    title: "Something Counted Your Steps",
+    effect: "The next reward you gain is reduced by one tier.",
+    reward: "",
+    resolution: "",
+    presence: "decrease",
+    notes: "Reduce Presence."
+  },
+  {
+    id: 7,
+    title: "You Could Have Taken More",
+    effect: "Next time you skip a reward voluntarily: Reduce Presence.",
+    reward: "Gain 1 Rare Potion.",
+    resolution: "",
+    presence: "decrease",
+    notes: ""
+  },
+  {
+    id: 8,
+    title: "You Took Too Much",
+    effect: "Your next reward is delayed until the end of the turn.",
+    reward: "",
+    resolution: "",
+    presence: "increase",
+    notes: "Increase Presence."
+  },
+  {
+    id: 9,
+    title: "The Sound Returned",
+    effect: "The next time you deal damage in a cave, suffer 1 damage after.",
+    reward: "Gain 1 Common Potion.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 10,
+    title: "You Didn't Mean To",
+    effect: "Gain [Hesitant] until the end of your next cave.",
+    reward: "",
+    resolution: "",
+    presence: "decrease",
+    notes: "Reduce Presence."
+  },
+  {
+    id: 11,
+    title: "Again",
+    effect: "Shuffle this card back into the Cave Deck instead of discarding.",
+    reward: "",
+    resolution: "When drawn again: Draw 1 additional Solo Memory Card.",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 12,
+    title: "Pattern Noted",
+    effect: "If you choose the same type of option twice in a row: Increase Presence.",
+    reward: "Gain 1 Common Potion.",
+    resolution: "",
+    presence: "increase",
+    notes: ""
+  },
+  {
+    id: 13,
+    title: "The Cave Didn't Respond",
+    effect: "No mechanical effect.",
+    reward: "",
+    resolution: "Pause silently for 5 seconds before continuing.",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 14,
+    title: "You Exited Without a Sound",
+    effect: "Your next cave cannot add Memory Cards.",
+    reward: "",
+    resolution: "",
+    presence: "decrease",
+    notes: "Reduce Presence."
+  },
+   {
+    id: 15,
+    title: "You Looked Back",
+    effect: "Peek at the top two cards of the Cave Deck; return them in any order.",
+    reward: "",
+    resolution: "",
+    presence: "increase",
+    notes: "Increase Presence."
+  },
+  {
+    id: 16,
+    title: "Your Reflection Lagged",
+    effect: "The next time you would gain a reward, choose one fewer item.",
+    reward: "",
+    resolution: "",
+    presence: "decrease",
+    notes: "Reduce Presence."
+  },
+  {
+    id: 17,
+    title: "The Walls Leaned In",
+    effect: "Suffer 1 damage upon entering your next cave.",
+    reward: "Gain 1 Common Potion.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 18,
+    title: "No Echo Came Back",
+    effect: "The next cave you explore has no dialogue text read aloud.",
+    reward: "No Presence change.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 19,
+    title: "The Hum Was Missing",
+    effect: "Cancel the next Presence increase that would affect you.",
+    reward: "Gain 1 Common Potion.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 20,
+    title: "You Lost Your Place",
+    effect: "The next time you would choose between paths, roll a die. On 1-2, the choice is reversed. Otherwise, resolve normally.",
+    reward: "",
+    resolution: "",
+    presence: "decrease",
+    notes: "Reduce Presence."
+  },
+  {
+    id: 21,
+    title: "You Chose Too Quickly",
+    effect: "Pause 5 seconds before making your next cave choice.",
+    reward: "If you wait silently, gain 1 Common Potion.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 22,
+    title: "You Expected Worse",
+    effect: "No immediate effect.",
+    reward: "The next time nothing happens in a cave, gain 1 Rare Potion.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 23,
+    title: "You Would Do It Again",
+    effect: "The next time you repeat a prior type of choice, increase Presence.",
+    reward: "Gain 1 Common Potion.",
+    resolution: "",
+    presence: "increase",
+    notes: ""
+  },
+  {
+    id: 24,
+    title: "Something Adjusted",
+    effect: "The next negative effect you suffer is delayed until after your next cave.",
+    reward: "No Presence change.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 25,
+    title: "You Were Allowed Through",
+    effect: "Reduce Presence.",
+    reward: "",
+    resolution: "After completing your next cave, draw 1 additional Cave card, then discard it without resolving.",
+    presence: "decrease",
+    notes: ""
+  },
+    {
+    id: 26,
+    title: "You Were In Control",
+    effect: "The next time you must roll a die for a cave effect, you may ignore the result and choose instead.",
+    reward: "",
+    resolution: "",
+    presence: "decrease",
+    notes: "Reduce Presence."
+  },
+  {
+    id: 27,
+    title: "You Never Had Control",
+    effect: "The next time you choose an option in a cave, the cave chooses for you instead.",
+    reward: "",
+    resolution: "",
+    presence: "increase",
+    notes: "Increase Presence."
+  },
+  {
+    id: 28,
+    title: "You Saw Too Much",
+    effect: "The next cave you explore has one additional negative effect.",
+    reward: "",
+    resolution: "",
+    presence: "decrease",
+    notes: "Reduce Presence."
+  },
+  {
+    id: 29,
+    title: "You Saw Nothing",
+    effect: "The next cave you explore has one fewer negative effect.",
+    reward: "",
+    resolution: "",
+    presence: "decrease",
+    notes: "Reduce Presence."
+  },
+  {
+    id: 30,
+    title: "It Remembers Your Face",
+    effect: "Look at the top card of the Cave Deck, then return it.",
+    reward: "",
+    resolution: "",
+    presence: "increase",
+    notes: "Increase Presence."
+  },
+  {
+    id: 31,
+    title: "It Forgot You",
+    effect: "Reduce Presence.",
+    reward: "Gain 1 Rare Potion.",
+    resolution: "",
+    presence: "decrease",
+    notes: ""
+  },
+  {
+    id: 32,
+    title: "You Chose Differently",
+    effect: "The next time you choose a different option type in a cave: Reduce Presence.",
+    reward: "Gain 1 Common Potion.",
+    resolution: "",
+    presence: "decrease",
+    notes: ""
+  },
+  {
+    id: 33,
+    title: "You Couldn't Decide",
+    effect: "The next time you must make a choice in a cave, draw 2 additional options if available.",
+    reward: "",
+    resolution: "",
+    presence: "increase",
+    notes: "Increase Presence."
+  },
+  {
+    id: 34,
+    title: "It Was Only Imagination",
+    effect: "No mechanical effect.",
+    reward: "",
+    resolution: "Pause silently for 5 seconds before continuing.",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 35,
+    title: "Nothing Happened",
+    effect: "No mechanical effect.",
+    reward: "Gain 1 Common Potion.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+    {
+    id: 36,
+    title: "Nothing Mattered",
+    effect: "Ignore all Presence changes until the end of your next cave.",
+    reward: "Gain 1 Common Potion.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 37,
+    title: "You Almost Turned Back",
+    effect: "Before resolving your next cave, you may cancel the first negative effect you would suffer.",
+    reward: "No Presence change.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 38,
+    title: "Something Follows",
+    effect: "Peek at the top card of the Cave Deck, then return it.",
+    reward: "",
+    resolution: "",
+    presence: "increase",
+    notes: "Increase Presence."
+  },
+  {
+    id: 39,
+    title: "Nothing Was Taken",
+    effect: "Reduce Presence.",
+    reward: "Gain 1 Common Potion.",
+    resolution: "",
+    presence: "decrease",
+    notes: ""
+  },
+  {
+    id: 40,
+    title: "The Cave Remembers",
+    effect: "Your next reward is improved by one tier.",
+    reward: "Gain 1 Chest Card.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 41,
+    title: "Something Was Lost",
+    effect: "The next reward you gain is reduced by one tier.",
+    reward: "",
+    resolution: "",
+    presence: "increase",
+    notes: "Increase Presence."
+  },
+  {
+    id: 42,
+    title: "Time Felt Wrong",
+    effect: "Skip your next draw step for Memory Cards.",
+    reward: "",
+    resolution: "",
+    presence: "decrease",
+    notes: "Reduce Presence."
+  },
+  {
+    id: 43,
+    title: "Left Undisturbed",
+    effect: "Reduce Presence.",
+    reward: "Gain 1 Common Potion.",
+    resolution: "",
+    presence: "decrease",
+    notes: ""
+  },
+  {
+    id: 44,
+    title: "The Ground Shifted",
+    effect: "Your next movement in a cave is reduced by 1.",
+    reward: "No Presence change.",
+    resolution: "",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 46,
+    title: "Aggressor",
+    effect: "Gain +1 OD on your first attack in each cave.",
+    reward: "",
+    resolution: "Complete a cave without attacking: Remove this card and gain 1 Rare Potion.",
+    presence: "increase",
+    notes: "Increase Presence."
+  },
+  {
+    id: 47,
+    title: "Mocked",
+    effect: "Hostile creatures gain +1 priority targeting your units.",
+    reward: "",
+    resolution: "Defeat a spawned creature tied to this Memory: Remove this card and gain 1 Chest Card.",
+    presence: "none",
+    notes: ""
+  },
+    {
+    id: 45,
+    title: "Aggressor",
+    effect: "Gain +1 OD on your first attack in each cave.",
+    reward: "",
+    resolution: "Complete a cave without attacking: Remove this card and gain 1 Rare Potion.",
+    presence: "increase",
+    notes: "Increase Presence when entering caves."
+  },
+  {
+    id: 46,
+    title: "Commune",
+    effect: "Once per cave, you may reroll a choice outcome.",
+    reward: "",
+    resolution: "If you fail the reroll: Remove this card and suffer 1 damage.",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 47,
+    title: "Marked",
+    effect: "Hostile creatures gain +1 priority targeting your units.",
+    reward: "",
+    resolution: "Defeat a creature spawned by this Memory: Remove this card and gain 1 Chest Card.",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 48,
+    title: "Fool",
+    effect: "Your first failed roll in each cave deals +1 damage.",
+    reward: "",
+    resolution: "Succeed at 2 risky rolls: Remove this card.",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 49,
+    title: "Patience",
+    effect: "Gain +1 to your next cave roll.",
+    reward: "",
+    resolution: "After using this bonus: Remove this card.",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 50,
+    title: "Cunning",
+    effect: "Once per cave, take +1 additional reward when choosing.",
+    reward: "",
+    resolution: "Increase Presence twice, then remove this card.",
+    presence: "increase",
+    notes: "Increase Presence twice."
+  },
+  {
+    id: 51,
+    title: "Balanced",
+    effect: "Reduce all incoming cave damage by 1.",
+    reward: "",
+    resolution: "If you take 3 total damage: Remove this card.",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 52,
+    title: "Trapped",
+    effect: "Movement in caves -1.",
+    reward: "",
+    resolution: "Escape a collapsing cave successfully: Remove this card.",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 53,
+    title: "Scarred",
+    effect: "Future caves gain +1 difficulty.",
+    reward: "",
+    resolution: "Discard a Relic: Remove this card.",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 54,
+    title: "Witnessed",
+    effect: "GM may alter one outcome slightly in your next cave.",
+    reward: "",
+    resolution: "Resolve that altered outcome: Remove this card.",
+    presence: "none",
+    notes: ""
+  },
+  {
+    id: 55,
+    title: "False Record",
+    effect: "Gain +1 reward in caves. But: Failure effects are doubled.",
+    reward: "",
+    resolution: "Succeed in a cave without lying: Remove this card.",
+    presence: "none",
+    notes: "Gain 1 Rare Potion on resolution."
+  },
+  {
+    id: 56,
+    title: "Consumed",
+    effect: "Your unit is removed from play.",
+    reward: "",
+    resolution: "None.",
+    presence: "none",
+    notes: ""
+  }
+
+
+];
+
 
 function useFactionAbility(cost) {
   if (!resourceProfile) return;
