@@ -2407,6 +2407,101 @@ const factionAbilityDescriptions = {
   }
 };
 
+function useFactionAbility(cost) {
+  if (!resourceProfile) return;
+
+  const energy = resources.find(r => r.name === "Energy");
+  if (!energy) return;
+
+  if (energy.value < cost) {
+    alert("Not enough Energy!");
+    return;
+  }
+
+  energy.value -= cost;
+  saveResourceProfile();
+  renderResources();
+}
+
+function renderFactionAbilityChart() {
+  const factionFamily =
+    selectedCollectionFaction === "auto"
+      ? getFactionFamily(currentFaction)
+      : selectedCollectionFaction;
+
+  const rows = factionAbilityCharts[factionFamily] || [];
+
+  if (rows.length === 0) {
+    return `
+      <div style="padding:16px; border-radius:12px; background:rgba(40,40,40,0.85); border:1px solid rgba(255,255,255,0.12);">
+        <h2 style="margin-top:0; color:gold;">${factionFamily} Abilities</h2>
+        <p style="margin:0; color:#ddd;">No faction abilities added yet.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div style="padding:16px; border-radius:12px; background:rgba(40,40,40,0.85); border:1px solid rgba(255,255,255,0.12); box-shadow:0 0 12px rgba(0,0,0,0.3);">
+      <h2 style="margin-top:0; color:gold;">${factionFamily} Abilities</h2>
+      <table style="width:100%; border-collapse:collapse; color:white;">
+        <thead>
+          <tr>
+            <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Unit</th>
+            <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Cost</th>
+            <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Ability</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(row => `
+            <tr
+              onclick="useFactionAbility(${row.cost})"
+              style="cursor:pointer;"
+              title="Click to spend ${row.cost} Energy"
+            >
+              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.unit}</td>
+              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.cost}</td>
+              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.ability}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderFactionAbilityDescriptions() {
+  const factionFamily =
+    selectedCollectionFaction === "auto"
+      ? getFactionFamily(currentFaction)
+      : selectedCollectionFaction;
+
+  const descriptions = factionAbilityDescriptions[factionFamily] || {};
+  const entries = Object.entries(descriptions);
+
+  if (entries.length === 0) {
+    return `
+      <div style="padding:16px; border-radius:12px; background:rgba(40,40,40,0.85); border:1px solid rgba(255,255,255,0.12);">
+        <h2 style="margin-top:0; color:gold;">Ability Details</h2>
+        <p style="margin:0; color:#ddd;">No ability descriptions added yet.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div style="padding:16px; border-radius:12px; background:rgba(40,40,40,0.85); border:1px solid rgba(255,255,255,0.12); box-shadow:0 0 12px rgba(0,0,0,0.3);">
+      <h2 style="margin-top:0; color:gold;">Ability Details</h2>
+      ${entries.map(([name, description]) => `
+        <div style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.08);">
+          <h3 style="margin:0 0 6px 0; color:#ffe08a; font-size:16px;">${name}</h3>
+          <p style="margin:0; color:#ddd; line-height:1.45;">${description}</p>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+
+
 
 
 
@@ -2462,8 +2557,18 @@ function renderCollectionChart() {
 
 function renderResources() {
   const app = document.getElementById("app");
-  app.innerHTML = renderCollectionChart();
+  app.innerHTML = `
+    <div style="display:grid; grid-template-columns: 1fr 1.2fr 1fr; gap:20px; align-items:start;">
+      <div id="abilityChartPanel"></div>
+      <div id="collectionAndResourcesPanel"></div>
+      <div id="abilityDescriptionsPanel"></div>
+    </div>
+  `;
 
+  document.getElementById("abilityChartPanel").innerHTML = renderFactionAbilityChart();
+
+  const centerPanel = document.getElementById("collectionAndResourcesPanel");
+  centerPanel.innerHTML = renderCollectionChart();
 
   resources.forEach((res, i) => {
     const row = document.createElement("div");
@@ -2502,9 +2607,12 @@ function renderResources() {
       ` : ""}
     `;
 
-    app.appendChild(row);
+    centerPanel.appendChild(row);
   });
+
+  document.getElementById("abilityDescriptionsPanel").innerHTML = renderFactionAbilityDescriptions();
 }
+
 
 function change(index, amount) {
   const res = resources[index];
