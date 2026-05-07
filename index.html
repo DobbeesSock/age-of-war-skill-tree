@@ -978,12 +978,20 @@ body.elves {
 
 <h1>Age of War Companion</h1>
 
-<div style="margin-bottom:15px;">
+<div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
   <button onclick="showView('skill')">Skill Tree</button>
   <button onclick="showView('resources')">Resources</button>
   <button onclick="showView('potions')">Potions</button>
   <button onclick="showView('relics')">Relics</button>
+
+  <button id="hostLoginBtn" onclick="toggleHostMode()">Host Login</button>
+  <button id="hostLogoutBtn" onclick="disableHostMode()" style="display:none;">Hide Host Tools</button>
 </div>
+
+<div id="hostTabs" style="display:none; margin-bottom:15px;">
+  <button onclick="showView('memories')">Memories</button>
+</div>
+
 
 
 <div id="skillTreeView">
@@ -2227,6 +2235,14 @@ body.elves {
   <div id="relicsApp"></div>
 </div>
 
+<div id="memoriesView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1100px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+    <h2 style="margin-top:0; color:gold;">Memories</h2>
+    <p>Host-only memory cards will go here.</p>
+  </div>
+</div>
+
+
 
 
 
@@ -2854,6 +2870,8 @@ updateProfileList();
 
 let sm = 0;
 let currentFaction = "dwarves";
+let isHostMode = false;
+const hostPassword = "ageofwar";
 
 
 // CREATE / LOAD PROFILE
@@ -2965,7 +2983,50 @@ function showView(view) {
 
   document.getElementById("relicsView").style.display =
     view === "relics" ? "block" : "none";
+
+  document.getElementById("memoriesView").style.display =
+    view === "memories" && isHostMode ? "block" : "none";
 }
+
+function toggleHostMode() {
+  if (isHostMode) return;
+
+  const entered = prompt("Enter host password:");
+  if (entered === null) return;
+
+  if (entered !== hostPassword) {
+    alert("Incorrect password.");
+    return;
+  }
+
+  isHostMode = true;
+
+  const hostTabs = document.getElementById("hostTabs");
+  const loginBtn = document.getElementById("hostLoginBtn");
+  const logoutBtn = document.getElementById("hostLogoutBtn");
+
+  if (hostTabs) hostTabs.style.display = "block";
+  if (loginBtn) loginBtn.style.display = "none";
+  if (logoutBtn) logoutBtn.style.display = "inline-block";
+}
+
+function disableHostMode() {
+  isHostMode = false;
+
+  const hostTabs = document.getElementById("hostTabs");
+  const loginBtn = document.getElementById("hostLoginBtn");
+  const logoutBtn = document.getElementById("hostLogoutBtn");
+
+  if (hostTabs) hostTabs.style.display = "none";
+  if (loginBtn) loginBtn.style.display = "inline-block";
+  if (logoutBtn) logoutBtn.style.display = "none";
+
+  if (document.getElementById("memoriesView").style.display === "block") {
+    showView("skill");
+  }
+}
+
+
 
 
 
