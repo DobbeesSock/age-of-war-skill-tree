@@ -2392,8 +2392,19 @@ const factionAbilityCharts = {
     { unit: "Fierce Gorilla", cost: 9, ability: "Chaos" },
     { unit: "Fire Creature", cost: 16, ability: "Engulfed in Flames" },
     { unit: "Dwarves", cost: 20, ability: "Earthquake" }
+  ],
+   Men: [
+    { unit: "Angelic Soldier", cost: 9, ability: "Life Essence" },
+    { unit: "Ranger", cost: 6, ability: "Eagle Eye" },
+    { unit: "Archangel", cost: 10, ability: "Airborne Strike" },
+    { unit: "Legionary", cost: 8, ability: "Sacrificial" },
+    { unit: "Champion", cost: 7, ability: "For Glory" },
+    { unit: "Battle Boar", cost: 13, ability: "Meat Grinder" },
+    { unit: "Castle", cost: 17, ability: "Heavens Might" },
+    { unit: "Men", cost: 20, ability: "Ancestral Cry" }
   ]
 };
+
 
 const factionAbilityDescriptions = {
   Dwarves: {
@@ -2405,7 +2416,19 @@ const factionAbilityDescriptions = {
     "Chaos": "Fierce Gorilla may Move during a Movement Round then immediately may perform an Attack. This attack takes away from total attack actions this Phase. Unit heals 1 HP per successful hit with this Action, then Fierce Gorilla spawns back at the players Province.",
     "Engulfed in Flames": "Perform an attack action with this unit and deal +2 Damage to all enemies, with +5 Damage to Rootwalkers and Goat Beasts, +3 Damage to Titans and Trolls. After attack move this unit 10 towards a Commander if able.",
     "Earthquake": "Target every Province including allies. Every Faction will choose 6 buildings that can be targeted by this attack then each faction will number those buildings 1-6. After numbering each faction will roll a D6 and whichever number is shown that building is destroyed. Eligible buildings must have HP 6 or greater, and only one wall may be eligible out of the 6 required. Destroying buildings in this way rewards Metal and any other rewards based on Faction. After resolving the Earthquake a Special World Event is triggered based on the Dwarven actions taken. This action can only be done twice per mission and a World Event is triggered each time. 6 eligible buildings must be chosen even if that means selecting your Home Base."
-  }
+  },
+  
+  Men: {
+  "Life Essence": "An Angelic Soldier may detonate its Life Essence to cause 4 damage to all enemies within Range 3 of the Angel who detonates. Remove the unit from the game, apply the damage, and heal 1 Commander X HP where X is the number of units affected by the detonation. This Angelic Soldier cannot be brought back into the map this game.",
+  "Eagle Eye": "Grant 1 Ranger the ability to target an enemy double its Range away. If the attack lands, perform move 6.",
+  "Airborne Strike": "When the Archangel enters play, if the Energy is spent summon the Archangel anywhere on the board excluding in a player's Province. The unit must spawn on a free space. Any units adjacent to the summon spot die from the impact. Max 4 units can die.",
+  "Sacrificial": "If Legionary has died, the cost may be spent to bring this unit back. In order to fully resurrect this unit an additional cost of 1 Swordsman and 1 Paladin must be paid on top of the Energy cost by removing these two units from the Battle Map. If the Sword and Paladin are not killed then the Legionary enters the map with 3 HP.",
+  "For Glory": "Once the Champion has accumulated 4 kills, the Energy cost may be spent to double the Health Points of the Champion for the remainder of the mission. If the Champion dies after this effect gain 2 Dragon Coins for his sacrifice.",
+  "Meat Grinder": "The Battle Boar may double its movement and may trample up to 6 units. These units cannot evade and suffer 2 damage each. After movement perform a free attack at +1 Roll Check.",
+  "Heavens Might": "Fire an energy beam from the Castle to any point within range 15. If the beam targets an enemy that enemy suffers 10 damage. After this ability the Castle suffers 9 damage. If the ability is performed a second time this mission destroy the Castle and every other faction gains +6 Dragon Coins. If the beam killed an Ultimate unit the affected faction gains +10 Metal. World Tension increases by 2.",
+  "Ancestral Cry": "Description coming soon."
+}
+
 };
 
 function useFactionAbility(cost) {
