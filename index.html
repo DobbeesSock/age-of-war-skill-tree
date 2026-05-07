@@ -200,6 +200,10 @@ h1 {
     }
 }
 
+#app table tbody tr:hover {
+    background: rgba(255, 215, 0, 0.08);
+}
+
 
 .tree {
     display: none;
@@ -2325,6 +2329,57 @@ const collectionTables = {
 
 };
 
+function addResourceByName(name, amount) {
+  const resource = resources.find(r => r.name === name);
+  if (!resource) return;
+
+  resource.value += amount;
+
+  if (resource.max !== undefined && resource.value > resource.max) {
+    resource.value = resource.max;
+  }
+
+  if (resource.value < 0) {
+    resource.value = 0;
+  }
+}
+
+function applyCollectionIncome(incomeText) {
+  const normalized = incomeText.replace(/,/g, " & ");
+  const parts = normalized.split("&").map(part => part.trim()).filter(Boolean);
+
+  parts.forEach(part => {
+    const match = part.match(/^\+(\d+)\s+(.+?)(?:\s+per\s+.+)?$/i);
+    if (!match) return;
+
+    const amount = parseInt(match[1], 10);
+    const resourceName = match[2].trim().toLowerCase();
+
+    const resourceMap = {
+      food: "Food",
+      gold: "Gold",
+      energy: "Energy",
+      metal: "Metal",
+      "dragon coin": "Dragon Coins",
+      "dragon coins": "Dragon Coins",
+      "shadow mark": "Shadow Marks",
+      "shadow marks": "Shadow Marks"
+    };
+
+    const mappedName = resourceMap[resourceName];
+    if (!mappedName) return;
+
+    addResourceByName(mappedName, amount);
+  });
+}
+
+function collectBuildingIncome(incomeText) {
+  if (!resourceProfile) return;
+
+  applyCollectionIncome(incomeText);
+  saveResourceProfile();
+  renderResources();
+}
 
 
 
@@ -2359,13 +2414,18 @@ function renderCollectionChart() {
         </thead>
         <tbody>
           ${rows.map(row => `
-            <tr>
-              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.building}</td>
-              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.income}</td>
-              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.limit}</td>
-              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.size}</td>
-            </tr>
-          `).join("")}
+  <tr
+    onclick="collectBuildingIncome(${JSON.stringify(row.income).replace(/"/g, "&quot;")})"
+    style="cursor:pointer;"
+    title="Click to add this building's collection"
+  >
+    <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.building}</td>
+    <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.income}</td>
+    <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.limit}</td>
+    <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.size}</td>
+  </tr>
+`).join("")}
+
         </tbody>
       </table>
     </div>
