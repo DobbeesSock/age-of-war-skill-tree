@@ -2556,12 +2556,14 @@ function renderFactionAbilityChart() {
   return `
     <div style="padding:16px; border-radius:12px; background:rgba(40,40,40,0.85); border:1px solid rgba(255,255,255,0.12); box-shadow:0 0 12px rgba(0,0,0,0.3);">
       <h2 style="margin-top:0; color:gold;">${factionFamily} Abilities</h2>
-      <table style="width:100%; border-collapse:collapse; color:white;">
+      <table style="width:100%; border-collapse:collapse; color:white; table-layout:fixed;">
+
         <thead>
           <tr>
-            <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Unit</th>
-            <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Cost</th>
-            <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Ability</th>
+            <th style="text-align:left; width:46%; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Unit</th>
+            <th style="text-align:left; width:18%; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Cost</th>
+            <th style="text-align:left; width:36%; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Ability</th>
+
           </tr>
         </thead>
         <tbody>
@@ -2571,9 +2573,10 @@ function renderFactionAbilityChart() {
               style="cursor:pointer;"
               title="Click to spend ${row.cost} Energy"
             >
-              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.unit}</td>
-              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.cost}</td>
-              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.ability}</td>
+              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08); white-space:normal; overflow-wrap:anywhere; vertical-align:top;">${row.unit}</td>
+              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08); white-space:nowrap; vertical-align:top;">${row.cost}</td>
+              <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08); white-space:normal; overflow-wrap:anywhere; vertical-align:top;">${row.ability}</td>
+
             </tr>
           `).join("")}
         </tbody>
