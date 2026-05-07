@@ -2402,7 +2402,52 @@ const factionAbilityCharts = {
     { unit: "Battle Boar", cost: 13, ability: "Meat Grinder" },
     { unit: "Castle", cost: 17, ability: "Heavens Might" },
     { unit: "Men", cost: 20, ability: "Ancestral Cry" }
+  ],
+    Elves: [
+    { unit: "Rootwalker", cost: 10, ability: "Rock Hurl" },
+    { unit: "Hoplite", cost: 6, ability: "Unbreakable Wall" },
+    { unit: "Longbow + Squad Leader", cost: 9, ability: "Arrow Volley" },
+    { unit: "Captain of the Guard", cost: 8, ability: "Rallying Cry" },
+    { unit: "Armoury", cost: 4, ability: "Golden Age" },
+    { unit: "Bow Rider", cost: 12, ability: "Kill on Kill" },
+    { unit: "Palace", cost: 16, ability: "Summon the Ancient Power" },
+    { unit: "Elves", cost: 20, ability: "Song of the Ages" }
+  ],
+    Barbarians: [
+    { unit: "Dino Rider", cost: 7, ability: "Seismic" },
+    { unit: "Guardian", cost: 3, ability: "Spear Throw" },
+    { unit: "Housecarl", cost: 6, ability: "Shield Wall" },
+    { unit: "Norse Skullshot", cost: 5, ability: "Pinpoint" },
+    { unit: "Titan", cost: 9, ability: "Titan Quake" },
+    { unit: "Vladuk the Barbarian Lord", cost: 10, ability: "Rallied Charge" },
+    { unit: "Upgrade 3", cost: 14, ability: "Bloodied Effort" },
+    { unit: "Garrison", cost: 17, ability: "Echoes of the Fallen" },
+    { unit: "Barbarians", cost: 20, ability: "Seeing Red" }
+  ],
+    Orcs: [
+    { unit: "Drake", cost: 9, ability: "Rain of Fire" },
+    { unit: "Mighty Troll", cost: 7, ability: "Ground Slam" },
+    { unit: "Goblin Slayer", cost: 5, ability: "Scurry" },
+    { unit: "Volcanic Eruption", cost: 10, ability: "Spew" },
+    { unit: "Elder Dragon", cost: 10, ability: "Fear" },
+    { unit: "Stronghold", cost: 13, ability: "Dark Cloud" },
+    { unit: "Guards", cost: 16, ability: "Flood the Battlefield" },
+    { unit: "Orcs", cost: 20, ability: "Cataclysmic" }
+  ],
+    "The Order": [
+    { unit: "Shadow Assassin", cost: 5, ability: "Throwing Knives" },
+    { unit: "The Disgraced", cost: 10, ability: "Consumption" },
+    { unit: "Goat Beast", cost: 9, ability: "Transformation" },
+    { unit: "Commanders", cost: 7, ability: "Hostile Terrain" },
+    { unit: "Mythical Forrest", cost: 7, ability: "Spring Forth" },
+    { unit: "The Order", cost: 12, ability: "Old Magic" },
+    { unit: "Cathedral", cost: 16, ability: "Eclipse" },
+    { unit: "Assassins", cost: 20, ability: "Shadow Strikers" }
   ]
+
+
+
+
 };
 
 
@@ -2417,7 +2462,7 @@ const factionAbilityDescriptions = {
     "Engulfed in Flames": "Perform an attack action with this unit and deal +2 Damage to all enemies, with +5 Damage to Rootwalkers and Goat Beasts, +3 Damage to Titans and Trolls. After attack move this unit 10 towards a Commander if able.",
     "Earthquake": "Target every Province including allies. Every Faction will choose 6 buildings that can be targeted by this attack then each faction will number those buildings 1-6. After numbering each faction will roll a D6 and whichever number is shown that building is destroyed. Eligible buildings must have HP 6 or greater, and only one wall may be eligible out of the 6 required. Destroying buildings in this way rewards Metal and any other rewards based on Faction. After resolving the Earthquake a Special World Event is triggered based on the Dwarven actions taken. This action can only be done twice per mission and a World Event is triggered each time. 6 eligible buildings must be chosen even if that means selecting your Home Base."
   },
-  
+
   Men: {
   "Life Essence": "An Angelic Soldier may detonate its Life Essence to cause 4 damage to all enemies within Range 3 of the Angel who detonates. Remove the unit from the game, apply the damage, and heal 1 Commander X HP where X is the number of units affected by the detonation. This Angelic Soldier cannot be brought back into the map this game.",
   "Eagle Eye": "Grant 1 Ranger the ability to target an enemy double its Range away. If the attack lands, perform move 6.",
@@ -2427,7 +2472,51 @@ const factionAbilityDescriptions = {
   "Meat Grinder": "The Battle Boar may double its movement and may trample up to 6 units. These units cannot evade and suffer 2 damage each. After movement perform a free attack at +1 Roll Check.",
   "Heavens Might": "Fire an energy beam from the Castle to any point within range 15. If the beam targets an enemy that enemy suffers 10 damage. After this ability the Castle suffers 9 damage. If the ability is performed a second time this mission destroy the Castle and every other faction gains +6 Dragon Coins. If the beam killed an Ultimate unit the affected faction gains +10 Metal. World Tension increases by 2.",
   "Ancestral Cry": "Description coming soon."
-}
+},
+  Elves: {
+    "Rock Hurl": "No Roll Check required. 1 Rootwalker may forgo an attack action to throw a ranged attack at Range 8, rolling a D10 and applying the roll result as damage to a Gate, Wall, or Structure.",
+    "Unbreakable Wall": "All adjacent units of this type form a wall which gives them immunity to Archers and adds +2 Range. Units cannot move while in this formation. Stays active until at least 1 unit dies.",
+    "Arrow Volley": "When the Squad Leader Archer is adjacent to a minimum of 2 Longbow men, all units performing this action target within a radius of 3x3 rolling a D12 and spreading damage to all targets. Total damage is divided by number of targets rounded down. Bonus: kill Squad Leader Archer after die roll to double the die roll.",
+    "Rallying Cry": "Summon up to 5 Melee units on the board to your aid placing them adjacent to the Captain of the Guard.",
+    "Golden Age": "Double the Gold production of the Smith(s) this Phase.",
+    "Kill on Kill": "Perform after killing an enemy with a Bow Rider to then deal damage equal to the attack to another 2 units within range. No Roll Check or Battle Table added, just the total damage done to the initial target.",
+    "Summon the Ancient Power": "Spawn the Terrifying Flying Beast adjacent to your Palace, gain the stat card associated with this beast, and the unit remains in play until mission end or until the beast is defeated.",
+    "Song of the Ages": "Choose a unit type to receive +1 OD and +3 Movement upgrade for free, then move all Archers for free and perform an attack with each Archer, pausing the game while you perform these actions. Once complete trigger a Special Elven World Event, then play resumes from where you paused it. The Archers cannot move again this Phase but may attack again if still in that Phase or about to be in that Phase."
+  },
+    Barbarians: {
+    "Seismic": "Apply Terror to all enemy units within Range 3 of 1 Dino Rider.",
+    "Spear Throw": "Description coming soon.",
+    "Shield Wall": "All Guard units adjacent to at least 1 other Guard gain immunity to ranged attacks this Phase.",
+    "Pinpoint": "Norse Skullshot can increase its Range by +5 and gain +1 Roll Check. If the attack kills the enemy perform a 2nd attack at regular range and no extra Roll Check.",
+    "Titan Quake": "Slam the ground and affect all adjacent enemies to 1 Elite. All affected units must roll an evade check at 5-6. Any units who fail the check suffer 2 true damage.",
+    "Rallied Charge": "All Maniacs and Vladuk can move for free but must move towards the closest enemy. If 2 or more units are adjacent to an enemy perform a surprise attack against up to 1 enemy, and Vladuk gains +1 Roll Check if he participates in the fight.",
+    "Bloodied Effort": "Berserker units gain +1 Fury token per successful attack this Phase.",
+    "Echoes of the Fallen": "All 1x1 units gain +1 Output Damage and +1 Roll Check. They also take +1 damage from attacks this Phase.",
+    "Seeing Red": "Perform at the beginning of the Collection Phase, stop the game and move all melee units and perform an attack with all moved melee units. After they attack move up to 6 units that did not move and attack. Once this is complete trigger a Special World Event, then resume the Game Phase as usual."
+  },
+    Orcs: {
+    "Rain of Fire": "Drake suffers 5 damage to draw a 4x4 square at Range 6 around enemies to cause them to suffer 2 damage and a Battle Table result to each individual enemy in that box. One of the results becomes x2.",
+    "Ground Slam": "All enemy units adjacent to this unit are knocked over and must do a Stand Up Check each round until they pass with each unit. This check is a 1-4. Any 6s rolled cause the unit to suffer 2 damage.",
+    "Scurry": "Up to 4 Goblin Slayers can move as 1 Move Action adding +4 to each unit this turn.",
+    "Spew": "Spawn a Volcano (3x3) within Range 10 of Province Border. Enemies adjacent to the Volcano suffer 2 damage per round while adjacent, and you may spawn units adjacent to the Volcano when they are produced. Adjacent Drake or Elder Dragon heal +3 HP per round.",
+    "Fear": "When the Elder Dragon moves it may move through enemies causing Fear, roll a D4 apply damage and an effect. Straight Line Movement.",
+    "Dark Cloud": "Draw a 5x5 box anywhere on the map, not in enemy Provinces. Friendly units in the cloud gain +1 Roll Check while enemies gain -1 Roll Check to a minimum of RC 6. Ultimate and Unique units gain +2 Roll Check while in the cloud.",
+    "Flood the Battlefield": "All Orc Guards may move as 1 movement action but cannot move again this Phase in any manner. All Guards also gain +3 movement this movement Phase.",
+    "Cataclysmic": "Move every Orc unit once this movement Phase and perform twice as many attack actions as denoted by your action board. Once this Phase is resolved trigger an Orc Special World Event. Can only be used twice a mission."
+  },
+    "The Order": {
+    "Throwing Knives": "Target 3 enemies within Range 4 while Invisible, become visible after this attack, roll D12 divide result between targets and apply damage to targets.",
+    "Consumption": "Once The Disgraced has killed 7 enemies spend the Energy required to unleash a wave of energy dealing 2 damage to every enemy unit and structure within 12. After this burst summon The Disgraced back to 1 of your Cathedrals suffering 7 damage and resetting the kill counter to zero.",
+    "Transformation": "Remove 2 Goat Beasts from the Battle Map and pay the Energy cost to transform 1 Goat Beast into the Goat Warrior. Goat Warrior Reference Card for stats.",
+    "Hostile Terrain": "Turn either a Mountain, Forest, Stream, or a POI hostile, causing any units within to suffer 4 true damage and any adjacent units to suffer 2 true damage. Units affected suffer respective damage every round this Phase.",
+    "Spring Forth": "Allows the construction of a Mythical Forrest anywhere within 10 of your Province Border, then you may teleport 1 Soldier or Bowman to this Forrest.",
+    "Old Magic": "Order units occupying or adjacent to any Terrain heal 4 HP per round. If 5 or more units were healed this way cause an enemy Elite to suffer 5 true damage.",
+    "Eclipse": "Stop the game at the start of a new Phase before Collection. Your faction now takes all their movement and attack actions. After this read an Eclipse World Event and apply its effects to all factions. Once this stage is completed resume where the Phase began at Collection. You also gain +2 movement actions this Phase.",
+    "Shadow Strikers": "Perform at the beginning of the movement Phase, stop the game and move all Assassins on the board. Movement Roll D20 twice and take the best roll for all Assassins moving. Then after all Assassins are Invisible, if they are each adjacent to an enemy immediately perform an attack. After the attack rearrange your invisibility tokens and play resumes as normal."
+  }
+
+
+
 
 };
 
