@@ -2381,6 +2381,33 @@ function collectBuildingIncome(incomeText) {
   renderResources();
 }
 
+const factionAbilityCharts = {
+  Dwarves: [
+    { unit: "Mountain", cost: 6, ability: "Avalanche" },
+    { unit: "Fortress", cost: 4, ability: "Raining Fire" },
+    { unit: "Spawn of the Deep", cost: 10, ability: "Make an Example" },
+    { unit: "Mountain Lord", cost: 5, ability: "Leadership" },
+    { unit: "Mountain Lord", cost: 6, ability: "Untamed Beast" },
+    { unit: "Fierce Gorilla", cost: 9, ability: "Chaos" },
+    { unit: "Fire Creature", cost: 16, ability: "Engulfed in Flames" },
+    { unit: "Dwarves", cost: 20, ability: "Earthquake" }
+  ]
+};
+
+const factionAbilityDescriptions = {
+  Dwarves: {
+    "Avalanche": "3 enemy units adjacent to a Mountain suffer 4 Damage each, remove Mountain after this.",
+    "Raining Fire": "Draw a 3x3 box at Range 10 of the Fortress, all units inside the box suffer 2 damage each Round until they move. Once all units are outside of the box remove it from the Map and gain +5 Food. Must target at least 1 enemy.",
+    "Make an Example": "When an enemy is killed by this unit trigger this ability and take the unit under your control for the rest of the mission. If the unit is killed you gain x2 the Gold for the unit dying and return the unit to the players graveyard. x2 use per mission.",
+    "Leadership": "Trigger when the King is adjacent to Terrain. All Guards and Knights gain +1 Roll Check this Attack Round but the King suffers 5 Damage.",
+    "Untamed Beast": "All Elites and Unique unit gain +1 Damage and +1 Roll Check this Phase. Mountain Lord suffers 5 Damage.",
+    "Chaos": "Fierce Gorilla may Move during a Movement Round then immediately may perform an Attack. This attack takes away from total attack actions this Phase. Unit heals 1 HP per successful hit with this Action, then Fierce Gorilla spawns back at the players Province.",
+    "Engulfed in Flames": "Perform an attack action with this unit and deal +2 Damage to all enemies, with +5 Damage to Rootwalkers and Goat Beasts, +3 Damage to Titans and Trolls. After attack move this unit 10 towards a Commander if able.",
+    "Earthquake": "Target every Province including allies. Every Faction will choose 6 buildings that can be targeted by this attack then each faction will number those buildings 1-6. After numbering each faction will roll a D6 and whichever number is shown that building is destroyed. Eligible buildings must have HP 6 or greater, and only one wall may be eligible out of the 6 required. Destroying buildings in this way rewards Metal and any other rewards based on Faction. After resolving the Earthquake a Special World Event is triggered based on the Dwarven actions taken. This action can only be done twice per mission and a World Event is triggered each time. 6 eligible buildings must be chosen even if that means selecting your Home Base."
+  }
+};
+
+
 
 
 function renderCollectionChart() {
