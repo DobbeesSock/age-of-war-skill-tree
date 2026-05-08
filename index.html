@@ -3579,9 +3579,10 @@ let worldEventState = {
     triggeredEvent: false
   })),
   clicksSinceLastEvent: 0,
-  nextEventAt: 4
-
+  nextEventAt: 4,
+  triggerUsage: {}
 };
+
 
 function getWorldEventRangeByProgress(completedCount) {
   if (completedCount < 8) {
@@ -3602,6 +3603,88 @@ function rollNextWorldEventThreshold() {
   return Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 }
 
+const worldEventTriggerRules = [
+  {
+    id: "poi_resolved",
+    label: "A POI is resolved or destroyed",
+    note: "Repeatable. If too frequent later, we can limit this to once per round.",
+    amount: 1,
+    limit: "repeatable"
+  },
+  {
+    id: "new_poi_keyword",
+    label: "A faction gains a new POI keyword",
+    note: "Once per faction per mission in spirit. For now, use once per mission.",
+    amount: 1,
+    limit: "once_per_mission"
+  },
+  {
+    id: "control_3_pois",
+    label: "A faction controls 3+ POIs in 1 Phase",
+    note: "Best as a milestone trigger.",
+    amount: 1,
+    limit: "once_per_mission"
+  },
+  {
+  id: "dragon_coin_3",
+  label: "Total Dragon Coins in play reaches 3",
+  note: "One-time mission threshold.",
+  amount: 1,
+  limit: "once_per_mission"
+  },
+  {
+  id: "dragon_coin_6",
+  label: "Total Dragon Coins in play reaches 6",
+  note: "One-time mission threshold.",
+  amount: 1,
+  limit: "once_per_mission"
+  },
+  {
+  id: "dragon_coin_9",
+  label: "Total Dragon Coins in play reaches 9",
+  note: "One-time mission threshold.",
+  amount: 1,
+  limit: "once_per_mission"
+  },
+  {
+  id: "dragon_coin_12",
+  label: "Total Dragon Coins in play reaches 12",
+  note: "One-time mission threshold.",
+  amount: 1,
+  limit: "once_per_mission"
+  }
+
+  {
+    id: "central_poi_claimed",
+    label: "A central POI is claimed for the first time",
+    note: "One-time mission trigger.",
+    amount: 1,
+    limit: "once_per_mission"
+  },
+  {
+    id: "dragon_coin_unit_deployed",
+    label: "A Dragon Coin unit is deployed",
+    note: "Repeatable if multiple qualifying units enter play.",
+    amount: 1,
+    limit: "repeatable"
+  },
+  {
+    id: "secret_card_t_deployed",
+    label: "A Secret Card T unit is deployed",
+    note: "Repeatable if multiple qualifying units enter play.",
+    amount: 1,
+    limit: "repeatable"
+  },
+  {
+    id: "home_base_destroyed",
+    label: "A faction Home Base is destroyed",
+    note: "One-time mission trigger. Advances tension by 2.",
+    amount: 2,
+    limit: "once_per_mission"
+  }
+];
+
+
 
 
 function initializeWorldEventDeck() {
@@ -3614,9 +3697,11 @@ function initializeWorldEventDeck() {
     triggeredEvent: false
   }));
   worldEventState.clicksSinceLastEvent = 0;
+  worldEventState.triggerUsage = {};
   shuffleWorldEventDeck();
   worldEventState.nextEventAt = rollNextWorldEventThreshold();
 }
+
 
 
 function resetWorldEvents() {
@@ -3674,6 +3759,51 @@ function reshuffleWorldEventDiscardIntoDeck() {
   shuffleWorldEventDeck();
   renderWorldEvents();
 }
+
+function advanceWorldTension(amount = 1, triggerId = null) {
+  if (triggerId) {
+    const trigger = worldEventTriggerRules.find(t => t.id === triggerId);
+    if (!trigger) return;
+
+    const alreadyUsed = worldEventState.triggerUsage[triggerId];
+
+    if (trigger.limit === "once_per_mission" && alreadyUsed) {
+      return;
+    }
+
+    worldEventState.triggerUsage[triggerId] = (worldEventState.triggerUsage[triggerId] || 0) + 1;
+  }
+
+  let remaining = amount;
+
+  while (remaining > 0) {
+    const nextIndex = worldEventState.progress.findIndex(step => !step.checked);
+
+    if (nextIndex === -1) {
+      break;
+    }
+
+    const step = worldEventState.progress[nextIndex];
+    step.checked = true;
+    worldEventState.clicksSinceLastEvent += 1;
+
+    if (worldEventState.clicksSinceLastEvent >= worldEventState.nextEventAt) {
+      step.triggeredEvent = true;
+      worldEventState.clicksSinceLastEvent = 0;
+      worldEventState.nextEventAt = rollNextWorldEventThreshold();
+
+      if (!worldEventState.current && worldEventState.deck.length > 0) {
+        worldEventState.current = worldEventState.deck.pop();
+      }
+    }
+
+    remaining -= 1;
+  }
+
+  renderWorldEvents();
+}
+
+
 
 function toggleWorldEventTrackerStep(index) {
   const step = worldEventState.progress[index];
@@ -3762,6 +3892,59 @@ function renderCurrentWorldEventCard(card) {
   `;
 }
 
+function renderWorldEventTriggerChart() {
+  return `
+    <div style="margin-bottom:20px; padding:16px; border-radius:12px; background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12);">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+        <h3 style="margin:0; color:gold;">World Tension Triggers</h3>
+        <span style="font-size:12px; color:#bbb; text-transform:uppercase;">Click a trigger to advance tension</span>
+      </div>
+
+      <div style="display:grid; gap:10px;">
+        ${worldEventTriggerRules.map(trigger => {
+          const usedCount = worldEventState.triggerUsage[trigger.id] || 0;
+          const isLocked = trigger.limit === "once_per_mission" && usedCount > 0;
+
+          return `
+            <button
+              onclick="advanceWorldTension(${trigger.amount}, '${trigger.id}')"
+              ${isLocked ? "disabled" : ""}
+              style="
+                display:block;
+                width:100%;
+                text-align:left;
+                padding:12px;
+                border-radius:8px;
+                background:${isLocked ? "rgba(120,120,120,0.18)" : "rgba(255,255,255,0.03)"};
+                border:1px solid ${isLocked ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.08)"};
+                color:${isLocked ? "#888" : "white"};
+                cursor:${isLocked ? "not-allowed" : "pointer"};
+                opacity:${isLocked ? "0.7" : "1"};
+              "
+              title="${isLocked ? "Already used this mission" : `Advance World Tension by ${trigger.amount}`}"
+            >
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap;">
+                <div style="color:${isLocked ? "#aaa" : "#f3e4a2"}; font-weight:bold;">
+                  ${trigger.label}
+                </div>
+                <div style="font-size:11px; text-transform:uppercase; color:${isLocked ? "#999" : "#bbb"};">
+                  ${trigger.limit === "once_per_mission" ? (isLocked ? "Used This Mission" : "Once Per Mission") : "Repeatable"}
+                </div>
+              </div>
+              <div style="font-size:13px; line-height:1.4; color:${isLocked ? "#999" : "#ccc"};">
+                ${trigger.note}
+              </div>
+            </button>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+
+
+
 
 function renderWorldEventTracker() {
   const completedCount = worldEventState.progress.filter(step => step.checked).length;
@@ -3812,10 +3995,12 @@ function renderWorldEvents() {
     ? worldEventState.discard[worldEventState.discard.length - 1]
     : null;
 
-  app.innerHTML = `
-    ${renderWorldEventTracker()}
+    app.innerHTML = `
+      ${renderWorldEventTriggerChart()}
+      ${renderWorldEventTracker()}
 
-    <div style="display:grid; grid-template-columns: 280px minmax(340px, 1fr) 280px; gap:20px; align-items:start;">
+      <div style="display:grid; grid-template-columns: 280px minmax(340px, 1fr) 280px; gap:20px; align-items:start;">
+
       <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
         <h3 style="margin-top:0; color:gold;">Draw Pile</h3>
 
