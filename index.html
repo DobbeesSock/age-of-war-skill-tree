@@ -5603,9 +5603,6 @@ const breachEvents = [
 ];
 
 
-
-
-
 let worldEventState = {
   deck: [],
   discard: [],
@@ -5624,6 +5621,72 @@ let worldCreatureState = {
   active: [],
   selectedId: null
 };
+
+let breachEventState = {
+  deck: [],
+  discard: [],
+  current: null,
+  progress: Array.from({ length: 30 }, (_, i) => ({
+    label: String(i + 1),
+    checked: false,
+    triggeredEvent: false
+  })),
+  clicksSinceLastEvent: 0,
+  nextEventAt: 3,
+  triggerUsage: {}
+};
+
+const breachEventTriggerRules = [
+  {
+    id: "rift_opened",
+    label: "A Rift opens",
+    note: "Repeatable. Use whenever a new Rift or breach point is created.",
+    amount: 1,
+    limit: "repeatable"
+  },
+  {
+    id: "entity_spawned",
+    label: "An Entity enters play",
+    note: "Repeatable. Use for Echoes, Heralds, Stalkers, or similar breach creatures.",
+    amount: 1,
+    limit: "repeatable"
+  },
+  {
+    id: "omen_gained",
+    label: "A faction gains an Omen",
+    note: "Repeatable. Use whenever a faction gains one or more Omens.",
+    amount: 1,
+    limit: "repeatable"
+  },
+  {
+    id: "corruption_gained",
+    label: "A faction gains Corruption",
+    note: "Repeatable. Use whenever a faction gains Corruption.",
+    amount: 1,
+    limit: "repeatable"
+  },
+  {
+    id: "fragment_claimed",
+    label: "A Fragment is claimed",
+    note: "Once per mission unless you want fragments to snowball harder.",
+    amount: 2,
+    limit: "once_per_mission"
+  },
+  {
+    id: "major_breach_sign",
+    label: "A major breach sign appears",
+    note: "Use for story beats, boss awakenings, or severe map distortions.",
+    amount: 2,
+    limit: "repeatable"
+  },
+  {
+    id: "world_boss_wounded",
+    label: "World Boss loses 10+ HP in a round",
+    note: "Once per mission. Good pressure valve for strong tables.",
+    amount: 1,
+    limit: "once_per_mission"
+  }
+];
 
 
 
@@ -5975,6 +6038,37 @@ function renderCurrentWorldEventCard(card) {
   `;
 }
 
+function renderCurrentBreachEventCard(card) {
+  if (!card) {
+    return `
+      <div style="background:rgba(45,45,45,0.92); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:16px; min-height:260px; display:flex; align-items:center; justify-content:center; color:#aaa; text-align:center;">
+        No Breach Event drawn.
+      </div>
+    `;
+  }
+
+  return `
+    <div style="background:rgba(45,45,45,0.96); border:1px solid rgba(255,255,255,0.12); border-left:6px solid #7dd3fc; border-radius:10px; padding:16px; box-shadow:0 0 10px rgba(0,0,0,0.35); min-height:260px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;">
+        <h3 style="margin:0; color:#bae6fd;">${card.id}. ${card.title}</h3>
+        <span style="font-size:12px; color:#bbb; text-transform:uppercase;">Breach Event</span>
+      </div>
+
+      <p style="margin:0 0 12px 0; color:#ddd; line-height:1.5;">
+        ${card.lore || ""}
+      </p>
+
+      <div>
+        <p style="margin:0 0 6px 0; color:#bae6fd;"><strong>Effect</strong></p>
+        <ul style="margin:0; padding-left:18px; color:#ddd; line-height:1.45;">
+          ${(card.effect || []).map(item => `<li>${item}</li>`).join("")}
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+
 function renderWorldEventTriggerChart() {
   return `
     <div style="margin-bottom:20px; padding:16px; border-radius:12px; background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12);">
@@ -6142,7 +6236,8 @@ function renderBreachEvents() {
       <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
         <h3 style="margin-top:0; color:#7dd3fc;">Current Breach</h3>
 
-        ${renderCurrentWorldEventCard(breachEventState.current)}
+        ${renderCurrentBreachEventCard(breachEventState.current)}
+
 
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
           <button onclick="discardCurrentBreachEvent()" ${breachEventState.current ? "" : "disabled"}>Discard</button>
