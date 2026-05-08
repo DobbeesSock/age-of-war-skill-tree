@@ -6694,6 +6694,9 @@ function showView(view) {
   document.getElementById("worldEventsView").style.display =
     view === "worldEvents" && isHostMode ? "block" : "none";
 
+  document.getElementById("breachEventsView").style.display =
+    view === "breachEvents" && isHostMode ? "block" : "none";
+
   if (view === "memories" && isHostMode) {
     if (
       memoryState.deck.length === 0 &&
@@ -6715,7 +6718,141 @@ function showView(view) {
     }
     renderWorldEvents();
   }
+
+  if (view === "breachEvents" && isHostMode) {
+    if (
+      breachEventState.deck.length === 0 &&
+      breachEventState.discard.length === 0 &&
+      !breachEventState.current
+    ) {
+      initializeBreachEventDeck();
+    }
+    renderBreachEvents();
+  }
 }
+
+function getBreachEventRangeByProgress(completedCount) {
+  if (completedCount < 10) return { min: 3, max: 4 };
+  if (completedCount < 20) return { min: 2, max: 3 };
+  return { min: 1, max: 2 };
+}
+
+function rollNextBreachEventThreshold() {
+  const completedCount = breachEventState.progress.filter(step => step.checked).length;
+  const range = getBreachEventRangeByProgress(completedCount);
+  return Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+}
+
+function initializeBreachEventDeck() {
+  breachEventState.deck = breachEvents.map(event => ({ ...event }));
+  breachEventState.discard = [];
+  breachEventState.current = null;
+  breachEventState.progress = Array.from({ length: 30 }, (_, i) => ({
+    label: String(i + 1),
+    checked: false,
+    triggeredEvent: false
+  }));
+  breachEventState.clicksSinceLastEvent = 0;
+  breachEventState.triggerUsage = {};
+  shuffleArray(breachEventState.deck);
+  breachEventState.nextEventAt = rollNextBreachEventThreshold();
+}
+
+function resetBreachEvents() {
+  initializeBreachEventDeck();
+  renderBreachEvents();
+}
+
+function drawBreachEvent() {
+  if (breachEventState.current) {
+    alert("A Breach Event is already drawn. Discard or return it first.");
+    return;
+  }
+
+  if (breachEventState.deck.length === 0) {
+    alert("The Breach Event deck is empty.");
+    return;
+  }
+
+  breachEventState.current = breachEventState.deck.pop();
+  renderBreachEvents();
+}
+
+function discardCurrentBreachEvent() {
+  if (!breachEventState.current) return;
+  breachEventState.discard.push(breachEventState.current);
+  breachEventState.current = null;
+  renderBreachEvents();
+}
+
+function returnCurrentBreachEventToDeck() {
+  if (!breachEventState.current) return;
+  breachEventState.deck.push(breachEventState.current);
+  breachEventState.current = null;
+  shuffleArray(breachEventState.deck);
+  renderBreachEvents();
+}
+
+function reshuffleBreachEventDiscardIntoDeck() {
+  if (breachEventState.discard.length === 0) {
+    alert("No discarded Breach Events to reshuffle.");
+    return;
+  }
+
+  breachEventState.deck = breachEventState.deck.concat(breachEventState.discard);
+  breachEventState.discard = [];
+  shuffleArray(breachEventState.deck);
+  renderBreachEvents();
+}
+
+function advanceBreachTension(amount = 1, triggerId = null) {
+  if (triggerId) {
+    const trigger = breachEventTriggerRules.find(t => t.id === triggerId);
+    if (!trigger) return;
+
+    const alreadyUsed = breachEventState.triggerUsage[triggerId];
+
+    if (trigger.limit === "once_per_mission" && alreadyUsed) {
+      return;
+    }
+
+    breachEventState.triggerUsage[triggerId] =
+      (breachEventState.triggerUsage[triggerId] || 0) + 1;
+  }
+
+  let remaining = amount;
+
+  while (remaining > 0) {
+    const nextIndex = breachEventState.progress.findIndex(step => !step.checked);
+    if (nextIndex === -1) break;
+
+    const step = breachEventState.progress[nextIndex];
+    step.checked = true;
+    breachEventState.clicksSinceLastEvent += 1;
+
+    if (breachEventState.clicksSinceLastEvent >= breachEventState.nextEventAt) {
+      step.triggeredEvent = true;
+      breachEventState.clicksSinceLastEvent = 0;
+      breachEventState.nextEventAt = rollNextBreachEventThreshold();
+
+      if (!breachEventState.current && breachEventState.deck.length > 0) {
+        breachEventState.current = breachEventState.deck.pop();
+      }
+    }
+
+    remaining -= 1;
+  }
+
+  renderBreachEvents();
+}
+
+function toggleBreachTrackerStep(index) {
+  const step = breachEventState.progress[index];
+  if (!step || step.checked) return;
+  advanceBreachTension(1);
+}
+
+
 
 
 
@@ -6755,26 +6892,13 @@ function disableHostMode() {
 
   if (
     document.getElementById("memoriesView").style.display === "block" ||
-    document.getElementById("worldEventsView").style.display === "block"
-    document.getElementById("breachEventsView").style.display =
+    document.getElementById("worldEventsView").style.display === "block" ||
     document.getElementById("breachEventsView").style.display === "block"
-
-  view === "breachEvents" && isHostMode ? "block" : "none";
-
-if (view === "breachEvents" && isHostMode) {
-  if (
-    breachEventState.deck.length === 0 &&
-    breachEventState.discard.length === 0 &&
-    !breachEventState.current
-  ) {
-    initializeBreachEventDeck();
-  }
-  renderBreachEvents();
-}
   ) {
     showView("skill");
   }
 }
+
 
 
 
