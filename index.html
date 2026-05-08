@@ -5577,8 +5577,18 @@ function drawWorldEvent() {
   }
 
   worldEventState.current = worldEventState.deck.pop();
+
+  const matchingCreature = worldEventCreatureCards.find(
+    creature => creature.eventId === worldEventState.current.id
+  );
+
+  if (matchingCreature) {
+    spawnWorldEventCreature(matchingCreature.id);
+  }
+
   renderWorldEvents();
 }
+
 
 function discardCurrentWorldEvent() {
   if (!worldEventState.current) return;
@@ -5618,7 +5628,8 @@ function advanceWorldTension(amount = 1, triggerId = null) {
       return;
     }
 
-    worldEventState.triggerUsage[triggerId] = (worldEventState.triggerUsage[triggerId] || 0) + 1;
+    worldEventState.triggerUsage[triggerId] =
+      (worldEventState.triggerUsage[triggerId] || 0) + 1;
   }
 
   let remaining = amount;
@@ -5641,6 +5652,14 @@ function advanceWorldTension(amount = 1, triggerId = null) {
 
       if (!worldEventState.current && worldEventState.deck.length > 0) {
         worldEventState.current = worldEventState.deck.pop();
+
+        const matchingCreature = worldEventCreatureCards.find(
+          creature => creature.eventId === worldEventState.current.id
+        );
+
+        if (matchingCreature) {
+          spawnWorldEventCreature(matchingCreature.id);
+        }
       }
     }
 
@@ -5649,6 +5668,7 @@ function advanceWorldTension(amount = 1, triggerId = null) {
 
   renderWorldEvents();
 }
+
 
 
 
@@ -5824,6 +5844,30 @@ function renderWorldEventTracker() {
   `;
 }
 
+function renderWorldEventCreatureCard(creature) {
+  return `
+    <div style="background:rgba(45,45,45,0.96); border:1px solid rgba(255,255,255,0.12); border-left:6px solid #c96b6b; border-radius:10px; padding:16px; margin-bottom:12px; box-shadow:0 0 10px rgba(0,0,0,0.35);">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;">
+        <h3 style="margin:0; color:#ffe08a;">${creature.name}</h3>
+        <span style="font-size:12px; color:#bbb; text-transform:uppercase;">${creature.type}</span>
+      </div>
+
+      <p style="margin:0 0 6px 0; color:#ddd;"><strong>HP:</strong> ${creature.hp}</p>
+      <p style="margin:0 0 6px 0; color:#ddd;"><strong>Movement:</strong> ${creature.movement}</p>
+      <p style="margin:0 0 6px 0; color:#ddd;"><strong>Roll Check:</strong> ${creature.rollCheck}</p>
+      <p style="margin:0 0 6px 0; color:#ddd;"><strong>Output Damage:</strong> ${creature.outputDamage}</p>
+      <p style="margin:0 0 6px 0; color:#ddd;"><strong>Targeting:</strong> ${creature.targeting}</p>
+      <p style="margin:0 0 6px 0; color:#ddd;"><strong>Timing:</strong> ${creature.timing}</p>
+      <p style="margin:0 0 12px 0; color:#ddd;"><strong>Behaviour:</strong> ${creature.behaviour}</p>
+
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">
+        <button onclick="defeatWorldEventCreature('${creature.id}')">Defeat</button>
+      </div>
+    </div>
+  `;
+}
+
+
 
 function renderWorldEvents() {
   const app = document.getElementById("worldEventsApp");
@@ -5837,7 +5881,7 @@ function renderWorldEvents() {
       ${renderWorldEventTriggerChart()}
       ${renderWorldEventTracker()}
 
-      <div style="display:grid; grid-template-columns: 280px minmax(340px, 1fr) 280px; gap:20px; align-items:start;">
+    <div style="display:grid; grid-template-columns: 260px minmax(340px, 1fr) 260px 320px; gap:20px; align-items:start;">
 
       <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
         <h3 style="margin-top:0; color:gold;">Draw Pile</h3>
@@ -5848,6 +5892,17 @@ function renderWorldEvents() {
             <div style="margin-top:8px; font-size:14px;">${worldEventState.deck.length} card${worldEventState.deck.length === 1 ? "" : "s"} remaining</div>
           </div>
         </div>
+
+        <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+  <h3 style="margin-top:0; color:gold;">Active Creatures</h3>
+
+  ${
+    worldCreatureState.active.length
+      ? worldCreatureState.active.map(creature => renderWorldEventCreatureCard(creature)).join("")
+      : `<p style="margin:0; color:#999;">No active world event creatures.</p>`
+  }
+</div>
+
 
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
           <button onclick="drawWorldEvent()" ${worldEventState.deck.length === 0 || worldEventState.current ? "disabled" : ""}>Draw</button>
