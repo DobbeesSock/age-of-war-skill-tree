@@ -3234,23 +3234,340 @@ function renderMemories() {
 const worldEvents = [
   {
     id: 1,
-    title: "Ashen Omen",
-    trigger: "Start of Mission",
-    text: "All factions must reveal 1 hidden intention or lose 2 Gold."
+    title: "The Reckoning",
+    trigger: "Story Climax",
+    type: "story",
+    intro:
+      "The Ancient One stirs beneath the caves and calls the world to account for what was woken, broken, spared, and abandoned.",
+    setup: [
+      "Check prior cave outcomes before resolving this event.",
+      "Resolve only the consequence sections that apply.",
+      "This event should be rare and campaign-defining."
+    ],
+    choices: [
+      {
+        label: "Accept Judgment",
+        details: [
+          "Resolve all applicable consequences from previous cave choices.",
+          "If the Awoken Giant exists: it spawns later in a conflict zone of the Ancient One's choosing, gain 1 Legendary Potion, gain Burdened.",
+          "If the Wailing Creature was released: draw 1 Catastrophe Card, gain 1 Chest Card, gain Marked by Echoes.",
+          "If the Mechanical Being was helped: gain 1 Mythic Potion, gain 1 Chest Card, remove one previous negative cave tag, gain Remembered.",
+          "If no major harm was caused across all related caves: gain 2 Chest Cards, gain 1 Legendary Potion, gain Judged Worthy.",
+          "Campaign tag gained: Witnessed."
+        ]
+      },
+      {
+        label: "Take Power and Flee",
+        details: [
+          "Gain 1 Chest Card.",
+          "Gain 1 Mythic Potion.",
+          "Gain Omen of Return.",
+          "Campaign tag gained: Omen of Return.",
+          "This cave may reappear later in a stronger form."
+        ]
+      },
+      {
+        label: "Kneel and Repent",
+        details: [
+          "Only available if harm was caused in at least one prior cave.",
+          "Erase one consequence: the Awoken Giant, the Wailing Creature, or one cave-related negative global effect.",
+          "Suffer 2 damage.",
+          "Gain no Chest Card.",
+          "Gain 1 Rare Potion and 1 Legendary Potion.",
+          "Gain Humbled.",
+          "Remove one cave-related campaign scar.",
+          "The cave seals permanently."
+        ]
+      }
+    ],
+    aftermath: [
+      "This event should visibly alter the campaign log.",
+      "Record which approach was taken for later world event references."
+    ]
   },
   {
     id: 2,
-    title: "Broken Horizon",
-    trigger: "Mid Mission",
-    text: "The next structure destroyed grants +2 Metal to the attacker."
+    title: "The World Anchor",
+    trigger: "Major World Event",
+    type: "campaign",
+    intro:
+      "A titanic spike of stone sinks into the world below. It is not decoration. It is restraint.",
+    choices: [
+      {
+        label: "Reinforce the Anchor",
+        details: [
+          "All factions gain 1 Relic.",
+          "World Bosses permanently gain +10 HP.",
+          "Campaign tag gained: Anchored."
+        ]
+      },
+      {
+        label: "Damage the Anchor",
+        details: [
+          "Gain 3 Chest Cards shared among factions.",
+          "Spawn a World Boss.",
+          "Campaign tag gained: Cracked."
+        ]
+      },
+      {
+        label: "Remove the Anchor",
+        details: [
+          "Spawn 3 Creatures.",
+          "All factions gain +1 Dragon Coin.",
+          "Campaign tag gained: Unbound."
+        ]
+      }
+    ],
+    aftermath: [
+      "Future creature and subterranean events may reference Anchored, Cracked, or Unbound."
+    ]
   },
   {
     id: 3,
-    title: "Whispers in the Soil",
-    trigger: "Any World Event Step",
-    text: "Each faction heals 1 unit for 2 HP or gains +1 Energy."
+    title: "The Shared Grave",
+    trigger: "Major World Event",
+    type: "campaign",
+    intro:
+      "Every faction's banners hang here, impossibly aged. The place remembers wars not yet fought.",
+    choices: [
+      {
+        label: "Honor the Dead",
+        details: [
+          "All factions gain +1 Move Action Upgrade and +1 Attack Action Upgrade.",
+          "Spawning units from any Graveyard costs x3 this mission.",
+          "Campaign tag gained: Reverent."
+        ]
+      },
+      {
+        label: "Loot the Graves",
+        details: [
+          "Each faction gains 1 Chest Card.",
+          "All unit deaths heal Creatures for 3 HP this mission.",
+          "Campaign tag gained: Desecrated."
+        ]
+      },
+      {
+        label: "Burn the Banners",
+        details: [
+          "Each faction loses 3 Metal.",
+          "Remove one existing banner-, oath-, or allegiance-based bonus in play if applicable.",
+          "Campaign tag gained: Defiant."
+        ]
+      }
+    ],
+    aftermath: [
+      "Later grave, oath, and memory events can check Reverent, Desecrated, or Defiant."
+    ]
+  },
+  {
+    id: 4,
+    title: "The Silent Contract",
+    trigger: "Major World Event",
+    type: "political",
+    intro:
+      "A stone table waits in silence. There is no text. Only room for signatures.",
+    choices: [
+      {
+        label: "Sign Together",
+        details: [
+          "Once per campaign, factions may ignore one Presence increase.",
+          "Campaign tag gained: Bound Accord."
+        ]
+      },
+      {
+        label: "Refuse",
+        details: [
+          "Each faction gains 2 Legendary Potions.",
+          "Alliances cannot be formed this mission.",
+          "Campaign tag gained: Independence."
+        ]
+      },
+      {
+        label: "One Faction Signs Alone",
+        details: [
+          "That faction gains 1 of every potion rarity.",
+          "Every other faction gains +3 Gold per enemy unit killed belonging to the signing faction this mission.",
+          "The signing faction gains Oathmarked until the end of the next mission.",
+          "Campaign tag gained: Broken Accord."
+        ]
+      }
+    ],
+    aftermath: [
+      "Oathmarked factions become natural targets in later diplomacy and betrayal events."
+    ]
+  },
+  {
+    id: 5,
+    title: "The Hunger Beneath Empires",
+    trigger: "Campaign-Defining",
+    type: "campaign",
+    intro:
+      "The ground pulses beneath every kingdom. Something below has learned the taste of excess.",
+    choices: [
+      {
+        label: "Feed It Regularly",
+        details: [
+          "Each faction sacrifices 15 total resources, chosen individually.",
+          "No spawn occurs.",
+          "Campaign tag gained: Appeased."
+        ]
+      },
+      {
+        label: "Starve It",
+        details: [
+          "Each faction gains +14 Gold or +14 Food.",
+          "Increase Presence by 1.",
+          "Campaign tag gained: Famine."
+        ]
+      },
+      {
+        label: "Try to Kill It",
+        details: [
+          "Roll a D6 for the table.",
+          "On 4-6: each faction gains +3 Dragon Coins, campaign tag gained: Wounded Hunger.",
+          "On 1-3: each faction loses 9 Metal and a Hunger-spawn appears at the richest faction's border."
+        ]
+      }
+    ],
+    aftermath: [
+      "Events involving famine, tribute, or subterranean threats should reference Appeased, Famine, or Wounded Hunger."
+    ]
+  },
+  {
+    id: 6,
+    title: "The Last Descent",
+    trigger: "Major World Event",
+    type: "judgment",
+    intro:
+      "There is no spoken choice. Only a mirror, and the truth of what each faction has become.",
+    choices: [
+      {
+        label: "Judgment Falls",
+        details: [
+          "The faction with the highest setup loses 2 units to the Graveyard.",
+          "All other factions gain 1 Rare Potion.",
+          "If tied for highest setup, all tied factions each lose 1 unit instead.",
+          "Campaign tag gained: Judged."
+        ]
+      }
+    ],
+    aftermath: [
+      "This is best used when one faction is visibly snowballing."
+    ]
+  },
+  {
+    id: 8,
+    title: "The First Betrayal",
+    trigger: "Major World Event",
+    type: "political",
+    intro:
+      "The caves replay a betrayal that has not happened yet. Every faction sees a different face in the dark.",
+    choices: [
+      {
+        label: "Name the Traitor",
+        details: [
+          "Choose one faction publicly.",
+          "That faction gains +1 Attack Action Upgrade.",
+          "That faction also gains Suspected until the end of the next mission.",
+          "Campaign tag gained: Fracture."
+        ]
+      },
+      {
+        label: "Deny the Vision",
+        details: [
+          "All factions must agree.",
+          "Cancel one future table-wide event before it resolves.",
+          "Increase Presence by 2.",
+          "Campaign tag gained: Suppressed Omen."
+        ]
+      }
+    ],
+    aftermath: [
+      "Suspected factions should be easier targets for later votes and intrigue events."
+    ]
+  },
+  {
+    id: 9,
+    title: "Bloodied Field",
+    trigger: "Major World Event",
+    type: "campaign",
+    intro:
+      "The dead outnumber the living. The earth itself cannot decide whether this place is a grave or a promise.",
+    choices: [
+      {
+        label: "Bury the Elect Few",
+        details: [
+          "All factions gain 1 Relic.",
+          "All factions gain +1 Campaign Point.",
+          "Campaign tag gained: Remembrance."
+        ]
+      },
+      {
+        label: "Scavenge the Field",
+        details: [
+          "Each faction gains 1 Blueprint.",
+          "Instead, any faction may lose 2 units to gain 1 Chest Card.",
+          "Campaign tag gained: Foraged Dead."
+        ]
+      }
+    ],
+    aftermath: [
+      "Later death and grave events can reward or punish Remembrance and Foraged Dead."
+    ]
+  },
+  {
+    id: 11,
+    title: "The Golden Collapse",
+    trigger: "Major World Event",
+    type: "economy",
+    intro:
+      "A city-sized vault buckles somewhere below the world. Wealth erupts upward faster than wisdom can follow.",
+    choices: [
+      {
+        label: "Inflation Breaks Loose",
+        details: [
+          "All factions gain 14 Gold immediately.",
+          "Exchange becomes 6:1 for the remainder of the campaign.",
+          "Increase Presence by 2.",
+          "Campaign tag gained: Inflation."
+        ]
+      }
+    ],
+    aftermath: [
+      "This event should reshape the campaign economy, not just fund one turn."
+    ]
+  },
+  {
+    id: 12,
+    title: "The Vault That Should Not Open",
+    trigger: "Campaign-Defining",
+    type: "campaign",
+    intro:
+      "A single lock waits in silence. Every key fits. That is the first warning.",
+    choices: [
+      {
+        label: "Open It Together",
+        details: [
+          "Split 2 Mythic rewards among the table.",
+          "Spawn a World Boss.",
+          "Campaign tag gained: Unsealed."
+        ]
+      },
+      {
+        label: "Seal It Forever",
+        details: [
+          "Reduce Presence by 3.",
+          "Remove 3 random Mythic rewards from the campaign pool.",
+          "Campaign tag gained: Denied."
+        ]
+      }
+    ],
+    aftermath: [
+      "Future reward, vault, and greed events should reference Unsealed or Denied."
+    ]
   }
 ];
+
 
 let worldEventState = {
   deck: [],
@@ -3376,6 +3693,52 @@ function toggleWorldEventTrackerStep(index) {
   renderWorldEvents();
 }
 
+function formatWorldEventDetails(card) {
+  const setupBlock = Array.isArray(card.setup) && card.setup.length
+    ? `
+      <div style="margin:0 0 14px 0;">
+        <p style="margin:0 0 6px 0; color:#ffe08a;"><strong>Before Proceeding</strong></p>
+        <ul style="margin:0; padding-left:18px; color:#ddd; line-height:1.45;">
+          ${card.setup.map(item => `<li>${item}</li>`).join("")}
+        </ul>
+      </div>
+    `
+    : "";
+
+  const choicesBlock = Array.isArray(card.choices) && card.choices.length
+    ? `
+      <div style="margin:0 0 14px 0;">
+        <p style="margin:0 0 6px 0; color:#ffe08a;"><strong>${card.type === "story" ? "Approaches" : "Choices"}</strong></p>
+        ${card.choices.map(choice => `
+          <div style="margin:0 0 12px 0; padding:10px; border:1px solid rgba(255,255,255,0.08); border-radius:8px; background:rgba(255,255,255,0.03);">
+            <p style="margin:0 0 6px 0; color:#fff2b2;"><strong>${choice.label}</strong></p>
+            <ul style="margin:0; padding-left:18px; color:#ddd; line-height:1.45;">
+              ${(choice.details || []).map(item => `<li>${item}</li>`).join("")}
+            </ul>
+          </div>
+        `).join("")}
+      </div>
+    `
+    : "";
+
+  const aftermathBlock = Array.isArray(card.aftermath) && card.aftermath.length
+    ? `
+      <div>
+        <p style="margin:0 0 6px 0; color:#ffe08a;"><strong>Aftermath</strong></p>
+        <ul style="margin:0; padding-left:18px; color:#ddd; line-height:1.45;">
+          ${card.aftermath.map(item => `<li>${item}</li>`).join("")}
+        </ul>
+      </div>
+    `
+    : "";
+
+  return `
+    <p style="margin:0 0 12px 0; color:#ddd; line-height:1.5;">${card.intro || ""}</p>
+    ${setupBlock}
+    ${choicesBlock}
+    ${aftermathBlock}
+  `;
+}
 
 
 function renderCurrentWorldEventCard(card) {
@@ -3391,13 +3754,14 @@ function renderCurrentWorldEventCard(card) {
     <div style="background:rgba(45,45,45,0.96); border:1px solid rgba(255,255,255,0.12); border-left:6px solid #d4af37; border-radius:10px; padding:16px; box-shadow:0 0 10px rgba(0,0,0,0.35); min-height:260px;">
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;">
         <h3 style="margin:0; color:#ffe08a;">${card.id}. ${card.title}</h3>
-        <span style="font-size:12px; color:#bbb; text-transform:uppercase;">${card.trigger}</span>
+        <span style="font-size:12px; color:#bbb; text-transform:uppercase;">${card.trigger || "World Event"}</span>
       </div>
 
-      <p style="margin:0; color:#ddd;"><strong>Effect:</strong> ${card.text}</p>
+      ${formatWorldEventDetails(card)}
     </div>
   `;
 }
+
 
 function renderWorldEventTracker() {
   const completedCount = worldEventState.progress.filter(step => step.checked).length;
