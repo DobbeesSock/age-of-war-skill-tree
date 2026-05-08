@@ -3652,14 +3652,13 @@ const worldEventTriggerRules = [
   note: "One-time mission threshold.",
   amount: 1,
   limit: "once_per_mission"
-  }
-
+  },
   {
-    id: "central_poi_claimed",
-    label: "A central POI is claimed for the first time",
-    note: "One-time mission trigger.",
-    amount: 1,
-    limit: "once_per_mission"
+  id: "central_poi_claimed",
+  label: "A central POI is claimed for the first time",
+  note: "One-time mission trigger.",
+  amount: 1,
+  limit: "once_per_mission"
   },
   {
     id: "dragon_coin_unit_deployed",
@@ -3809,19 +3808,10 @@ function toggleWorldEventTrackerStep(index) {
   const step = worldEventState.progress[index];
   if (!step || step.checked) return;
 
-  step.checked = true;
-  worldEventState.clicksSinceLastEvent += 1;
-
-  if (worldEventState.clicksSinceLastEvent >= worldEventState.nextEventAt) {
-    step.triggeredEvent = true;
-    worldEventState.clicksSinceLastEvent = 0;
-    worldEventState.nextEventAt = rollNextWorldEventThreshold();
-    drawWorldEvent();
-    return;
-  }
-
-  renderWorldEvents();
+  advanceWorldTension(1);
 }
+
+
 
 function formatWorldEventDetails(card) {
   const setupBlock = Array.isArray(card.setup) && card.setup.length
