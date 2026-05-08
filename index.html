@@ -991,7 +991,9 @@ body.elves {
 <div id="hostTabs" style="display:none; margin-bottom:15px;">
   <button onclick="showView('memories')">Memories</button>
   <button onclick="showView('worldEvents')">World Events</button>
+  <button onclick="showView('breachEvents')">Breach Events</button>
 </div>
+
 
 
 
@@ -2250,6 +2252,14 @@ body.elves {
     <div id="worldEventsApp"></div>
   </div>
 </div>
+
+<div id="breachEventsView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1400px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+    <h2 style="margin-top:0; color:#7dd3fc;">Breach Events</h2>
+    <div id="breachEventsApp"></div>
+  </div>
+</div>
+
 
 
 
@@ -5379,6 +5389,133 @@ const worldEventCreatureCards = [
   }
 ];
 
+const breachEvents = [
+  {
+    id: 1,
+    title: "The First Tear",
+    trigger: "Breach Event",
+    type: "breach",
+    intro: "Reality splits at the edge of the campaign map and something starts looking back.",
+    choices: [
+      {
+        label: "Contain It",
+        details: [
+          "Pay 10 Metal split among factions.",
+          "Reduce Breach Pressure by 1."
+        ]
+      },
+      {
+        label: "Exploit It",
+        details: [
+          "Each faction gains 10 Gold.",
+          "Increase Presence by 1."
+        ]
+      }
+    ],
+    aftermath: [
+      "If no faction contributes Metal, spawn 1 hostile breach creature."
+    ]
+  },
+  {
+    id: 2,
+    title: "Echoes Through the Rift",
+    trigger: "Breach Event",
+    type: "breach",
+    intro: "Voices from the breach repeat commands spoken hours before they were ever given.",
+    choices: [
+      {
+        label: "Listen",
+        details: [
+          "Gain 1 random Potion.",
+          "Increase Breach Pressure by 1."
+        ]
+      },
+      {
+        label: "Silence It",
+        details: [
+          "Lose 5 Gold.",
+          "Reduce Presence by 1."
+        ]
+      }
+    ],
+    aftermath: [
+      "If all factions choose Listen, draw another Breach Event after this one is resolved."
+    ]
+  },
+  {
+    id: 3,
+    title: "The Breach Widens",
+    trigger: "Breach Event",
+    type: "breach",
+    intro: "The wound stops flickering and begins to hold.",
+    choices: [
+      {
+        label: "Fortify the Line",
+        details: [
+          "All factions lose 5 Food.",
+          "No further effect."
+        ]
+      },
+      {
+        label: "Step Through",
+        details: [
+          "Gain 1 Relic.",
+          "Increase Presence by 2."
+        ]
+      }
+    ],
+    aftermath: [
+      "If two or more factions step through, trigger a major Act 2 consequence."
+    ]
+  }
+];
+
+const breachEventTriggerRules = [
+  {
+    id: "breach_keyword_gained",
+    label: "A faction gains a Breach keyword",
+    note: "Use when Act 2 breach influence expands.",
+    amount: 1,
+    limit: "repeatable"
+  },
+  {
+    id: "breach_zone_opened",
+    label: "A Breach Zone is opened",
+    note: "Major escalation trigger.",
+    amount: 2,
+    limit: "once_per_mission"
+  },
+  {
+    id: "breach_creature_defeated",
+    label: "A Breach creature is defeated",
+    note: "Use when a breach enemy is killed.",
+    amount: 1,
+    limit: "repeatable"
+  },
+  {
+    id: "breach_resource_taken",
+    label: "A faction harvests from the breach",
+    note: "Use when players profit from breach effects.",
+    amount: 1,
+    limit: "repeatable"
+  }
+];
+
+let breachEventState = {
+  deck: [],
+  discard: [],
+  current: null,
+  progress: Array.from({ length: 30 }, (_, i) => ({
+    label: String(i + 1),
+    checked: false,
+    triggeredEvent: false
+  })),
+  clicksSinceLastEvent: 0,
+  nextEventAt: 3,
+  triggerUsage: {}
+};
+
+
 
 
 let worldEventState = {
@@ -5799,6 +5936,156 @@ function renderWorldEventTriggerChart() {
     </div>
   `;
 }
+
+function renderBreachEventTriggerChart() {
+  return `
+    <div style="margin-bottom:20px; padding:16px; border-radius:12px; background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12);">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+        <h3 style="margin:0; color:#7dd3fc;">Breach Triggers</h3>
+        <span style="font-size:12px; color:#bbb; text-transform:uppercase;">Click a trigger to advance breach pressure</span>
+      </div>
+
+      <div style="display:grid; gap:10px;">
+        ${breachEventTriggerRules.map(trigger => {
+          const usedCount = breachEventState.triggerUsage[trigger.id] || 0;
+          const isLocked = trigger.limit === "once_per_mission" && usedCount > 0;
+
+          return `
+            <button
+              onclick="advanceBreachTension(${trigger.amount}, '${trigger.id}')"
+              ${isLocked ? "disabled" : ""}
+              style="
+                display:block;
+                width:100%;
+                text-align:left;
+                padding:12px;
+                border-radius:8px;
+                background:${isLocked ? "rgba(120,120,120,0.18)" : "rgba(125,211,252,0.06)"};
+                border:1px solid ${isLocked ? "rgba(255,255,255,0.05)" : "rgba(125,211,252,0.22)"};
+                color:${isLocked ? "#888" : "white"};
+              "
+            >
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap;">
+                <div style="color:${isLocked ? "#aaa" : "#bae6fd"}; font-weight:bold;">
+                  ${trigger.label}
+                </div>
+                <div style="font-size:11px; text-transform:uppercase; color:${isLocked ? "#999" : "#bbb"};">
+                  ${trigger.limit === "once_per_mission" ? (isLocked ? "Used This Mission" : "Once Per Mission") : "Repeatable"}
+                </div>
+              </div>
+              <div style="font-size:13px; line-height:1.4; color:${isLocked ? "#999" : "#ccc"};">
+                ${trigger.note}
+              </div>
+            </button>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderBreachEventTracker() {
+  const completedCount = breachEventState.progress.filter(step => step.checked).length;
+  const currentRange = getBreachEventRangeByProgress(completedCount);
+
+  return `
+    <div style="margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:12px;">
+        <h3 style="margin:0; color:#7dd3fc;">Breach Tracker</h3>
+        <div style="color:#ccc; font-size:14px;">
+          Event Range: ${currentRange.min}-${currentRange.max} |
+          Current Countdown: ${breachEventState.clicksSinceLastEvent}/${breachEventState.nextEventAt}
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(58px, 58px)); gap:10px; justify-content:start;">
+        ${breachEventState.progress.map((step, index) => `
+          <button
+            onclick="toggleBreachTrackerStep(${index})"
+            style="
+              width:58px;
+              height:58px;
+              border-radius:10px;
+              border:2px solid ${step.triggeredEvent ? "#7dd3fc" : "#666"};
+              background:${step.checked ? (step.triggeredEvent ? "#164e63" : "#1f3a4a") : "#2b2b2b"};
+              color:white;
+              font-weight:bold;
+              font-size:14px;
+              box-shadow:${step.triggeredEvent ? "0 0 10px rgba(125,211,252,0.45)" : "none"};
+            "
+          >
+            ${step.triggeredEvent ? "BR" : step.label}
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderBreachEvents() {
+  const app = document.getElementById("breachEventsApp");
+  if (!app) return;
+
+  const discardTop = breachEventState.discard.length
+    ? breachEventState.discard[breachEventState.discard.length - 1]
+    : null;
+
+  app.innerHTML = `
+    ${renderBreachEventTriggerChart()}
+    ${renderBreachEventTracker()}
+
+    <div style="display:grid; grid-template-columns: 260px minmax(340px, 1fr) 260px; gap:20px; align-items:start;">
+      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:#7dd3fc;">Draw Pile</h3>
+
+        <div style="background:linear-gradient(145deg,#0f2d3a,#091a22); border:2px solid #7dd3fc; border-radius:10px; min-height:220px; display:flex; align-items:center; justify-content:center; text-align:center; padding:12px; color:#d9f3ff; box-shadow:inset 0 0 10px #000;">
+          <div>
+            <div style="font-size:18px; font-weight:bold;">Breach Deck</div>
+            <div style="margin-top:8px; font-size:14px;">${breachEventState.deck.length} card${breachEventState.deck.length === 1 ? "" : "s"} remaining</div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
+          <button onclick="drawBreachEvent()" ${breachEventState.deck.length === 0 || breachEventState.current ? "disabled" : ""}>Draw</button>
+          <button onclick="resetBreachEvents()">Reset Deck</button>
+        </div>
+      </div>
+
+      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:#7dd3fc;">Current Breach</h3>
+
+        ${renderCurrentWorldEventCard(breachEventState.current)}
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
+          <button onclick="discardCurrentBreachEvent()" ${breachEventState.current ? "" : "disabled"}>Discard</button>
+          <button onclick="returnCurrentBreachEventToDeck()" ${breachEventState.current ? "" : "disabled"}>Return to Deck</button>
+        </div>
+      </div>
+
+      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:#7dd3fc;">Discard Pile</h3>
+
+        <div style="background:rgba(55,55,55,0.92); border:1px solid rgba(255,255,255,0.1); border-radius:10px; min-height:220px; padding:12px; color:#ddd;">
+          <p style="margin-top:0;"><strong>${breachEventState.discard.length}</strong> card${breachEventState.discard.length === 1 ? "" : "s"} discarded</p>
+
+          ${
+            discardTop
+              ? `
+                <p style="margin:10px 0 4px 0; color:#bae6fd;"><strong>Top Card</strong></p>
+                <p style="margin:0; color:#ddd;">${discardTop.id}. ${discardTop.title}</p>
+              `
+              : `<p style="margin:10px 0 0 0; color:#999;">No discarded breach events yet.</p>`
+          }
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
+          <button onclick="reshuffleBreachEventDiscardIntoDeck()" ${breachEventState.discard.length ? "" : "disabled"}>Reshuffle Discard</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 
 
 
@@ -6469,6 +6756,21 @@ function disableHostMode() {
   if (
     document.getElementById("memoriesView").style.display === "block" ||
     document.getElementById("worldEventsView").style.display === "block"
+    document.getElementById("breachEventsView").style.display =
+    document.getElementById("breachEventsView").style.display === "block"
+
+  view === "breachEvents" && isHostMode ? "block" : "none";
+
+if (view === "breachEvents" && isHostMode) {
+  if (
+    breachEventState.deck.length === 0 &&
+    breachEventState.discard.length === 0 &&
+    !breachEventState.current
+  ) {
+    initializeBreachEventDeck();
+  }
+  renderBreachEvents();
+}
   ) {
     showView("skill");
   }
