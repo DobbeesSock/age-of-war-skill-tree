@@ -3256,23 +3256,55 @@ let worldEventState = {
   deck: [],
   discard: [],
   current: null,
-  tracker: [
-    { label: "1", type: "normal", checked: false },
-    { label: "2", type: "normal", checked: false },
-    { label: "WE", type: "event", checked: false },
-    { label: "3", type: "normal", checked: false },
-    { label: "4", type: "normal", checked: false },
-    { label: "WE", type: "event", checked: false },
-    { label: "5", type: "normal", checked: false },
-    { label: "Boss", type: "event", checked: false }
-  ]
+  progress: Array.from({ length: 24 }, (_, i) => ({
+    label: String(i + 1),
+    checked: false,
+    triggeredEvent: false
+  })),
+  clicksSinceLastEvent: 0,
+  nextEventAt: 4
+
 };
+
+function getWorldEventRangeByProgress(completedCount) {
+  if (completedCount < 8) {
+    return { min: 4, max: 5 };
+  }
+
+  if (completedCount < 16) {
+    return { min: 3, max: 4 };
+  }
+
+  return { min: 2, max: 3 };
+}
+
+function rollNextWorldEventThreshold() {
+  const completedCount = worldEventState.progress.filter(step => step.checked).length;
+  const range = getWorldEventRangeByProgress(completedCount);
+
+  return Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+}
+
+
 
 function initializeWorldEventDeck() {
   worldEventState.deck = worldEvents.map(event => ({ ...event }));
   worldEventState.discard = [];
   worldEventState.current = null;
+  worldEventState.progress = Array.from({ length: 24 }, (_, i) => ({
+    label: String(i + 1),
+    checked: false,
+    triggeredEvent: false
+  }));
+  worldEventState.clicksSinceLastEvent = 0;
   shuffleWorldEventDeck();
+  worldEventState.nextEventAt = rollNextWorldEventThreshold();
+}
+
+
+function resetWorldEvents() {
+  initializeWorldEventDeck();
+  renderWorldEvents();
 }
 
 function shuffleWorldEventDeck() {
@@ -3282,14 +3314,7 @@ function shuffleWorldEventDeck() {
   }
 }
 
-function resetWorldEvents() {
-  initializeWorldEventDeck();
-  worldEventState.tracker = worldEventState.tracker.map(step => ({
-    ...step,
-    checked: false
-  }));
-  renderWorldEvents();
-}
+
 
 function drawWorldEvent() {
   if (worldEventState.current) {
@@ -3334,17 +3359,24 @@ function reshuffleWorldEventDiscardIntoDeck() {
 }
 
 function toggleWorldEventTrackerStep(index) {
-  const step = worldEventState.tracker[index];
-  if (!step) return;
+  const step = worldEventState.progress[index];
+  if (!step || step.checked) return;
 
-  step.checked = !step.checked;
+  step.checked = true;
+  worldEventState.clicksSinceLastEvent += 1;
 
-  if (step.checked && step.type === "event") {
+  if (worldEventState.clicksSinceLastEvent >= worldEventState.nextEventAt) {
+    step.triggeredEvent = true;
+    worldEventState.clicksSinceLastEvent = 0;
+    worldEventState.nextEventAt = rollNextWorldEventThreshold();
     drawWorldEvent();
+    return;
   }
 
   renderWorldEvents();
 }
+
+
 
 function renderCurrentWorldEventCard(card) {
   if (!card) {
@@ -3368,32 +3400,45 @@ function renderCurrentWorldEventCard(card) {
 }
 
 function renderWorldEventTracker() {
+  const completedCount = worldEventState.progress.filter(step => step.checked).length;
+  const currentRange = getWorldEventRangeByProgress(completedCount);
+
   return `
     <div style="margin-bottom:20px;">
-      <h3 style="margin:0 0 12px 0; color:gold;">Mission Tracker</h3>
-      <div style="display:flex; flex-wrap:wrap; gap:10px;">
-        ${worldEventState.tracker.map((step, index) => `
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:12px;">
+        <h3 style="margin:0; color:gold;">Mission Tracker</h3>
+        <div style="color:#ccc; font-size:14px;">
+          Event Range: ${currentRange.min}-${currentRange.max} |
+          Current Countdown: ${worldEventState.clicksSinceLastEvent}/${worldEventState.nextEventAt}
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(58px, 58px)); gap:10px; justify-content:start;">
+        ${worldEventState.progress.map((step, index) => `
           <button
             onclick="toggleWorldEventTrackerStep(${index})"
             style="
-              width:64px;
-              height:64px;
+              width:58px;
+              height:58px;
               border-radius:10px;
-              border:2px solid ${step.type === "event" ? "#d4af37" : "#666"};
-              background:${step.checked ? (step.type === "event" ? "#7a5a1a" : "#2f6b3c") : "#2b2b2b"};
+              border:2px solid ${step.triggeredEvent ? "#d4af37" : "#666"};
+              background:${step.checked ? (step.triggeredEvent ? "#7a5a1a" : "#2f6b3c") : "#2b2b2b"};
               color:white;
               font-weight:bold;
               font-size:14px;
               cursor:pointer;
+              box-shadow:${step.triggeredEvent ? "0 0 10px rgba(212,175,55,0.5)" : "none"};
             "
+            title="${step.triggeredEvent ? "Triggered a World Event" : "Progress step"}"
           >
-            ${step.label}
+            ${step.triggeredEvent ? "WE" : step.label}
           </button>
         `).join("")}
       </div>
     </div>
   `;
 }
+
 
 function renderWorldEvents() {
   const app = document.getElementById("worldEventsApp");
@@ -3979,10 +4024,13 @@ function disableHostMode() {
   if (loginBtn) loginBtn.style.display = "inline-block";
   if (logoutBtn) logoutBtn.style.display = "none";
 
-  if (document.getElementById("memoriesView").style.display === "block") {
-    showView("skill");
-  }
+  if (
+  document.getElementById("memoriesView").style.display === "block" ||
+  document.getElementById("worldEventsView").style.display === "block"
+) {
+  showView("skill");
 }
+
 
 
 
