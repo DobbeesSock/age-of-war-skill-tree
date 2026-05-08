@@ -3573,11 +3573,12 @@ let worldEventState = {
   deck: [],
   discard: [],
   current: null,
-  progress: Array.from({ length: 24 }, (_, i) => ({
+  progress: Array.from({ length: 50 }, (_, i) => ({
     label: String(i + 1),
     checked: false,
     triggeredEvent: false
-  })),
+})),
+
   clicksSinceLastEvent: 0,
   nextEventAt: 4,
   triggerUsage: {}
@@ -3690,11 +3691,12 @@ function initializeWorldEventDeck() {
   worldEventState.deck = worldEvents.map(event => ({ ...event }));
   worldEventState.discard = [];
   worldEventState.current = null;
-  worldEventState.progress = Array.from({ length: 24 }, (_, i) => ({
+  worldEventState.progress = Array.from({ length: 50 }, (_, i) => ({
     label: String(i + 1),
     checked: false,
     triggeredEvent: false
-  }));
+}));
+
   worldEventState.clicksSinceLastEvent = 0;
   worldEventState.triggerUsage = {};
   shuffleWorldEventDeck();
