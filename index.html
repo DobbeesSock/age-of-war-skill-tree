@@ -3565,8 +3565,1820 @@ const worldEvents = [
     aftermath: [
       "Future reward, vault, and greed events should reference Unsealed or Denied."
     ]
+  },
+  {
+  id: 11,
+  title: "The Golden Collapse",
+  trigger: "Major World Event",
+  type: "economy",
+  intro:
+    "A city-sized vault buckles deep below the world. Wealth spills upward faster than wisdom can contain it.",
+  choices: [
+    {
+      label: "Inflation Breaks Loose",
+      details: [
+        "All factions gain 14 Gold immediately.",
+        "Markets destabilize for the remainder of the campaign.",
+        "Exchange becomes 6:1 for the remainder of the campaign.",
+        "Increase Presence by 2.",
+        "Campaign tag gained: Inflation."
+      ]
+    }
+  ],
+  aftermath: [
+    "This event should permanently alter how players value Gold and trade resources."
+  ]
+},
+{
+  id: 12,
+  title: "The Vault That Should Not Open",
+  trigger: "Campaign-Defining",
+  type: "campaign",
+  intro:
+    "A single lock waits in silence. Every key fits. That is the first warning.",
+  choices: [
+    {
+      label: "Open It Together",
+      details: [
+        "Split 2 Mythic rewards among the table.",
+        "Spawn a World Boss.",
+        "Campaign tag gained: Temptation."
+      ]
+    },
+    {
+      label: "Seal It Forever",
+      details: [
+        "Reduce Presence by 3.",
+        "Lose access to Mythic rewards for the remainder of the campaign.",
+        "Campaign tag gained: Temptation Denied."
+      ]
+    }
+  ],
+  aftermath: [
+    "Future vault, greed, and power events can reference Temptation or Temptation Denied."
+  ]
+},
+{
+  id: 13,
+  title: "The Cave Remembers the Sun",
+  trigger: "Major World Event",
+  type: "environment",
+  intro:
+    "The underworld recalls light, and in doing so seems to steal it from the surface.",
+  choices: [
+    {
+      label: "The World Darkens",
+      details: [
+        "Nighttime begins for this mission and the next mission.",
+        "Refer to the rule book for the effects of night.",
+        "Caves gain +2 Stability.",
+        "The overworld becomes harsher during this period.",
+        "Campaign tag gained: Reversal."
+      ]
+    }
+  ],
+  aftermath: [
+    "This event should affect both cave planning and overworld survival until the next mission ends."
+  ]
+},
+{
+  id: 16,
+  title: "The World Demands Tribute",
+  trigger: "Major World Event",
+  type: "tribute",
+  intro:
+    "Supply lines strain as the land itself begins to exact a price from those who march across it.",
+  choices: [
+    {
+      label: "Pay the Land",
+      details: [
+        "Each faction pays 10 Food.",
+        "No further effect.",
+        "Campaign tag gained: Tribute Paid."
+      ]
+    },
+    {
+      label: "Refuse",
+      details: [
+        "Spawn The Hunger of Many at the most contested POI.",
+        "The creature immediately acts.",
+        "Campaign tag gained: Tribute Refused."
+      ]
+    }
+  ],
+  aftermath: [
+    "Future famine, land, and hunger events may reference Tribute Paid or Tribute Refused."
+  ]
+},
+{
+  id: 17,
+  title: "Banners Draw Blood",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "So many standards fly across the world that war itself seems to notice and answer.",
+  choices: [
+    {
+      label: "Reveal Your Banners",
+      details: [
+        "Each faction secretly chooses Yield or Stand Proud, then all reveal together.",
+        "Yield: Lose 2 Keywords of that faction's choice.",
+        "Stand Proud: Gain 10 Gold.",
+        "For each faction that chose Stand Proud, spawn a keyword-hunting creature targeting one of that faction's Keywords."
+      ]
+    }
+  ],
+  aftermath: [
+    "This event pressures ambitious factions and can reshape keyword strategies across the table."
+  ]
+},
+{
+  id: 18,
+  title: "The Map Is Redrawn",
+  trigger: "Major World Event",
+  type: "environment",
+  intro:
+    "Old paths collapse beneath the world. New routes emerge where no sane cartographer would place them.",
+  choices: [
+    {
+      label: "Stabilize the Region",
+      details: [
+        "No map changes occur.",
+        "All factions gain 5 Food.",
+        "Campaign tag gained: Stabilized Region."
+      ]
+    },
+    {
+      label: "Let It Shift",
+      details: [
+        "Remove one central terrain location or POI chosen by the table.",
+        "Replace it with Hazardous Terrain 3x3.",
+        "The faction with the most Dragon Coins gains 1 Dragon Coin.",
+        "Campaign tag gained: Redrawn."
+      ]
+    }
+  ],
+  aftermath: [
+    "This event should materially alter navigation and future fights around the center of the map."
+  ]
+},
+{
+  id: 19,
+  title: "The Champion Calls",
+  trigger: "Major World Event",
+  type: "challenge",
+  intro:
+    "A challenge rings out across the world. Silence, too, is taken as an answer.",
+  choices: [
+    {
+      label: "Commit",
+      details: [
+        "In turn order, each faction may Commit by sending 1 unit to the Arena."
+      ]
+    },
+    {
+      label: "Decline",
+      details: [
+        "A faction that Declines gains 5 Gold."
+      ]
+    }
+  ],
+  aftermath: [
+    "If 2 or more factions Commit: Spawn an Arena Champion, the winner gains 3 Dragon Coins, and all losing units are killed.",
+    "If only 1 faction Commits: that faction gains 15 Gold and no Champion spawns."
+  ]
+},
+{
+  id: 20,
+  title: "The Council Convenes",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "Commanders are summoned to parley in the open, and power shifts simply by who dares to show up.",
+  choices: [
+    {
+      label: "Send a Commander",
+      details: [
+        "Each faction may contribute 1 Commander to the Council or abstain.",
+        "For each Commander sent, that faction gains 10 Gold."
+      ]
+    },
+    {
+      label: "Abstain",
+      details: [
+        "A faction that abstains sends no Commander and gains no Council reward."
+      ]
+    }
+  ],
+  aftermath: [
+    "The faction with the most Commanders present gains 1 Blueprint.",
+    "All other participating factions gain 1 Legendary Potion."
+  ]
+},
+{
+  id: 21,
+  title: "Rumours of Betrayal",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "Something is coming, and no one agrees on what. Suspicion settles over the table before any proof does.",
+  choices: [
+    {
+      label: "Investigate a Faction",
+      details: [
+        "The table must choose one faction to investigate."
+      ]
+    },
+    {
+      label: "Reveal Reserves",
+      details: [
+        "The investigated faction loses 10 Gold.",
+        "That faction gains 1 Mythic Potion."
+      ]
+    },
+    {
+      label: "Conceal Assets",
+      details: [
+        "The investigated faction gains 10 Gold.",
+        "Spawn a keyword-hunting creature targeting one of that faction's Keywords."
+      ]
+    }
+  ],
+  aftermath: [
+    "This event should increase paranoia and make visibly wealthy factions feel exposed."
+  ]
+},
+{
+  id: 22,
+  title: "The Storm Breaks",
+  trigger: "Major World Event",
+  type: "environment",
+  intro:
+    "The sky no longer tolerates defiance. Thunder gathers like judgment over every marching force.",
+  choices: [
+    {
+      label: "Seek Shelter",
+      details: [
+        "All factions skip 1 round of actions.",
+        "No spawns occur this round."
+      ]
+    },
+    {
+      label: "Press On",
+      details: [
+        "All units ignore terrain penalties this round.",
+        "Spawn Stormward Avatar at the center of the map."
+      ]
+    }
+  ],
+  aftermath: [
+    "This event should sharply change tempo for the current round."
+  ]
+},
+{
+  id: 23,
+  title: "Oaths Are Tested",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "Words spoken in iron are tested by fire. Every promise now has a cost.",
+  choices: [
+    {
+      label: "Honour the Oath",
+      details: [
+        "A faction that honours the oath loses 5 Gold."
+      ]
+    },
+    {
+      label: "Exploit the Moment",
+      details: [
+        "A faction that exploits the moment gains 10 Gold.",
+        "For each faction that exploits, the Oathbound faction gains 5 Food.",
+        "Spawn Oathbreaker Behemoth near the center."
+      ]
+    }
+  ],
+  aftermath: [
+    "This event rewards greed immediately, but puts pressure back onto the table through creature escalation."
+  ]
+},
+{
+  id: 24,
+  title: "The Ground Trembles",
+  trigger: "Campaign-Defining",
+  type: "environment",
+  intro:
+    "Rumbles erupt from below and ripple across the realm, threatening ruin but promising fortune to those willing to risk it.",
+  choices: [
+    {
+      label: "Stabilize the Fault Lines",
+      details: [
+        "The table pays 15 Metal split among all factions as they choose.",
+        "All factions gain 15 Food each."
+      ]
+    },
+    {
+      label: "Feed the Rupture",
+      details: [
+        "The fault opens near the most central POI.",
+        "Spawn a World Boss.",
+        "The faction with the most Dragon Coins gains 2 Dragon Coins."
+      ]
+    }
+  ],
+  aftermath: [
+    "If the table fails to agree within 60 seconds, automatically resolve Feed the Rupture."
+  ]
+},
+{
+  id: 25,
+  title: "The Council of Shades",
+  trigger: "Major World Event",
+  type: "tribute",
+  intro:
+    "An assembly of ancient spirits demands tribute. Silence is treated as insult, and insult is rarely ignored.",
+  choices: [
+    {
+      label: "Tribute",
+      details: [
+        "A faction choosing Tribute loses 10 Gold.",
+        "That faction gains one of the following: 5 Metal, 5 Food, or 1 Relic."
+      ]
+    },
+    {
+      label: "Defiance",
+      details: [
+        "A faction choosing Defiance suffers no immediate loss."
+      ]
+    }
+  ],
+  aftermath: [
+    "If more factions chose Tribute than Defiance: all factions gain 10 Gold.",
+    "If more factions chose Defiance than Tribute: spawn a keyword-targeting creature against the faction with the most Keywords.",
+    "If tied: all factions lose 5 Gold and no spawn occurs."
+  ]
+},
+{
+  id: 26,
+  title: "The Broken Celestial Clock",
+  trigger: "Major World Event",
+  type: "time",
+  intro:
+    "A cosmic mechanism fractures overhead, and time bends unevenly across the world.",
+  choices: [
+    {
+      label: "Anchor Time",
+      details: [
+        "Skip one of that faction's Movement actions in a round.",
+        "That faction gains 1 random Potion."
+      ]
+    },
+    {
+      label: "Bend Time",
+      details: [
+        "That faction takes an extra Attack Action next phase.",
+        "That faction loses 10 Food."
+      ]
+    }
+  ],
+  aftermath: [
+    "After choices are revealed, each faction that chose Bend Time spawns a random Creature."
+  ]
+},
+{
+  id: 27,
+  title: "The Blood Moon Ascends",
+  trigger: "Campaign-Defining",
+  type: "judgment",
+  intro:
+    "The red moon rises, and the dead answer its call with unnerving readiness.",
+  choices: [
+    {
+      label: "United Circle",
+      details: [
+        "All factions contribute 5 Food."
+      ]
+    },
+    {
+      label: "Reckless Stand",
+      details: [
+        "All factions gain 20 Gold.",
+        "All factions must fight a Table Beast."
+      ]
+    }
+  ],
+  aftermath: [
+    "If United Circle is chosen: all current world threats are banished and all factions gain 1 Relic.",
+    "If Reckless Stand is chosen: a Table Beast spawns, an especially dangerous world threat that targets player actions."
+  ]
+},
+{
+  id: 28,
+  title: "The Whispers of Time",
+  trigger: "Major World Event",
+  type: "time",
+  intro:
+    "Echoes from what has been, or might yet be, tug at the mortal veil and ask to be heard.",
+  choices: [
+    {
+      label: "Listen",
+      details: [
+        "Increase World Tension by 1."
+      ]
+    },
+    {
+      label: "Silence",
+      details: [
+        "That faction loses 10 Gold.",
+        "All factions gain 1 Dragon Coin."
+      ]
+    }
+  ],
+  aftermath: [
+    "If the table is split between Listen and Silence, increase World Tension by 2."
+  ]
+},
+{
+  id: 29,
+  title: "Shivering Winds",
+  trigger: "Major World Event",
+  type: "environment",
+  intro:
+    "Cold gusts sweep across the realm, stripping warmth and supplies from every camp they touch.",
+  choices: [
+    {
+      label: "Lose Supplies",
+      details: [
+        "All factions lose 15 Food."
+      ]
+    },
+    {
+      label: "Delay Movement",
+      details: [
+        "Instead of losing Food, skip all Movement actions next phase."
+      ]
+    },
+    {
+      label: "Freeze Weapons",
+      details: [
+        "Instead of losing Food, all unit attacks deal 2 less damage next phase."
+      ]
+    }
+  ],
+  aftermath: [
+    "This event should force every faction to choose between immediate scarcity and tempo loss."
+  ]
+},
+{
+  id: 30,
+  title: "Fading Light",
+  trigger: "Major World Event",
+  type: "environment",
+  intro:
+    "Vision dims across the battlefield, and secrecy grows where certainty once stood.",
+  choices: [
+    {
+      label: "Hold Camp",
+      details: [
+        "Skip a unit's next Movement or Attack action.",
+        "Gain 7 Gold."
+      ]
+    },
+    {
+      label: "Press On",
+      details: [
+        "Gain no reward.",
+        "All units move 3 less next phase."
+      ]
+    }
+  ],
+  aftermath: [
+    "This event pressures cautious factions to trade tempo for stability."
+  ]
+},
+{
+  id: 31,
+  title: "Rumbling Nearby",
+  trigger: "Minor World Event",
+  type: "omen",
+  intro:
+    "A vague tremor passes beneath the world. Nothing emerges yet, but everyone feels it.",
+  choices: [
+    {
+      label: "The Tremor Passes",
+      details: [
+        "Increase Presence by 2."
+      ]
+    }
+  ],
+  aftermath: [
+    "This is a warning event and works best as rising pressure rather than immediate punishment."
+  ]
+},
+{
+  id: 32,
+  title: "Cries in the Dark",
+  trigger: "Major World Event",
+  type: "judgment",
+  intro:
+    "Something hunts just beyond the edge of torchlight, listening for weakness.",
+  choices: [
+    {
+      label: "Face the Unknown",
+      details: [
+        "Each faction rolls 1 D6.",
+        "On 4-6: gain 1 random Potion.",
+        "On 1-3: lose 10 Gold."
+      ]
+    }
+  ],
+  aftermath: [
+    "This event should feel swingy, tense, and a little unfair in the right way."
+  ]
+},
+{
+  id: 33,
+  title: "Market Fluctuation",
+  trigger: "Minor World Event",
+  type: "economy",
+  intro:
+    "Trade routes constrict, then suddenly burst with opportunity.",
+  choices: [
+    {
+      label: "Short-Lived Boom",
+      details: [
+        "Each faction gains 10 Gold."
+      ]
+    }
+  ],
+  aftermath: [
+    "This is a simple economy pulse and can help reset momentum across the table."
+  ]
+},
+{
+  id: 34,
+  title: "The Black Mirror Crevasse",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "A jagged rift opens in the most contested central space, reflecting not faces, but intentions.",
+  choices: [
+    {
+      label: "Ally",
+      details: [
+        "Gain 1 random Potion."
+      ]
+    },
+    {
+      label: "Betray",
+      details: [
+        "Steal 10 Gold from a faction that chose Ally."
+      ]
+    }
+  ],
+  aftermath: [
+    "If all factions choose Ally: everyone gains 1 Relic.",
+    "If 2 or more factions choose Betray: spawn a keyword-hunting creature targeting the faction with the most Keywords.",
+    "After resolving, collapse the crevasse and replace it with Fractured Ground."
+  ]
+},
+{
+  id: 35,
+  title: "The Gnawing Deep",
+  trigger: "Major World Event",
+  type: "tribute",
+  intro:
+    "Something hungry tunnels upward beneath the faction with the greatest Food production, sensing excess before scenting blood.",
+  choices: [
+    {
+      label: "Feed the Deep",
+      details: [
+        "Lose 10 Food.",
+        "Gain 10 Gold."
+      ]
+    },
+    {
+      label: "Starve It",
+      details: [
+        "Pay no cost."
+      ]
+    }
+  ],
+  aftermath: [
+    "For each faction that chose Starve It: that faction loses 1 unit to the Graveyard.",
+    "For each faction that fed the Deep: gain 2 Dragon Coins if at least one other faction chose Starve It.",
+    "The Deep collapses once 2 total units have been lost."
+  ]
+},
+{
+  id: 36,
+  title: "The Echoing Pit of Oaths",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "Ancient promises claw their way back to the surface beside a POI that once granted power.",
+  choices: [
+    {
+      label: "Honor Old Oaths",
+      details: [
+        "Lose 5 Gold.",
+        "Gain 10 Food."
+      ]
+    },
+    {
+      label: "Break Them",
+      details: [
+        "Gain 20 Gold."
+      ]
+    }
+  ],
+  aftermath: [
+    "For each faction that chose Break Them: spawn Oathbreaker Behemoth.",
+    "The Behemoth targets all factions that chose Honor first.",
+    "When the Behemoth is defeated, all Betrayers gain 1 Dragon Coin."
+  ]
+},
+{
+  id: 37,
+  title: "The Vein of Living Metal",
+  trigger: "Major World Event",
+  type: "economy",
+  intro:
+    "A raw seam of shifting living metal splits the exact center of the map, drawing greed as quickly as awe.",
+  choices: [
+    {
+      label: "Contribute Metal",
+      details: [
+        "Each faction may secretly contribute any amount of Metal."
+      ]
+    }
+  ],
+  aftermath: [
+    "Highest contributor gains 2 Blueprints.",
+    "Second-highest contributor gains 20 Gold.",
+    "Lowest contributor gains nothing.",
+    "If any faction contributes 0: that faction gains the Scavenger keyword, but all contributing factions lose 5 Metal to sabotage.",
+    "The vein collapses after distribution."
+  ]
+},
+{
+  id: 38,
+  title: "The Throneless Hollow",
+  trigger: "Major World Event",
+  type: "judgment",
+  intro:
+    "A buried chamber opens beneath a Commander, a place where no ruler has ever survived for long.",
+  choices: [
+    {
+      label: "Offer the Commander",
+      details: [
+        "Remove that Commander.",
+        "Gain 2 Dragon Coins."
+      ]
+    },
+    {
+      label: "Protect the Commander",
+      details: [
+        "All other factions may immediately perform a free attack against that Commander."
+      ]
+    }
+  ],
+  aftermath: [
+    "If the Commander survives, that faction gains Crownbound.",
+    "All attacking factions gain 10 Gold.",
+    "Collapse the Hollow after the Commander dies or survives the assault."
+  ]
+},
+{
+  id: 39,
+  title: "The Mouth of Many Promises",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "Voices whisper different rewards to every listener, and none of them sound entirely honest.",
+  choices: [
+    {
+      label: "Accept the Secret Offer",
+      details: [
+        "Each faction is secretly given 1 unique random offer.",
+        "Examples include gaining a Relic if another faction loses a unit, gaining 30 Gold if a POI is destroyed, or gaining 2 Potions if you vote against the table."
+      ]
+    },
+    {
+      label: "Reveal the Offer",
+      details: [
+        "Reveal the secret offer to the table.",
+        "Gain 10 Gold instead."
+      ]
+    }
+  ],
+  aftermath: [
+    "If 2 or more factions secretly accept their offers, spawn 2 Creatures.",
+    "Collapse the Mouth after choices resolve."
+  ]
+},
+{
+  id: 40,
+  title: "The Fractured Alliance",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "A binding pact shatters under unseen pressure, and every faction must decide whether unity is still worth the cost.",
+  choices: [
+    {
+      label: "Bind Together",
+      details: [
+        "Choose this secretly along with all other factions."
+      ]
+    },
+    {
+      label: "Break Away",
+      details: [
+        "Choose this secretly along with all other factions."
+      ]
+    }
+  ],
+  aftermath: [
+    "If all factions choose Bind Together: all factions gain 1 Dragon Coin and reduce Presence by 2.",
+    "For each faction that chose Break Away: steal 10 Gold from a faction that chose Bind Together and increase Presence by 1.",
+    "If more than half of all factions choose Break Away: spawn a Betrayal Avatar targeting the strongest faction."
+  ]
+},
+{
+  id: 41,
+  title: "The Resource War",
+  trigger: "Major World Event",
+  type: "economy",
+  intro:
+    "Scarcity spreads across the world, and even allies begin eyeing one another's stores.",
+  choices: [
+    {
+      label: "Hoard",
+      details: [
+        "Gain 15 Gold."
+      ]
+    },
+    {
+      label: "Share",
+      details: [
+        "All factions that chose Share gain 10 Food."
+      ]
+    },
+    {
+      label: "Seize",
+      details: [
+        "Choose a target faction secretly.",
+        "Steal 10 Food from that target."
+      ]
+    }
+  ],
+  aftermath: [
+    "If 2 or more factions chose Seize, spawn a Conflict Beast between them."
+  ]
+},
+{
+  id: 42,
+  title: "The Tithe of Power",
+  trigger: "Campaign-Defining",
+  type: "tribute",
+  intro:
+    "The world itself demands sacrifice, and those who refuse are marked by the cost of defiance.",
+  choices: [
+    {
+      label: "Sacrifice a Unit",
+      details: [
+        "Sacrifice 1 unit.",
+        "That faction gains 1 Relic."
+      ]
+    },
+    {
+      label: "Sacrifice 15 Gold",
+      details: [
+        "Lose 15 Gold."
+      ]
+    },
+    {
+      label: "Refuse",
+      details: [
+        "Refuse the tithe."
+      ]
+    }
+  ],
+  aftermath: [
+    "For each faction that refused: that faction loses 1 Dragon Coin.",
+    "If no faction sacrifices either a unit or Gold, spawn the World Devourer."
+  ]
+},
+{
+  id: 43,
+  title: "The Veil Thins",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "Secrets lose their shelter as the veil thins, and hidden stores become targets.",
+  choices: [
+    {
+      label: "Choose a Target",
+      details: [
+        "Each faction secretly chooses a target faction."
+      ]
+    }
+  ],
+  aftermath: [
+    "Each faction reveals 1 hidden resource count.",
+    "Each faction steals 5 of that revealed resource from the faction they targeted.",
+    "If two factions targeted each other, both gain 1 Blueprint through mutual exposure."
+  ]
+},
+{
+  id: 44,
+  title: "The Ascension Offer",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "The world offers elevation to one faction, but never without cost to everyone around them.",
+  choices: [
+    {
+      label: "Cast a Vote",
+      details: [
+        "Each faction secretly votes for 1 faction to gain 2 Dragon Coins."
+      ]
+    }
+  ],
+  aftermath: [
+    "The faction with the most votes gains 2 Dragon Coins.",
+    "That faction loses 15 Food.",
+    "All factions who voted for them gain 10 Gold.",
+    "All factions who voted against them gain 1 Keyword."
+  ]
+},
+{
+  id: 45,
+  title: "The Shared Burden",
+  trigger: "Campaign-Defining",
+  type: "tribute",
+  intro:
+    "A catastrophe looms over the world, and only a shared cost can hold it back.",
+  choices: [
+    {
+      label: "Contribute Gold",
+      details: [
+        "Each faction secretly contributes any amount of Gold from 0 to 20."
+      ]
+    }
+  ],
+  aftermath: [
+    "If the total Gold contributed is 50 or more: prevent the disaster and all contributors gain 1 Relic.",
+    "If the total Gold contributed is less than 50: spawn the Cataclysm Titan and all non-contributors lose 1 unit."
+  ]
+},
+{
+  id: 46,
+  title: "The Claiming",
+  trigger: "Major World Event",
+  type: "territory",
+  intro:
+    "One central POI becomes unstable and suddenly priceless, drawing every faction into a struggle for permanent control.",
+  choices: [
+    {
+      label: "Bid Food",
+      details: [
+        "Each faction secretly bids any amount of Food from 0 to 15."
+      ]
+    }
+  ],
+  aftermath: [
+    "The highest bidder permanently claims the POI and gains 2 Dragon Coins.",
+    "All losing bidders lose half their bid, rounded down.",
+    "If the highest bid is tied, spawn a Claimant Beast."
+  ]
+},
+{
+  id: 47,
+  title: "The Shadow Exchange",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "A secret bargain passes through the dark, offering trade to some and sabotage to others.",
+  choices: [
+    {
+      label: "Trade",
+      details: [
+        "Choose a faction secretly."
+      ]
+    },
+    {
+      label: "Sabotage",
+      details: [
+        "Choose a faction secretly."
+      ]
+    }
+  ],
+  aftermath: [
+    "If two factions choose mutual Trade: both gain 1 Relic.",
+    "If one faction chose Trade and the other chose Sabotage: the Saboteur steals 1 Dragon Coin.",
+    "If two factions choose mutual Sabotage: spawn a Shadow Hunter targeting both."
+  ]
+},
+{
+  id: 48,
+  title: "The Final Rift",
+  trigger: "Campaign-Defining",
+  type: "environment",
+  intro:
+    "The world cracks wider than before, forcing each faction to decide whether to endure, expand, or exploit the chaos.",
+  choices: [
+    {
+      label: "Fortify",
+      details: [
+        "Gain 20 Food.",
+        "Lose 1 Dragon Coin."
+      ]
+    },
+    {
+      label: "Expand",
+      details: [
+        "Gain 1 POI influence.",
+        "Increase Presence by 1."
+      ]
+    },
+    {
+      label: "Exploit",
+      details: [
+        "Gain 20 Gold.",
+        "Spawn a creature targeting that faction."
+      ]
+    }
+  ],
+  aftermath: [
+    "If 2 or more factions choose Exploit, spawn a Greater Rift Beast."
+  ]
+},
+{
+  id: 49,
+  title: "The Reckoning Vote",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "The table turns inward and decides that one faction must bear the weight of the moment.",
+  choices: [
+    {
+      label: "Vote to Weaken",
+      details: [
+        "Each faction secretly votes to weaken 1 faction."
+      ]
+    }
+  ],
+  aftermath: [
+    "The faction with the most votes loses 1 Dragon Coin and loses 1 unit.",
+    "If the vote is unanimous against one faction, that faction instead gains 1 Relic as a solidarity twist."
+  ]
+},
+{
+  id: 50,
+  title: "The World Decides",
+  trigger: "Campaign-Defining",
+  type: "judgment",
+  intro:
+    "The world no longer watches silently. It demands that every faction declare what it truly serves.",
+  choices: [
+    {
+      label: "Order",
+      details: [
+        "Declare Order openly."
+      ]
+    },
+    {
+      label: "Freedom",
+      details: [
+        "Declare Freedom openly."
+      ]
+    },
+    {
+      label: "Profit",
+      details: [
+        "Declare Profit openly."
+      ]
+    }
+  ],
+  aftermath: [
+    "The majority alignment gains 1 Dragon Coin.",
+    "The minority alignment spawns an ideological creature targeting them.",
+    "If all alignments are evenly split, increase Presence by 3."
+  ]
+},
+{
+  id: 51,
+  title: "The Hollow Feast",
+  trigger: "Major World Event",
+  type: "tribute",
+  intro:
+    "An impossible banquet appears in the wilds, rich with food and wrong with promise.",
+  choices: [
+    {
+      label: "Feast",
+      details: [
+        "Gain 20 Food.",
+        "Increase Presence by 1."
+      ]
+    },
+    {
+      label: "Refuse",
+      details: [
+        "Gain nothing.",
+        "Reduce Presence by 1."
+      ]
+    }
+  ],
+  aftermath: [
+    "If more than half the table Feasts, spawn a Hunger-marked creature near the richest faction."
+  ]
+},
+{
+  id: 52,
+  title: "The Ashen Caravan",
+  trigger: "Major World Event",
+  type: "economy",
+  intro:
+    "A scorched trade caravan limps across the world, carrying what little survived the road.",
+  choices: [
+    {
+      label: "Protect the Caravan",
+      details: [
+        "Each faction may pay 5 Gold.",
+        "Factions that do gain 1 Relic."
+      ]
+    },
+    {
+      label: "Raid the Caravan",
+      details: [
+        "Gain 12 Gold immediately."
+      ]
+    }
+  ],
+  aftermath: [
+    "If 2 or more factions raid the caravan, spawn a Warden creature at the nearest central POI."
+  ]
+},
+{
+  id: 53,
+  title: "The Law of Spoils",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "A brutal logic settles over the battlefield: what you cannot keep, someone else may claim.",
+  choices: [
+    {
+      label: "Enforce the Law",
+      details: [
+        "For this mission, the first faction to destroy an enemy Structure gains 1 Dragon Coin."
+      ]
+    },
+    {
+      label: "Reject the Law",
+      details: [
+        "Reduce Presence by 1."
+      ]
+    }
+  ],
+  aftermath: [
+    "If the table rejects the law unanimously, all factions gain 5 Food."
+  ]
+},
+{
+  id: 54,
+  title: "The Sleeping Gate",
+  trigger: "Campaign-Defining",
+  type: "environment",
+  intro:
+    "A sealed stone gate rises from beneath the world. It has not opened in ages, which is not the same as safety.",
+  choices: [
+    {
+      label: "Wake the Gate",
+      details: [
+        "Spawn a World Boss.",
+        "All factions gain 1 Blueprint."
+      ]
+    },
+    {
+      label: "Seal It Again",
+      details: [
+        "Pay 20 total Metal split among the table.",
+        "Reduce Presence by 2."
+      ]
+    }
+  ],
+  aftermath: [
+    "If the table cannot pay the Metal cost, Wake the Gate resolves automatically."
+  ]
+},
+{
+  id: 55,
+  title: "The Pilgrims of Dust",
+  trigger: "Major World Event",
+  type: "judgment",
+  intro:
+    "A wandering host of dust-covered pilgrims crosses the map, asking each faction what they still believe in.",
+  choices: [
+    {
+      label: "Offer Aid",
+      details: [
+        "Lose 5 Food.",
+        "Gain 1 random Potion."
+      ]
+    },
+    {
+      label: "Turn Them Away",
+      details: [
+        "Gain 8 Gold."
+      ]
+    }
+  ],
+  aftermath: [
+    "If more factions turn the pilgrims away than aid them, increase Presence by 2."
+  ]
+},
+{
+  id: 56,
+  title: "The Split Banner",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "A war-banner tears itself in half in full view of the world, demanding sides be chosen.",
+  choices: [
+    {
+      label: "Choose a Side",
+      details: [
+        "Each faction secretly aligns with one of two sides."
+      ]
+    }
+  ],
+  aftermath: [
+    "The larger side gains 10 Gold each.",
+    "The smaller side gains 1 Keyword each.",
+    "If evenly split, spawn 2 creatures at opposite central positions."
+  ]
+},
+{
+  id: 57,
+  title: "The Iron Rain",
+  trigger: "Major World Event",
+  type: "environment",
+  intro:
+    "Metal falls from the sky in burning sheets, devastating the exposed and enriching the reckless.",
+  choices: [
+    {
+      label: "Take Cover",
+      details: [
+        "Skip 1 Attack action next phase.",
+        "Gain 5 Metal."
+      ]
+    },
+    {
+      label: "Harvest the Rain",
+      details: [
+        "Gain 12 Metal.",
+        "One unit of that faction suffers 3 damage."
+      ]
+    }
+  ],
+  aftermath: [
+    "If 3 or more factions harvest the rain, increase Presence by 1."
+  ]
+},
+{
+  id: 58,
+  title: "The Beast Census",
+  trigger: "Major World Event",
+  type: "campaign",
+  intro:
+    "The world seems to count every living threat now moving across it, as though preparing an answer.",
+  choices: [
+    {
+      label: "Cull the Wild",
+      details: [
+        "All factions gain 5 Gold for each creature defeated this mission, to a maximum of 15 Gold."
+      ]
+    },
+    {
+      label: "Appease the Wild",
+      details: [
+        "Each faction loses 5 Food.",
+        "No new creatures spawn this round."
+      ]
+    }
+  ],
+  aftermath: [
+    "This event should shape how aggressive the table wants to be toward neutral threats."
+  ]
+},
+{
+  id: 59,
+  title: "The Silent Auction",
+  trigger: "Major World Event",
+  type: "economy",
+  intro:
+    "A hidden market opens for only a moment, and every faction is invited to bid on something not fully described.",
+  choices: [
+    {
+      label: "Bid Gold",
+      details: [
+        "Each faction secretly bids any amount of Gold from 0 to 20."
+      ]
+    }
+  ],
+  aftermath: [
+    "Highest bidder gains 1 Relic and 1 random Potion.",
+    "Second-highest bidder gains 1 Blueprint.",
+    "All other bidders lose half their bid, rounded down."
+  ]
+},
+{
+  id: 60,
+  title: "The Buried Choir",
+  trigger: "Major World Event",
+  type: "omen",
+  intro:
+    "Beneath the world, a choir begins to sing in voices too old to belong to any living people.",
+  choices: [
+    {
+      label: "Listen",
+      details: [
+        "Gain 1 random Potion.",
+        "Increase Presence by 1."
+      ]
+    },
+    {
+      label: "Silence the Song",
+      details: [
+        "Lose 10 Gold.",
+        "Reduce Presence by 1."
+      ]
+    }
+  ],
+  aftermath: [
+    "If all factions choose Listen, increase World Tension by 2."
+  ]
+},
+{
+  id: 61,
+  title: "The March of Ruin",
+  trigger: "Campaign-Defining",
+  type: "environment",
+  intro:
+    "A line of devastation sweeps across the map as though replaying an older war no one remembers surviving.",
+  choices: [
+    {
+      label: "Stand Fast",
+      details: [
+        "All factions gain 1 Keyword.",
+        "All structures suffer 3 damage."
+      ]
+    },
+    {
+      label: "Scatter",
+      details: [
+        "All factions lose 1 Movement action next phase.",
+        "No structures are damaged."
+      ]
+    }
+  ],
+  aftermath: [
+    "The faction with the fewest damaged structures after resolution gains 1 Dragon Coin."
+  ]
+},
+{
+  id: 62,
+  title: "The Price of Maps",
+  trigger: "Major World Event",
+  type: "territory",
+  intro:
+    "Knowledge of the world's hidden paths becomes available, but only to those willing to pay for certainty.",
+  choices: [
+    {
+      label: "Purchase the Routes",
+      details: [
+        "Lose 10 Gold.",
+        "Gain 1 POI influence."
+      ]
+    },
+    {
+      label: "Trust to Fortune",
+      details: [
+        "Gain 5 Gold."
+      ]
+    }
+  ],
+  aftermath: [
+    "If more than half the factions trust to fortune, spawn a hazard or creature at a central route chosen by the table."
+  ]
+},
+{
+  id: 63,
+  title: "The Crownless Trial",
+  trigger: "Major World Event",
+  type: "challenge",
+  intro:
+    "A challenge is issued to leaders without naming a throne, a title, or a right to hold either.",
+  choices: [
+    {
+      label: "Nominate a Commander",
+      details: [
+        "Each faction may nominate 1 Commander."
+      ]
+    },
+    {
+      label: "Refuse the Trial",
+      details: [
+        "Gain 10 Gold.",
+        "That faction cannot gain Blueprints from this event."
+      ]
+    }
+  ],
+  aftermath: [
+    "If 2 or more Commanders are nominated, the faction whose Commander prevails gains 2 Blueprints.",
+    "All defeated nominated Commanders suffer 4 damage."
+  ]
+},
+{
+  id: 64,
+  title: "The Withering Pact",
+  trigger: "Major World Event",
+  type: "political",
+  intro:
+    "A frail alliance is offered to the table, but it feeds on whoever signs it first.",
+  choices: [
+    {
+      label: "Sign the Pact",
+      details: [
+        "Gain 1 Relic.",
+        "Lose 10 Food."
+      ]
+    },
+    {
+      label: "Refuse the Pact",
+      details: [
+        "Gain 10 Gold."
+      ]
+    }
+  ],
+  aftermath: [
+    "If exactly one faction signs the pact, that faction gains 1 additional Dragon Coin.",
+    "If 3 or more factions sign it, increase Presence by 2."
+  ]
+},
+{
+  id: 65,
+  title: "The Last Accounting",
+  trigger: "Campaign-Defining",
+  type: "judgment",
+  intro:
+    "The world pauses long enough to measure what every faction has taken from it, and what little any of them have given back.",
+  choices: [
+    {
+      label: "Submit to Judgment",
+      details: [
+        "The faction with the most total wealth loses 1 Dragon Coin.",
+        "The faction with the least total wealth gains 1 Relic."
+      ]
+    },
+    {
+      label: "Defy Judgment",
+      details: [
+        "All factions gain 10 Gold."
+      ]
+    }
+  ],
+  aftermath: [
+    "If the table defies judgment, spawn a world threat targeting the richest faction."
+  ]
+},
+{
+  id: 66,
+  title: "The Horn That Summons Teeth",
+  trigger: "Campaign-Defining",
+  type: "boss",
+  intro:
+    "A war horn sounds from nowhere and everywhere at once. Something ancient hears only defiance.",
+  choices: [
+    {
+      label: "Sound the Horn",
+      details: [
+        "Gain 15 Gold."
+      ]
+    },
+    {
+      label: "Bury the Sound",
+      details: [
+        "Lose 5 Gold.",
+        "Reduce Presence by 1."
+      ]
+    }
+  ],
+  aftermath: [
+    "Spawn the Ivory Devourer as a roaming boss.",
+    "The Ivory Devourer targets all factions that chose Sound the Horn first.",
+    "If no faction chose Sound the Horn, it instead targets the faction with the most Dragon Coins."
+  ]
+},
+{
+  id: 67,
+  title: "The Price of Boasting",
+  trigger: "Major World Event",
+  type: "boss",
+  intro:
+    "The world has heard enough promises of greatness and now demands proof from those who speak the loudest.",
+  choices: [
+    {
+      label: "Boast",
+      details: [
+        "Gain 1 Keyword.",
+        "Gain 10 Gold."
+      ]
+    },
+    {
+      label: "Remain Silent",
+      details: [
+        "Gain 5 Food."
+      ]
+    }
+  ],
+  aftermath: [
+    "Spawn the Crown-Eater as a roaming boss.",
+    "The Crown-Eater targets all factions that chose Boast first.",
+    "Each Silent faction is ignored by the boss until it has attacked every Boasting faction once."
+  ]
+},
+{
+  id: 68,
+  title: "The Feast Below",
+  trigger: "Campaign-Defining",
+  type: "boss",
+  intro:
+    "The ground opens in shallow breaths, as though something below is smelling the table for excess.",
+  choices: [
+    {
+      label: "Feed Yourself",
+      details: [
+        "Gain 20 Food."
+      ]
+    },
+    {
+      label: "Starve with Dignity",
+      details: [
+        "Lose 5 Food.",
+        "Gain 1 random Potion."
+      ]
+    }
+  ],
+  aftermath: [
+    "Spawn the Maw Regent as a roaming boss.",
+    "The Maw Regent targets all factions that chose Feed Yourself first.",
+    "It gains bonus aggression against the faction with the highest Food total."
+  ]
+},
+{
+  id: 69,
+  title: "The Banner Hunt",
+  trigger: "Major World Event",
+  type: "boss",
+  intro:
+    "Something in the wild has learned to follow symbols of pride, and tonight there are too many banners flying.",
+  choices: [
+    {
+      label: "Raise the Banner",
+      details: [
+        "Gain 1 Dragon Coin."
+      ]
+    },
+    {
+      label: "Hide Your Sigil",
+      details: [
+        "Lose 5 Gold.",
+        "Reduce Presence by 1."
+      ]
+    }
+  ],
+  aftermath: [
+    "Spawn the Standard Reaper as a roaming boss.",
+    "The Standard Reaper targets all factions that chose Raise the Banner first.",
+    "If 3 or more factions raised their banners, the boss enters play enraged."
+  ]
+},
+{
+  id: 70,
+  title: "The Debt Collector Comes",
+  trigger: "Major World Event",
+  type: "boss",
+  intro:
+    "Some bargains are not broken when forgotten. They are merely delayed until the collector arrives.",
+  choices: [
+    {
+      label: "Take the Bargain",
+      details: [
+        "Gain 15 Gold.",
+        "Gain 5 Metal."
+      ]
+    },
+    {
+      label: "Refuse the Bargain",
+      details: [
+        "Gain nothing.",
+        "Reduce Presence by 1."
+      ]
+    }
+  ],
+  aftermath: [
+    "Spawn the Hollow Taxman as a roaming boss.",
+    "The Hollow Taxman targets all factions that chose Take the Bargain first.",
+    "Each targeted faction must either pay 10 Gold when first attacked or suffer bonus damage from that attack."
+  ]
+},
+{
+  id: 71,
+  title: "The King's Shadow Walks",
+  trigger: "Campaign-Defining",
+  type: "boss",
+  intro:
+    "A monarch without a kingdom rises in silhouette, seeking those who reached too eagerly for command.",
+  choices: [
+    {
+      label: "Claim Authority",
+      details: [
+        "Gain 1 Blueprint.",
+        "Gain 10 Gold."
+      ]
+    },
+    {
+      label: "Yield the Moment",
+      details: [
+        "Gain 8 Food."
+      ]
+    }
+  ],
+  aftermath: [
+    "Spawn the Unthroned King as a roaming boss.",
+    "The Unthroned King targets all factions that chose Claim Authority first.",
+    "If only one faction chose Claim Authority, that faction becomes the King's sole fixation until damaged by another faction."
+  ]
+},
+{
+  id: 72,
+  title: "The Fire That Follows Greed",
+  trigger: "Major World Event",
+  type: "boss",
+  intro:
+    "Coins gleam too brightly in the dark, and something blazing notices every hand that reached too far.",
+  choices: [
+    {
+      label: "Take the Hoard",
+      details: [
+        "Gain 20 Gold."
+      ]
+    },
+    {
+      label: "Leave It Buried",
+      details: [
+        "Gain 1 random Potion."
+      ]
+    }
+  ],
+  aftermath: [
+    "Spawn the Ember Tyrant as a roaming boss.",
+    "The Ember Tyrant targets all factions that chose Take the Hoard first.",
+    "Each time it damages one of those factions, that faction loses 5 additional Gold if able."
+  ]
+},
+{
+  id: 73,
+  title: "The Witness of Oaths",
+  trigger: "Campaign-Defining",
+  type: "boss",
+  intro:
+    "An ancient witness rises from the old world to measure every oath honored, twisted, or sold away.",
+  choices: [
+    {
+      label: "Keep the Oath",
+      details: [
+        "Lose 5 Gold.",
+        "Gain 10 Food."
+      ]
+    },
+    {
+      label: "Twist the Oath",
+      details: [
+        "Gain 15 Gold."
+      ]
+    },
+    {
+      label: "Break the Oath",
+      details: [
+        "Gain 1 Dragon Coin.",
+        "Increase Presence by 1."
+      ]
+    }
+  ],
+  aftermath: [
+    "Spawn the Oath-Witness as a roaming boss.",
+    "The Oath-Witness targets all factions that chose Break the Oath first.",
+    "It targets factions that chose Twist the Oath second.",
+    "Factions that kept the oath are ignored until they damage the boss."
+  ]
+},
+{
+  id: 74,
+  title: "The Arena Refuses to Close",
+  trigger: "Major World Event",
+  type: "boss",
+  intro:
+    "The challenge ends, but the arena does not. Something remains in the circle, waiting for those who treated blood like spectacle.",
+  choices: [
+    {
+      label: "Demand a Contest",
+      details: [
+        "Gain 10 Gold.",
+        "Gain 1 Keyword."
+      ]
+    },
+    {
+      label: "Call for Peace",
+      details: [
+        "Lose 5 Gold.",
+        "Reduce Presence by 1."
+      ]
+    }
+  ],
+  aftermath: [
+    "Spawn the Last Gladiator as a roaming boss.",
+    "The Last Gladiator targets all factions that chose Demand a Contest first.",
+    "If all factions demanded a contest, the boss immediately acts twice when spawned."
+  ]
+},
+{
+  id: 75,
+  title: "The World Remembers the Cruel",
+  trigger: "Campaign-Defining",
+  type: "boss",
+  intro:
+    "The world has begun to sort cruelty from necessity, and now sends judgment with feet, claws, and memory.",
+  choices: [
+    {
+      label: "Take the Harsh Path",
+      details: [
+        "Gain 15 Gold.",
+        "Gain 1 Dragon Coin."
+      ]
+    },
+    {
+      label: "Take the Measured Path",
+      details: [
+        "Gain 10 Food.",
+        "Gain 5 Metal."
+      ]
+    }
+  ],
+  aftermath: [
+    "Spawn the Pale Adjudicator as a roaming boss.",
+    "The Pale Adjudicator targets all factions that chose Take the Harsh Path first.",
+    "If no faction chose the harsh path, it instead targets the faction with the highest Presence impact this mission."
+  ]
+}
+
+];
+
+const worldEventCreatureCards = [
+  {
+    id: "ivory_devourer",
+    eventId: 66,
+    name: "The Ivory Devourer",
+    type: "Roaming Boss",
+    hp: 32,
+    movement: 8,
+    rollCheck: 4,
+    outputDamage: 6,
+    targeting: "Targets factions that chose Sound the Horn first. If none did, targets the faction with the most Dragon Coins.",
+    timing: "Acts at the end of each full Phase.",
+    behaviour: "Moves toward the nearest marked target. If adjacent, attacks. If it defeats a unit, it may move 4 again toward another marked faction unit. Ignores unmarked factions unless no marked targets remain."
+  },
+  {
+    id: "crown_eater",
+    eventId: 67,
+    name: "The Crown-Eater",
+    type: "Roaming Boss",
+    hp: 28,
+    movement: 10,
+    rollCheck: 3,
+    outputDamage: 5,
+    targeting: "Targets factions that chose Boast first.",
+    timing: "Acts at the start of the Production portion of each Phase.",
+    behaviour: "Moves toward the highest-value visible unit or Commander of a marked faction. If adjacent, attacks. Deals +2 damage against Commanders and units with Keywords. Silent factions are ignored until all boasting factions have been attacked once."
+  },
+  {
+    id: "maw_regent",
+    eventId: 68,
+    name: "The Maw Regent",
+    type: "Roaming Boss",
+    hp: 36,
+    movement: 6,
+    rollCheck: 4,
+    outputDamage: 7,
+    targeting: "Targets factions that chose Feed Yourself first, prioritizing the faction with the highest Food total.",
+    timing: "Acts during the Collection Phase before resources are gained.",
+    behaviour: "Moves toward the nearest marked faction unit. If adjacent, attacks. Whenever it damages a marked faction, that faction loses 5 Food. If no unit is in range, it moves toward the nearest food-producing structure or Province edge."
+  },
+  {
+    id: "standard_reaper",
+    eventId: 69,
+    name: "The Standard Reaper",
+    type: "Roaming Boss",
+    hp: 30,
+    movement: 12,
+    rollCheck: 5,
+    outputDamage: 6,
+    targeting: "Targets factions that chose Raise the Banner first.",
+    timing: "Acts after each marked faction completes its Movement actions.",
+    behaviour: "Immediately pursues the last marked faction to move. If adjacent, attacks. If it destroys a unit, all other marked factions suffer +1 Presence. If 3 or more factions raised banners, it gains +2 movement for the mission."
+  },
+  {
+    id: "hollow_taxman",
+    eventId: 70,
+    name: "The Hollow Taxman",
+    type: "Roaming Boss",
+    hp: 26,
+    movement: 7,
+    rollCheck: 2,
+    outputDamage: 4,
+    targeting: "Targets factions that chose Take the Bargain first.",
+    timing: "Acts at the end of each marked faction's Attack step.",
+    behaviour: "Moves toward the nearest marked target. If adjacent, attacks. When first attacking a faction each Phase, that faction must either lose 10 Gold or suffer +3 damage from the attack. Prefers wealthier marked factions."
+  },
+  {
+    id: "unthroned_king",
+    eventId: 71,
+    name: "The Unthroned King",
+    type: "Roaming Boss",
+    hp: 34,
+    movement: 8,
+    rollCheck: 4,
+    outputDamage: 7,
+    targeting: "Targets factions that chose Claim Authority first. If only one did, it fixates on that faction.",
+    timing: "Acts at the start of each Phase.",
+    behaviour: "Moves toward the nearest Commander, Elite, or marked faction unit. If adjacent, attacks. Deals +1 damage against Commanders. If damaged by another faction, it may redirect temporarily, but always returns to its fixated faction if one exists."
+  },
+  {
+    id: "ember_tyrant",
+    eventId: 72,
+    name: "The Ember Tyrant",
+    type: "Roaming Boss",
+    hp: 31,
+    movement: 9,
+    rollCheck: 5,
+    outputDamage: 8,
+    targeting: "Targets factions that chose Take the Hoard first.",
+    timing: "Acts at the end of the Collection Phase.",
+    behaviour: "Moves toward the nearest marked faction unit or structure. If adjacent, attacks. Each time it damages a marked faction, that faction loses 5 additional Gold if able. If no marked targets remain nearby, it moves toward the richest marked faction's territory."
+  },
+  {
+    id: "oath_witness",
+    eventId: 73,
+    name: "The Oath-Witness",
+    type: "Roaming Boss",
+    hp: 33,
+    movement: 7,
+    rollCheck: 4,
+    outputDamage: 6,
+    targeting: "Targets factions that chose Break the Oath first, then Twist the Oath second. Ignores Keep the Oath factions unless attacked by them.",
+    timing: "Acts after all player Attack actions in a Phase are finished.",
+    behaviour: "Moves toward the nearest oathbreaker target. If adjacent, attacks. Broken Oath targets take +2 damage. Twisted Oath targets take normal damage. Honored factions are ignored until they attack it."
+  },
+  {
+    id: "last_gladiator",
+    eventId: 74,
+    name: "The Last Gladiator",
+    type: "Roaming Boss",
+    hp: 29,
+    movement: 11,
+    rollCheck: 3,
+    outputDamage: 5,
+    targeting: "Targets factions that chose Demand a Contest first.",
+    timing: "Acts immediately when spawned, then again at the end of each Phase.",
+    behaviour: "Moves toward the nearest contesting faction unit. If adjacent, attacks. If all factions demanded a contest, it acts twice on spawn. When it defeats a unit, it gains +1 output damage until end of mission, up to +2."
+  },
+  {
+    id: "pale_adjudicator",
+    eventId: 75,
+    name: "The Pale Adjudicator",
+    type: "Roaming Boss",
+    hp: 35,
+    movement: 8,
+    rollCheck: 4,
+    outputDamage: 7,
+    targeting: "Targets factions that chose Take the Harsh Path first. If none did, targets the faction with the highest Presence impact this mission.",
+    timing: "Acts at the start of the Collection Phase and again at the end of the Phase if still alive.",
+    behaviour: "Moves toward the nearest judged faction unit. If adjacent, attacks. If no units are close, advances on that faction's Commander or nearest high-value piece. Marked factions suffer +1 Presence the first time they are hit each mission."
   }
 ];
+
 
 
 let worldEventState = {
@@ -3577,12 +5389,22 @@ let worldEventState = {
     label: String(i + 1),
     checked: false,
     triggeredEvent: false
-})),
-
+  })),
   clicksSinceLastEvent: 0,
   nextEventAt: 4,
   triggerUsage: {}
 };
+
+let worldCreatureState = {
+  active: [],
+  selectedId: null
+};
+
+let worldCreatureState = {
+  active: [],
+  selectedId: null
+};
+
 
 
 function getWorldEventRangeByProgress(completedCount) {
@@ -3683,6 +5505,33 @@ const worldEventTriggerRules = [
     limit: "once_per_mission"
   }
 ];
+
+function spawnWorldEventCreature(creatureId) {
+  const creature = worldEventCreatureCards.find(c => c.id === creatureId);
+  if (!creature) return;
+
+  const alreadyActive = worldCreatureState.active.find(c => c.id === creatureId);
+  if (alreadyActive) return;
+
+  worldCreatureState.active.push({ ...creature });
+  worldCreatureState.selectedId = creatureId;
+  renderWorldEvents();
+}
+
+function defeatWorldEventCreature(creatureId) {
+  worldCreatureState.active = worldCreatureState.active.filter(c => c.id !== creatureId);
+
+  if (worldCreatureState.selectedId === creatureId) {
+    worldCreatureState.selectedId = worldCreatureState.active[0]?.id || null;
+  }
+
+  renderWorldEvents();
+}
+
+function selectWorldEventCreature(creatureId) {
+  worldCreatureState.selectedId = creatureId;
+  renderWorldEvents();
+}
 
 
 
