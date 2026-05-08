@@ -4025,11 +4025,13 @@ function disableHostMode() {
   if (logoutBtn) logoutBtn.style.display = "none";
 
   if (
-  document.getElementById("memoriesView").style.display === "block" ||
-  document.getElementById("worldEventsView").style.display === "block"
-) {
-  showView("skill");
+    document.getElementById("memoriesView").style.display === "block" ||
+    document.getElementById("worldEventsView").style.display === "block"
+  ) {
+    showView("skill");
+  }
 }
+
 
 
 
@@ -6748,7 +6750,7 @@ const relicCards = [
     startsUnlocked: false,
     frontImage: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/s-1.png"
   },
-    ,
+    
   {
     id: "superior_vault_of_kings_1",
     name: "Superior Relic - Vault of Kings",
