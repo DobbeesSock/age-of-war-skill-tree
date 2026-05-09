@@ -569,6 +569,65 @@ h1 {
     display: block;
 }
 
+#caveRandomizerView {
+    margin: 20px;
+    min-height: 100vh;
+    color: #e8e2c8;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.cave-randomizer-card {
+    width: min(420px, 92vw);
+    border: 2px solid #d4af37;
+    padding: 34px;
+    border-radius: 10px;
+    text-align: center;
+    background: rgba(20, 16, 12, 0.94);
+    box-shadow: 0 0 22px rgba(0,0,0,0.65);
+}
+
+.cave-randomizer-card h1 {
+    margin: 0 0 10px 0;
+    color: #d4af37;
+    letter-spacing: 2px;
+}
+
+.cave-randomizer-number {
+    font-size: 72px;
+    margin: 18px 0;
+    color: #ffe08a;
+    text-shadow: 0 0 10px rgba(212,175,55,0.7);
+}
+
+#remaining {
+    margin-top: 12px;
+    font-size: 14px;
+    opacity: 0.85;
+}
+
+.cave-randomizer-row,
+.cave-randomizer-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+#manualInput {
+    width: 150px;
+    padding: 8px;
+    background: #2a2017;
+    color: #e6d3a3;
+    border: 1px solid #d4af37;
+    border-radius: 4px;
+    font-family: serif;
+}
+
+
 button {
     padding:8px 14px;
     margin:5px;
@@ -1033,6 +1092,7 @@ body.elves {
   <button onclick="showView('potions')">Potions</button>
   <button onclick="showView('relics')">Relics</button>
   <button onclick="showView('keywords')">Keywords</button>
+  
 
 
   <button id="hostLoginBtn" onclick="toggleHostMode()">Host Login</button>
@@ -1044,6 +1104,8 @@ body.elves {
   <button onclick="showView('worldEvents')">World Events</button>
   <button onclick="showView('breachEvents')">Breach Events</button>
   <button onclick="showView('trackers')">Trackers</button>
+  <button onclick="showView('caveRandomizer')">Cave Randomizer</button>
+
   
 
 </div>
@@ -2337,6 +2399,30 @@ body.elves {
     <div id="trackersApp"></div>
   </div>
 </div>
+
+<div id="caveRandomizerView" style="display:none;">
+    <div class="cave-randomizer-card">
+        <h1>CAVE DISCOVERY</h1>
+
+        <div class="cave-randomizer-number" id="caveNumber">--</div>
+
+        <button onclick="generateCave()">Discover Cave</button>
+
+        <div id="remaining">Remaining: 261</div>
+
+        <div class="cave-randomizer-row">
+            <input id="manualInput" placeholder="Enter cave # 0-260">
+            <button onclick="goToCave()">Go</button>
+        </div>
+
+        <div class="cave-randomizer-actions">
+            <button onclick="resetCaves()">Reset</button>
+            <button onclick="exportCaveSave()">Export Save</button>
+            <button onclick="importCaveSave()">Import Save</button>
+        </div>
+    </div>
+</div>
+
 
 
 
@@ -6971,6 +7057,10 @@ function showView(view) {
 
   document.getElementById("trackersView").style.display =
     view === "trackers" && isHostMode ? "block" : "none";
+  
+    document.getElementById("caveRandomizerView").style.display =
+    view === "caveRandomizer" ? "flex" : "none";
+
 
   if (view === "memories" && isHostMode) {
     if (
@@ -10938,6 +11028,151 @@ function renderTrackers() {
   `;
 }
 
+let availableCaves = [];
+let lastCave = null;
+
+const cavePoolKey = "ageOfWarCavePool";
+const lastCaveKey = "ageOfWarLastCave";
+
+function initializeCaves() {
+    const savedPool = localStorage.getItem(cavePoolKey);
+    const savedLast = localStorage.getItem(lastCaveKey);
+
+    if (savedPool) {
+        availableCaves = JSON.parse(savedPool);
+    } else {
+        availableCaves = [];
+        for (let i = 0; i <= 260; i++) {
+            availableCaves.push(i);
+        }
+        saveCaveData();
+    }
+
+    if (savedLast && savedLast !== "null") {
+        lastCave = savedLast;
+        const caveNumber = document.getElementById("caveNumber");
+        if (caveNumber) caveNumber.innerText = lastCave;
+    }
+
+    updateRemaining();
+}
+
+function saveCaveData() {
+    localStorage.setItem(cavePoolKey, JSON.stringify(availableCaves));
+    localStorage.setItem(lastCaveKey, lastCave);
+}
+
+function updateRemaining() {
+    const remaining = document.getElementById("remaining");
+    if (!remaining) return;
+
+    remaining.innerText = "Remaining: " + availableCaves.length;
+}
+
+function generateCave() {
+    if (availableCaves.length === 0) {
+        alert("All caves explored! Resetting...");
+        resetCaves();
+        return;
+    }
+
+    const index = Math.floor(Math.random() * availableCaves.length);
+    const num = availableCaves.splice(index, 1)[0];
+
+    setCave(num);
+}
+
+function goToCave() {
+    const inputEl = document.getElementById("manualInput");
+    const input = inputEl.value;
+
+    inputEl.value = "";
+
+    if (input === "") return;
+
+    const num = parseInt(input, 10);
+
+    if (isNaN(num) || num < 0 || num > 260) {
+        alert("Enter a number between 0 and 260");
+        return;
+    }
+
+    if (!availableCaves.includes(num)) {
+        alert("This cave was already explored!");
+        return;
+    }
+
+    const index = availableCaves.indexOf(num);
+    if (index !== -1) {
+        availableCaves.splice(index, 1);
+    }
+
+    setCave(num);
+}
+
+function setCave(num) {
+    const formatted = num.toString().padStart(2, "0");
+
+    lastCave = formatted;
+
+    const caveNumber = document.getElementById("caveNumber");
+    if (caveNumber) caveNumber.innerText = formatted;
+
+    saveCaveData();
+    updateRemaining();
+}
+
+function resetCaves() {
+    availableCaves = [];
+
+    for (let i = 0; i <= 260; i++) {
+        availableCaves.push(i);
+    }
+
+    lastCave = null;
+
+    saveCaveData();
+
+    const caveNumber = document.getElementById("caveNumber");
+    if (caveNumber) caveNumber.innerText = "--";
+
+    updateRemaining();
+}
+
+function exportCaveSave() {
+    const data = {
+        pool: availableCaves,
+        last: lastCave
+    };
+
+    const encoded = btoa(JSON.stringify(data));
+    navigator.clipboard.writeText(encoded);
+    alert("Cave randomizer save code copied to clipboard!");
+}
+
+function importCaveSave() {
+    const input = prompt("Paste your cave randomizer save code:");
+
+    if (!input) return;
+
+    try {
+        const decoded = JSON.parse(atob(input));
+
+        availableCaves = decoded.pool;
+        lastCave = decoded.last;
+
+        saveCaveData();
+
+        const caveNumber = document.getElementById("caveNumber");
+        if (caveNumber) caveNumber.innerText = lastCave ? lastCave : "--";
+
+        updateRemaining();
+    } catch {
+        alert("Invalid cave randomizer save code");
+    }
+}
+
+
 
 
     
@@ -10954,10 +11189,12 @@ updateProfileList();
 setFaction(currentFaction);
 updateSM();
 updateFury();
+initializeCaves();
 
 if (document.getElementById("skillProfileSelect").options.length > 0) {
     loadProfile();
 }
+
 
 
 </script>
