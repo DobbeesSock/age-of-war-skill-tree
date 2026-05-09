@@ -6890,12 +6890,9 @@ function showView(view) {
 
   document.getElementById("breachEventsView").style.display =
     view === "breachEvents" && isHostMode ? "block" : "none";
+
   document.getElementById("trackersView").style.display =
-
-
-
-    view === "trackers" ? "block" : "none";
-
+    view === "trackers" && isHostMode ? "block" : "none";
 
   if (view === "memories" && isHostMode) {
     if (
@@ -6929,7 +6926,15 @@ function showView(view) {
     }
     renderBreachEvents();
   }
+
+  if (view === "trackers" && isHostMode) {
+    renderTrackers();
+  }
 }
+
+
+
+
 
 function getBreachEventRangeByProgress(completedCount) {
   if (completedCount < 10) return { min: 3, max: 4 };
@@ -7090,13 +7095,15 @@ function disableHostMode() {
   if (loginBtn) loginBtn.style.display = "inline-block";
   if (logoutBtn) logoutBtn.style.display = "none";
 
-  if (
-    document.getElementById("memoriesView").style.display === "block" ||
-    document.getElementById("worldEventsView").style.display === "block" ||
-    document.getElementById("breachEventsView").style.display === "block"
-  ) {
-    showView("skill");
-  }
+ if (
+  document.getElementById("memoriesView").style.display === "block" ||
+  document.getElementById("worldEventsView").style.display === "block" ||
+  document.getElementById("breachEventsView").style.display === "block" ||
+  document.getElementById("trackersView").style.display === "block"
+) {
+  showView("skill");
+}
+
 }
 
 
