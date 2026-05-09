@@ -194,6 +194,55 @@ h1 {
     border-left-color: #c96b6b;
 }
 
+#keywordsApp {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.keyword-section {
+  background: rgba(40,40,40,0.92);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.35);
+}
+
+.keyword-section h3 {
+  margin: 0 0 12px 0;
+  color: #ffe08a;
+}
+
+.keyword-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.keyword-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  padding: 7px 9px;
+  color: #e8e8e8;
+  cursor: pointer;
+  user-select: none;
+}
+
+.keyword-chip input {
+  accent-color: #d4af37;
+}
+
+.keyword-chip.active {
+  background: rgba(212,175,55,0.22);
+  border-color: #d4af37;
+  color: #fff2b2;
+}
+
+
 @media (max-width: 900px) {
     #relicsApp {
         grid-template-columns: 1fr;
@@ -983,6 +1032,8 @@ body.elves {
   <button onclick="showView('resources')">Resources</button>
   <button onclick="showView('potions')">Potions</button>
   <button onclick="showView('relics')">Relics</button>
+  <button onclick="showView('keywords')">Keywords</button>
+
 
   <button id="hostLoginBtn" onclick="toggleHostMode()">Host Login</button>
   <button id="hostLogoutBtn" onclick="disableHostMode()" style="display:none;">Hide Host Tools</button>
@@ -2241,6 +2292,23 @@ body.elves {
 
   <div id="relicsApp"></div>
 </div>
+
+<div id="keywordsView" style="display:none;">
+  <div style="margin:20px; color:white;">
+    <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+        <h2 style="margin:0; color:gold;">Keyword Tracker</h2>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <span id="keywordCount" style="color:#ddd;">0 selected</span>
+          <button onclick="clearKeywords()">Clear Keywords</button>
+        </div>
+      </div>
+
+      <div id="keywordsApp"></div>
+    </div>
+  </div>
+</div>
+
 
 <div id="memoriesView" style="display:none; margin:20px; color:white;">
   <div style="max-width:1400px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
@@ -6782,6 +6850,8 @@ function createProfile() {
         resources: JSON.parse(JSON.stringify(defaultResources)),
         potions: { inventory: [] },
         relics: { inventory: [] },
+        keywords: { selected: {} },
+
 
 
         dwarves: { sm: 0, skills: {} },
@@ -6831,6 +6901,7 @@ function createProfile() {
     loadProfile();
     renderPotions();
     renderRelics();
+    
 
 }
 
@@ -6864,7 +6935,11 @@ function loadProfile() {
     ensureRelicState(resourceProfile);
     renderRelics();
 
+    ensureKeywordState(resourceProfile);
+    renderKeywords();
+
 }
+
 
 
 
@@ -6881,6 +6956,9 @@ function showView(view) {
 
   document.getElementById("relicsView").style.display =
     view === "relics" ? "block" : "none";
+  
+  document.getElementById("keywordsView").style.display =
+    view === "keywords" ? "block" : "none";
 
   document.getElementById("memoriesView").style.display =
     view === "memories" && isHostMode ? "block" : "none";
@@ -6930,6 +7008,11 @@ function showView(view) {
   if (view === "trackers" && isHostMode) {
     renderTrackers();
   }
+
+  if (view === "keywords") {
+    renderKeywords();
+}
+
 }
 
 
@@ -9900,6 +9983,149 @@ const relicCards = [
 
 
 ];
+
+const keywordSections = [
+  {
+    title: "Section A - Aggression / Dominance",
+    keywords: [
+      "Aggressor", "Ascendant", "Ascension", "Authority", "Avarice", "Breaker", "Brutal", "Chaos",
+      "Commander", "Command", "Coward", "Defiance", "Defied", "Desecrator", "Destruction", "Dominance",
+      "Entitled", "Erasure", "Excess", "Fatal", "Force", "Forceful", "Fracture", "Greed", "Greedy",
+      "Harvester", "Hubris", "Iconoclast", "Impulse", "Judgment", "Justice", "Might", "Nemesis",
+      "Profane", "Provoked", "Reckless", "Revolt", "Ruin", "Rule", "Seized", "Silenced", "Suppress",
+      "Tyrant", "Usurper", "Utilitarian", "Valor", "Vengeance", "Violence", "Gladiator Renown",
+      "Momentum", "Outburst"
+    ]
+  },
+  {
+    title: "Section B - Restraint / Discipline / Balance",
+    keywords: [
+      "Abstain", "Acceptance", "Balance", "Balanced", "Calm", "Careful", "Clear", "Composed",
+      "Contain", "Determined", "Devotion", "Devout", "Discipline", "Endure", "Endured", "Enduring",
+      "Focused", "Grounded", "Harmony", "Hesitation", "Humility", "Mercy", "Merciful", "Methodical",
+      "Patience", "Patient", "Prepared", "Practical", "Pragmatic", "Precision", "Prudent", "Prudence",
+      "Refusal", "Released", "Restraint", "Rested", "Reverent", "Silent", "Spare", "Stabilizer",
+      "Steady", "Subtle", "Survival", "Symbiosis", "Trust", "Trusting", "Uneasy", "Withdrawn",
+      "Discover", "Redrawn", "Awaken", "Confession"
+    ]
+  },
+  {
+    title: "Section C - Insight / Perception / Wit",
+    keywords: [
+      "Alert", "Archivist", "Clever", "Clarity", "Climber", "Compassion", "Confidence", "Curious",
+      "Deal", "Discernment", "Engineering", "Enlightened", "Explorer", "Forewarned", "Insight",
+      "Insightful", "Inquiry", "Legacy", "Marked", "Measured", "Perceptive", "Recorded", "Remembered",
+      "Remembering", "Rewriting", "Scholar", "Seen", "Self-Aware", "Strategist", "Transparency",
+      "Warden", "Witnessed", "Wit", "Worthy"
+    ]
+  },
+  {
+    title: "Section D - Risk / Corruption / Consequence",
+    keywords: [
+      "Appeased", "Burned", "Burdened", "Catastrophe", "Clumsy", "Cold", "Consumed", "Crownbound",
+      "Debt", "Discord", "Dissonance", "Doubt", "Dragged", "Drowned", "Echo", "Exposed", "Falling",
+      "Fearful", "Fearless", "Fool", "Fooled", "Frozen", "Gluttony", "Hard Choice", "Imitated",
+      "Inflation", "Judged", "Lost", "Misdirected", "Muted", "Obliterated", "Obscurity", "Overwhelmed",
+      "Paranoia", "Paranoid", "Rebuked", "Rejected", "Reprisal", "Scorched", "Shaken", "Slip",
+      "Spotted", "Strain", "Temptation", "Uncertainty", "Unease", "Unready", "Unsettled", "Unsteady"
+    ]
+  },
+  {
+    title: "Section E - Status / Allies / Long-Term Marks",
+    keywords: [
+      "Absolution", "Ally", "Blame", "Bonded", "Bound", "Choirborn", "Claimed", "Deepbound",
+      "Deferred", "Defiant", "Engineer", "Goblin-Favored", "Indebted", "Massed Ranks", "Oathbound",
+      "Omen", "Prisoner NPC", "Resonant", "Rootbound Omen", "Runebound", "Shielded", "Stability",
+      "Storm-Hardened", "Survivor", "Trophy", "Unbound", "Witness", "Waybound", "Waymarked",
+      "Worldscarred", "Chosen", "Verdant Omen"
+    ]
+  },
+  {
+    title: "Section F - Bonus / Thematic / Edge Case",
+    keywords: [
+      "Amnesia", "Brave", "Comforted", "Delay", "Finality", "Fortunate", "Hope", "Inheritance",
+      "Neglect", "Presumed", "Revealed", "Sacrifice", "Vent", "Wary", "Respiration", "Upheaval",
+      "Attention"
+    ]
+  }
+];
+
+function ensureKeywordState(profileName) {
+  if (!profileName || !data[profileName]) return;
+
+  if (!data[profileName].keywords) {
+    data[profileName].keywords = { selected: {} };
+  }
+
+  if (!data[profileName].keywords.selected) {
+    data[profileName].keywords.selected = {};
+  }
+}
+
+function toggleKeyword(keyword) {
+  if (!resourceProfile) return;
+
+  ensureKeywordState(resourceProfile);
+
+  const selected = data[resourceProfile].keywords.selected;
+  selected[keyword] = !selected[keyword];
+
+  saveProfiles();
+  renderKeywords();
+}
+
+function clearKeywords() {
+  if (!resourceProfile) return;
+  if (!confirm("Clear all selected keywords for this profile?")) return;
+
+  ensureKeywordState(resourceProfile);
+  data[resourceProfile].keywords.selected = {};
+
+  saveProfiles();
+  renderKeywords();
+}
+
+function getSelectedKeywordCount() {
+  if (!resourceProfile || !data[resourceProfile]?.keywords?.selected) return 0;
+
+  return Object.values(data[resourceProfile].keywords.selected)
+    .filter(Boolean)
+    .length;
+}
+
+function renderKeywords() {
+  const app = document.getElementById("keywordsApp");
+  if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+  ensureKeywordState(resourceProfile);
+
+  const selected = data[resourceProfile].keywords.selected;
+
+  const count = document.getElementById("keywordCount");
+  if (count) {
+    const total = getSelectedKeywordCount();
+    count.textContent = `${total} selected`;
+  }
+
+  app.innerHTML = keywordSections.map(section => `
+    <div class="keyword-section">
+      <h3>${section.title}</h3>
+      <div class="keyword-grid">
+        ${section.keywords.map(keyword => `
+          <label class="keyword-chip ${selected[keyword] ? "active" : ""}">
+            <input
+              type="checkbox"
+              ${selected[keyword] ? "checked" : ""}
+              onchange="toggleKeyword('${keyword.replace(/'/g, "\\'")}')"
+            >
+            ${keyword}
+          </label>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+}
+
 
 
 function ensurePotionState(profileName) {
