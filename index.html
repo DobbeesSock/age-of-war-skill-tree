@@ -992,6 +992,9 @@ body.elves {
   <button onclick="showView('memories')">Memories</button>
   <button onclick="showView('worldEvents')">World Events</button>
   <button onclick="showView('breachEvents')">Breach Events</button>
+  <button onclick="showView('trackers')">Trackers</button>
+  
+
 </div>
 
 
@@ -2259,6 +2262,14 @@ body.elves {
     <div id="breachEventsApp"></div>
   </div>
 </div>
+
+<div id="trackersView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1400px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+    <h2 style="margin-top:0; color:#e8d7ae;">Trackers</h2>
+    <div id="trackersApp"></div>
+  </div>
+</div>
+
 
 
 
@@ -6879,6 +6890,13 @@ function showView(view) {
 
   document.getElementById("breachEventsView").style.display =
     view === "breachEvents" && isHostMode ? "block" : "none";
+  document.getElementById("trackersView").style.display =
+
+  if (view === "trackers") {
+  renderTrackers();
+}
+    view === "trackers" ? "block" : "none";
+
 
   if (view === "memories" && isHostMode) {
     if (
@@ -10498,6 +10516,163 @@ function renderRelicDeck(deckCards) {
         </div>
     `;
 }
+
+let trackerState = {
+  presence: 1,
+  harmonic: 0,
+  convergence: 1
+};
+
+const presenceBands = [
+  { label: "Dormant", min: 1, max: 2 },
+  { label: "Stirring", min: 3, max: 4 },
+  { label: "Unstable", min: 5, max: 6 },
+  { label: "Hostile", min: 7, max: 8 },
+  { label: "Critical", min: 9, max: 10 },
+  { label: "Cataclysm", min: 11, max: 99 }
+];
+
+const harmonicBands = [
+  { label: "Quiet", min: 0, max: 1 },
+  { label: "Vibrating", min: 2, max: 4 },
+  { label: "Surging", min: 5, max: 6 },
+  { label: "Overtuned", min: 7, max: 9 },
+  { label: "Resonant Collapse", min: 10, max: 99 }
+];
+
+const convergenceBands = [
+  { label: "Subtle", min: 1, max: 2 },
+  { label: "Gathering", min: 3, max: 4 },
+  { label: "Distorted", min: 5, max: 7 },
+  { label: "Aligned", min: 8, max: 9 },
+  { label: "Manifest", min: 10, max: 99 }
+];
+
+function getBandLabel(value, bands) {
+  const band = bands.find(b => value >= b.min && value <= b.max);
+  return band ? band.label : "";
+}
+
+function changeTracker(key, amount, min = 0, max = 99) {
+  trackerState[key] += amount;
+  if (trackerState[key] < min) trackerState[key] = min;
+  if (trackerState[key] > max) trackerState[key] = max;
+  renderTrackers();
+}
+
+function renderTrackerScale(title, key, value, bands, start, end, accent) {
+  const cells = [];
+  for (let i = start; i <= end; i++) {
+    cells.push(i);
+  }
+
+  const topRow = cells.map(i => {
+    const display = i === end ? `${i}+` : `${i}`;
+    const active = value >= i || (i === end && value >= end);
+    return `
+      <div style="
+        border:1px solid rgba(70,50,30,0.75);
+        padding:10px 0;
+        text-align:center;
+        background:${active ? accent : "rgba(255,248,235,0.30)"};
+        color:${active ? "#1c1208" : "#2b1d12"};
+        font-weight:bold;
+      ">
+        ${display}
+      </div>
+    `;
+  }).join("");
+
+  const bandRow = bands.map(band => {
+    const span = Math.max(1, Math.min(end, band.max) - Math.max(start, band.min) + 1);
+    const active = value >= band.min && value <= band.max;
+    return `
+      <div style="
+        grid-column: span ${span};
+        border:1px solid rgba(70,50,30,0.75);
+        padding:10px 6px;
+        text-align:center;
+        background:${active ? "rgba(255,220,160,0.55)" : "rgba(255,248,235,0.18)"};
+        color:#2b1d12;
+        font-weight:${active ? "bold" : "normal"};
+      ">
+        ${band.label}
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <div style="
+      background:url('https://www.transparenttextures.com/patterns/old-wall.png'), linear-gradient(180deg, #d9c2a0, #b89670);
+      border:1px solid rgba(90,65,40,0.8);
+      border-radius:10px;
+      padding:18px;
+      color:#2b1d12;
+      box-shadow:0 8px 20px rgba(0,0,0,0.28);
+    ">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+        <h3 style="margin:0; color:#24170d;">${title}</h3>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button onclick="changeTracker('${key}', -1, ${start}, 99)">-1</button>
+          <div style="min-width:130px; text-align:center; font-weight:bold; color:#24170d;">
+            ${value} - ${getBandLabel(value, bands)}
+          </div>
+          <button onclick="changeTracker('${key}', 1, ${start}, 99)">+1</button>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(${cells.length}, 1fr); margin-bottom:0;">
+        ${topRow}
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(${cells.length}, 1fr);">
+        ${bandRow}
+      </div>
+    </div>
+  `;
+}
+
+function renderTrackers() {
+  const app = document.getElementById("trackersApp");
+  if (!app) return;
+
+  app.innerHTML = `
+    <div style="display:grid; gap:20px;">
+      ${renderTrackerScale("Presence Tracker", "presence", trackerState.presence, presenceBands, 1, 11, "rgba(220, 184, 120, 0.95)")}
+
+      <div style="display:grid; grid-template-columns:1fr; gap:20px;">
+        ${renderTrackerScale("Harmonic Tracker", "harmonic", trackerState.harmonic, harmonicBands, 0, 10, "rgba(150, 220, 255, 0.92)")}
+        ${renderTrackerScale("Convergence Tracker", "convergence", trackerState.convergence, convergenceBands, 1, 11, "rgba(196, 160, 255, 0.92)")}
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(2, minmax(280px, 1fr)); gap:20px;">
+        <div style="background:rgba(226, 205, 171, 0.92); color:#24170d; border:1px solid rgba(90,65,40,0.8); border-radius:10px; padding:16px;">
+          <h4 style="margin-top:0;">Presence Increases When</h4>
+          <ul style="margin:0; padding-left:18px; line-height:1.5;">
+            <li>A cave is successfully completed: +1</li>
+            <li>A cave guardian / guide is killed: +1</li>
+            <li>Mythic reward is taken: +1</li>
+            <li>A cave is fully looted: +1</li>
+            <li>A cave is abandoned after triggering danger: +1</li>
+            <li>A Chest Card is looted: +1</li>
+          </ul>
+        </div>
+
+        <div style="background:rgba(226, 205, 171, 0.92); color:#24170d; border:1px solid rgba(90,65,40,0.8); border-radius:10px; padding:16px;">
+          <h4 style="margin-top:0;">Presence Decreases When</h4>
+          <ul style="margin:0; padding-left:18px; line-height:1.5;">
+            <li>A cave is exited early: -1</li>
+            <li>A sacrifice is made willingly: -1</li>
+            <li>A guide is spared or helped: -1</li>
+            <li>A table-wide cave chooses restraint: -2</li>
+            <li>A unit dies in the Cave</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 
 
     
