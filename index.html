@@ -10361,17 +10361,47 @@ function renderMythologicalCaves() {
 
   const completedTop = mythologicalCaveState.completed[mythologicalCaveState.completed.length - 1];
 
+  const mythologicalCaveTriggers = [
+    {
+      label: "Harmonic Overflow",
+      triggerName: "Harmonic Overflow",
+      context: "Triggers when the Harmonic Tracker reaches 10+.",
+      spawn: "Spawn the Steel Door at the center of the map, reset Harmonic to 5, and increase Presence by 1."
+    },
+    {
+      label: "Broken Accord",
+      triggerName: "Broken Accord",
+      context: "Triggers when an alliance is broken and one or more players from the broken alliance attack their former ally in the same phase the alliance broke.",
+      spawn: "Spawn the Steel Door near the first battle or territory where the betrayal attack happened."
+    },
+    {
+      label: "Three Chest Cards Looted",
+      triggerName: "Three Chest Cards Looted Over the Mission",
+      context: "Triggers when three total Chest Cards are looted from caves over the course of the same mission.",
+      spawn: "Spawn the Steel Door beside the cave where the third Chest Card was gained."
+    },
+    {
+      label: "Shared Cave Entered",
+      triggerName: "Shared Cave Entered",
+      context: "Triggers when a cave requires an ally or another faction's help to complete it.",
+      spawn: "Spawn the Steel Door beside that shared cave after the allied requirement becomes clear."
+    }
+  ];
+
   app.innerHTML = `
     <div style="display:grid; gap:20px;">
       <div style="background:rgba(60,60,60,0.55); border:1px solid rgba(185,192,199,0.35); border-radius:12px; padding:16px;">
         <h3 style="margin-top:0; color:#f0e6c8;">Spawn Triggers</h3>
-        <div style="display:flex; flex-wrap:wrap; gap:8px;">
-          <button onclick="triggerMythologicalCave('Harmonic Overflow')">Harmonic Overflow</button>
-          <button onclick="triggerMythologicalCave('First World Event')">First World Event</button>
-          <button onclick="triggerMythologicalCave('First Mythic Reward')">First Mythic Reward</button>
-          <button onclick="triggerMythologicalCave('Broken Accord')">Broken Accord</button>
-          <button onclick="triggerMythologicalCave('Three Chest Cards Looted')">Three Chest Cards Looted</button>
-          <button onclick="triggerMythologicalCave('Shared Cave Entered')">Shared Cave Entered</button>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+          ${mythologicalCaveTriggers.map(trigger => `
+            <div style="background:rgba(40,40,40,0.82); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:12px;">
+              <h4 style="margin:0 0 8px 0; color:#f0e6c8;">${trigger.label}</h4>
+              <p style="margin:0 0 8px 0; color:#ddd; line-height:1.4;">${trigger.context}</p>
+              <p style="margin:0 0 12px 0; color:#aaa; line-height:1.4;"><strong>Spawn:</strong> ${trigger.spawn}</p>
+              <button onclick="triggerMythologicalCave('${trigger.triggerName}')">Spawn Mythological Cave</button>
+            </div>
+          `).join("")}
         </div>
       </div>
 
@@ -10419,6 +10449,7 @@ function renderMythologicalCaves() {
     </div>
   `;
 }
+
 
 
 
