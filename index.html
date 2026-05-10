@@ -11000,12 +11000,12 @@ function renderTrackers() {
         <div style="background:rgba(226, 205, 171, 0.92); color:#24170d; border:1px solid rgba(90,65,40,0.8); border-radius:10px; padding:16px;">
           <h4 style="margin-top:0;">Presence Increases When</h4>
           <ul style="margin:0; padding-left:18px; line-height:1.5;">
-            <li>A cave is successfully completed: +1</li>
-            <li>A cave guardian / guide is killed: +1</li>
-            <li>Mythic reward is taken: +1</li>
-            <li>A cave is fully looted: +1</li>
-            <li>A cave is abandoned after triggering danger: +1</li>
-            <li>A Chest Card is looted: +1</li>
+            <li>The same cave is explored 3 times: +1</li>
+            <li>A cave creature / guide is killed: +1</li>
+            <li>The first World Event is triggered each Mission: +1</li>
+            <li>A cave Chest Card is looted by a player: +1</li>
+            <li>A cave involving multiple factions is explored: +1</li>
+            <li>The first time a Blueprint is collected each Mission: +1</li>
           </ul>
         </div>
 
@@ -11015,11 +11015,12 @@ function renderTrackers() {
             <li>A cave is exited early: -1</li>
             <li>A sacrifice is made willingly: -1</li>
             <li>A guide is spared or helped: -1</li>
-            <li>A table-wide cave chooses restraint: -2</li>
-            <li>A unit dies in the Cave</li>
+            <li>A Mythological Cave is successful: -2</li>
+            <li>A unit dies in the Cave: -1</li>
           </ul>
         </div>
       </div>
+
 
       ${renderTrackerScale("Presence Tracker", "presence", trackerState.presence, presenceBands, 1, 16, "rgba(220, 184, 120, 0.95)")}
 
