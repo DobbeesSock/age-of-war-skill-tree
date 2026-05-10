@@ -1106,6 +1106,8 @@ body.elves {
   <button onclick="showView('breachEvents')">Breach Events</button>
   <button onclick="showView('trackers')">Trackers</button>
   <button onclick="showView('caveRandomizer')">Cave Randomizer</button>
+  <button onclick="showView('mythologicalCaves')">Mythological Caves</button>
+
 
   
 
@@ -2400,6 +2402,14 @@ body.elves {
     <div id="trackersApp"></div>
   </div>
 </div>
+
+<div id="mythologicalCavesView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1400px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+    <h2 style="margin-top:0; color:#e8d7ae;">Mythological Caves</h2>
+    <div id="mythologicalCavesApp"></div>
+  </div>
+</div>
+
 
 <div id="caveRandomizerView" style="display:none;">
     <div class="cave-randomizer-card">
@@ -7059,8 +7069,13 @@ function showView(view) {
   document.getElementById("trackersView").style.display =
     view === "trackers" && isHostMode ? "block" : "none";
   
-    document.getElementById("caveRandomizerView").style.display =
+  document.getElementById("caveRandomizerView").style.display =
     view === "caveRandomizer" ? "flex" : "none";
+  
+  document.getElementById("mythologicalCavesView").style.display =
+    view === "mythologicalCaves" && isHostMode ? "block" : "none";
+
+
 
 
   if (view === "memories" && isHostMode) {
@@ -7095,6 +7110,12 @@ function showView(view) {
     }
     renderBreachEvents();
   }
+
+  if (view === "mythologicalCaves" && isHostMode) {
+  initializeMythologicalCaves();
+  renderMythologicalCaves();
+}
+
 
   if (view === "trackers" && isHostMode) {
     renderTrackers();
@@ -7273,7 +7294,10 @@ function disableHostMode() {
   document.getElementById("memoriesView").style.display === "block" ||
   document.getElementById("worldEventsView").style.display === "block" ||
   document.getElementById("breachEventsView").style.display === "block" ||
-  document.getElementById("trackersView").style.display === "block"
+  document.getElementById("trackersView").style.display === "block" ||
+  document.getElementById("mythologicalCavesView").style.display === "block"
+ 
+  
 ) {
   showView("skill");
 }
@@ -10172,6 +10196,231 @@ const keywordSections = [
   }
 ];
 
+const mythologicalCaveCards = [
+  {
+    id: "steel_door_oaths",
+    title: "The Steel Door of Oaths",
+    theme: "Trust ledger, shared symbols, reward negotiation",
+    entrance: "All factions must place one unit with 6+ HP adjacent to the Steel Door.",
+    summary: "A table-wide oath cave where players choose symbols, cross a shared burden bridge, solve the Crown Puzzle, then decide whether to divide rewards or betray each other.",
+    tags: ["Trust", "Betrayal", "Oaths", "Shared Rewards"]
+  },
+  {
+    id: "iron_choir",
+    title: "The Iron Choir",
+    theme: "Harmony versus discord",
+    entrance: "All factions must place one unit with 6+ HP adjacent to the Steel Door.",
+    summary: "Players choose notes, perform hidden roles, build a shared verse, and decide whether one faction may claim the Choir's blessing.",
+    tags: ["Harmony", "Discord", "Hidden Roles", "Voice"]
+  },
+  {
+    id: "weighing_crowns",
+    title: "The Weighing of Crowns",
+    theme: "Leadership, burden, and shared rule",
+    entrance: "All factions must place one unit with 6+ HP adjacent to the Steel Door.",
+    summary: "Each faction places offerings on crowned scales, votes for temporary rule, solves the crown-statue puzzle, and risks becoming Crown-Debtor.",
+    tags: ["Crowns", "Burden", "Rule", "Judgment"]
+  },
+  {
+    id: "lantern_maze",
+    title: "The Lantern Maze",
+    theme: "Separated paths and indirect cooperation",
+    entrance: "All factions must place one unit with 6+ HP adjacent to the Steel Door.",
+    summary: "Players are split into separate corridors where each choice affects another faction. The final exit requires sacrifice, random loss, or breaking the lantern.",
+    tags: ["Lanterns", "Separation", "Sacrifice", "Secrets"]
+  },
+  {
+    id: "table_unbroken_bread",
+    title: "The Table of Unbroken Bread",
+    theme: "Hospitality, hunger, and accusation",
+    entrance: "All factions must place one unit with 6+ HP adjacent to the Steel Door.",
+    summary: "A feast-hall cave where players serve each other, swap poisoned cups, and decide who deserves to leave hungry.",
+    tags: ["Hospitality", "Hunger", "Feast", "Accusation"]
+  },
+  {
+    id: "mirror_six_wounds",
+    title: "The Mirror of Six Wounds",
+    theme: "Truth, lies, and reflected betrayal",
+    entrance: "All factions must place one unit with 6+ HP adjacent to the Steel Door.",
+    summary: "Each faction receives private visions, assigns wounds to others, faces a mirrored party, and decides whether to share or rush the hidden vault.",
+    tags: ["Mirrors", "Lies", "Wounds", "Trust"]
+  }
+];
+
+let mythologicalCaveState = {
+  deck: [],
+  completed: [],
+  current: null,
+  triggerLog: []
+};
+
+const mythologicalCaveSaveKey = "ageOfWarMythologicalCaves";
+
+function initializeMythologicalCaves() {
+  const saved = localStorage.getItem(mythologicalCaveSaveKey);
+
+  if (saved) {
+    mythologicalCaveState = JSON.parse(saved);
+    return;
+  }
+
+  resetMythologicalCaves(false);
+}
+
+function saveMythologicalCaves() {
+  localStorage.setItem(mythologicalCaveSaveKey, JSON.stringify(mythologicalCaveState));
+}
+
+function resetMythologicalCaves(shouldRender = true) {
+  mythologicalCaveState = {
+    deck: mythologicalCaveCards.map(card => ({ ...card })),
+    completed: [],
+    current: null,
+    triggerLog: []
+  };
+
+  shuffleArray(mythologicalCaveState.deck);
+  saveMythologicalCaves();
+
+  if (shouldRender) renderMythologicalCaves();
+}
+
+function drawMythologicalCave(trigger = "Manual Draw") {
+  initializeMythologicalCaves();
+
+  if (mythologicalCaveState.current) {
+    alert("A Mythological Cave is already active. Complete or return it first.");
+    return;
+  }
+
+  if (mythologicalCaveState.deck.length === 0) {
+    mythologicalCaveState.deck = mythologicalCaveState.completed.map(card => ({ ...card }));
+    mythologicalCaveState.completed = [];
+    shuffleArray(mythologicalCaveState.deck);
+  }
+
+  mythologicalCaveState.current = mythologicalCaveState.deck.pop();
+  mythologicalCaveState.triggerLog.unshift({
+    trigger,
+    cave: mythologicalCaveState.current.title,
+    time: new Date().toLocaleString()
+  });
+
+  saveMythologicalCaves();
+  renderMythologicalCaves();
+}
+
+function completeMythologicalCave() {
+  if (!mythologicalCaveState.current) return;
+
+  mythologicalCaveState.completed.push(mythologicalCaveState.current);
+  mythologicalCaveState.current = null;
+
+  saveMythologicalCaves();
+  renderMythologicalCaves();
+}
+
+function returnMythologicalCaveToDeck() {
+  if (!mythologicalCaveState.current) return;
+
+  mythologicalCaveState.deck.push(mythologicalCaveState.current);
+  mythologicalCaveState.current = null;
+  shuffleArray(mythologicalCaveState.deck);
+
+  saveMythologicalCaves();
+  renderMythologicalCaves();
+}
+
+function triggerMythologicalCave(triggerName) {
+  drawMythologicalCave(triggerName);
+}
+
+function renderMythologicalCaveCard(card) {
+  if (!card) {
+    return `
+      <div style="background:rgba(45,45,45,0.92); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:18px; min-height:220px; display:flex; align-items:center; justify-content:center; color:#aaa; text-align:center;">
+        No Mythological Cave active.
+      </div>
+    `;
+  }
+
+  return `
+    <div style="background:rgba(45,45,45,0.96); border:1px solid rgba(255,255,255,0.12); border-left:6px solid #b9c0c7; border-radius:10px; padding:18px; box-shadow:0 0 14px rgba(185,192,199,0.35);">
+      <h3 style="margin:0 0 8px 0; color:#f0e6c8;">${card.title}</h3>
+      <p style="margin:0 0 8px 0; color:#ddd;"><strong>Entrance:</strong> ${card.entrance}</p>
+      <p style="margin:0 0 8px 0; color:#ddd;"><strong>Theme:</strong> ${card.theme}</p>
+      <p style="margin:0 0 12px 0; color:#ddd; line-height:1.45;">${card.summary}</p>
+      <p style="margin:0; color:#bbb;"><strong>Tags:</strong> ${card.tags.join(", ")}</p>
+    </div>
+  `;
+}
+
+function renderMythologicalCaves() {
+  const app = document.getElementById("mythologicalCavesApp");
+  if (!app) return;
+
+  const completedTop = mythologicalCaveState.completed[mythologicalCaveState.completed.length - 1];
+
+  app.innerHTML = `
+    <div style="display:grid; gap:20px;">
+      <div style="background:rgba(60,60,60,0.55); border:1px solid rgba(185,192,199,0.35); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:#f0e6c8;">Spawn Triggers</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <button onclick="triggerMythologicalCave('Harmonic Overflow')">Harmonic Overflow</button>
+          <button onclick="triggerMythologicalCave('First World Event')">First World Event</button>
+          <button onclick="triggerMythologicalCave('First Mythic Reward')">First Mythic Reward</button>
+          <button onclick="triggerMythologicalCave('Broken Accord')">Broken Accord</button>
+          <button onclick="triggerMythologicalCave('Three Chest Cards Looted')">Three Chest Cards Looted</button>
+          <button onclick="triggerMythologicalCave('Shared Cave Entered')">Shared Cave Entered</button>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:260px minmax(340px, 1fr) 260px; gap:20px; align-items:start;">
+        <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+          <h3 style="margin-top:0; color:#f0e6c8;">Steel Door Deck</h3>
+          <p><strong>${mythologicalCaveState.deck.length}</strong> cave${mythologicalCaveState.deck.length === 1 ? "" : "s"} remaining</p>
+          <button onclick="drawMythologicalCave()">Draw Mythological Cave</button>
+          <button onclick="resetMythologicalCaves()">Reset Deck</button>
+        </div>
+
+        <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+          <h3 style="margin-top:0; color:#f0e6c8;">Current Mythological Cave</h3>
+          ${renderMythologicalCaveCard(mythologicalCaveState.current)}
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
+            <button onclick="completeMythologicalCave()" ${mythologicalCaveState.current ? "" : "disabled"}>Complete</button>
+            <button onclick="returnMythologicalCaveToDeck()" ${mythologicalCaveState.current ? "" : "disabled"}>Return to Deck</button>
+          </div>
+        </div>
+
+        <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+          <h3 style="margin-top:0; color:#f0e6c8;">Completed Caves</h3>
+          <p><strong>${mythologicalCaveState.completed.length}</strong> completed</p>
+          ${
+            completedTop
+              ? `<p style="color:#ddd;"><strong>Last:</strong> ${completedTop.title}</p>`
+              : `<p style="color:#999;">No completed Mythological Caves yet.</p>`
+          }
+        </div>
+      </div>
+
+      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:#f0e6c8;">Trigger Log</h3>
+        ${
+          mythologicalCaveState.triggerLog.length
+            ? mythologicalCaveState.triggerLog.map(entry => `
+              <div style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.08); color:#ddd;">
+                <strong>${entry.trigger}</strong> spawned <strong>${entry.cave}</strong>
+                <span style="color:#aaa;">(${entry.time})</span>
+              </div>
+            `).join("")
+            : `<p style="color:#999;">No Mythological Cave triggers yet.</p>`
+        }
+      </div>
+    </div>
+  `;
+}
+
+
 
 
 function ensureKeywordState(profileName) {
@@ -11045,6 +11294,20 @@ function renderTrackers() {
         </div>
       </div>
 
+            <div style="background:rgba(60,60,60,0.55); color:#f0e6c8; border:1px solid rgba(185,192,199,0.35); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:#f0e6c8;">Mythological Cave Trigger - The Price of Greed</h3>
+        <p style="margin:0 0 8px 0;">
+          Spawn a Mythological Cave when <strong>three Chest Cards are looted from caves during the same mission</strong>.
+        </p>
+        <p style="margin:0 0 12px 0;">
+          <strong>Spawn Location:</strong> Place the Steel Door beside the cave where the third Chest Card was gained.
+        </p>
+        <button onclick="triggerMythologicalCave('The Price of Greed - Three Chest Cards Looted')">
+          Spawn Mythological Cave
+        </button>
+      </div>
+
+
 
       ${renderTrackerScale("Presence Tracker", "presence", trackerState.presence, presenceBands, 1, 16, "rgba(220, 184, 120, 0.95)")}
 
@@ -11103,11 +11366,24 @@ function renderTrackers() {
         </div>
       </div>
 
+      
+
 
       <div style="display:grid; grid-template-columns:1fr; gap:20px;">
         ${renderTrackerScale("Harmonic Tracker", "harmonic", trackerState.harmonic, harmonicBands, 0, 10, "rgba(150, 220, 255, 0.92)")}
+        
         ${renderTrackerScale("Convergence Tracker", "convergence", trackerState.convergence, convergenceBands, 1, 11, "rgba(196, 160, 255, 0.92)")}
       </div>
+      ${trackerState.harmonic >= 10 ? `
+  <div style="background:rgba(120,20,20,0.92); color:#ffe8c8; border:2px solid #ffcc66; border-radius:10px; padding:16px; box-shadow:0 0 18px rgba(255,204,102,0.85);">
+    <h3 style="margin:0 0 8px 0;">HARMONIC OVERFLOW: Spawn Mythological Cave</h3>
+    <p style="margin:0 0 12px 0;">Spawn 1 Mythological Cave at the center of the map, reset Harmonic to 5, and increase Presence by 1.</p>
+    <button onclick="triggerMythologicalCave('Harmonic Overflow'); trackerState.harmonic = 5; trackerState.presence += 1; renderTrackers();">
+      Resolve Harmonic Overflow
+    </button>
+  </div>
+` : ""}
+
 
     </div>
   `;
