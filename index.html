@@ -10989,6 +10989,29 @@ function renderTrackerScale(title, key, value, bands, start, end, accent) {
   `;
 }
 
+function isTrackerInRange(value, min, max) {
+  return value >= min && value <= max;
+}
+
+function renderPresenceThresholdCard(title, text, min, max) {
+  const active = isTrackerInRange(trackerState.presence, min, max);
+
+  return `
+    <div style="
+      padding:10px;
+      border-radius:8px;
+      border:1px solid ${active ? "#d4af37" : "rgba(90,65,40,0.35)"};
+      background:${active ? "rgba(255, 225, 130, 0.28)" : "rgba(255,248,235,0.10)"};
+      box-shadow:${active ? "0 0 16px rgba(212,175,55,0.85)" : "none"};
+      transition: all 0.2s ease;
+    ">
+      <strong>${title}</strong>
+      <p style="margin:6px 0 0 0;">${text}</p>
+    </div>
+  `;
+}
+
+
 function renderTrackers() {
   const app = document.getElementById("trackersApp");
   if (!app) return;
@@ -11024,39 +11047,60 @@ function renderTrackers() {
 
       ${renderTrackerScale("Presence Tracker", "presence", trackerState.presence, presenceBands, 1, 16, "rgba(220, 184, 120, 0.95)")}
 
-      <div style="background:rgba(226, 205, 171, 0.92); color:#24170d; border:1px solid rgba(90,65,40,0.8); border-radius:10px; padding:16px;">
+            <div style="background:rgba(226, 205, 171, 0.92); color:#24170d; border:1px solid rgba(90,65,40,0.8); border-radius:10px; padding:16px;">
         <h4 style="margin-top:0;">Presence Thresholds & Effects</h4>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
-          <div>
-            <strong>Presence 3-4: Murmurs</strong>
-            <p style="margin:6px 0 0 0;">Minor creatures appear next to each cave.</p>
-          </div>
-          <div>
-            <strong>Presence 5-6: Stirring</strong>
-            <p style="margin:6px 0 0 0;">Failed cave rolls spawn a medium creature next to the cave being explored.</p>
-          </div>
-          <div>
-            <strong>Presence 7-8: Manifestation</strong>
-            <p style="margin:6px 0 0 0;">2 heavy health creatures spawn next to two centred Points of Interest.</p>
-          </div>
-          <div>
-            <strong>Presence 9-10: Breach</strong>
-            <p style="margin:6px 0 0 0;">2 World Events are resolved.</p>
-          </div>
-          <div>
-            <strong>Presence 11-12: Convergence</strong>
-            <p style="margin:6px 0 0 0;">A Mythological Cave spawns in the centre of the map.</p>
-          </div>
-          <div>
-            <strong>Presence 13-15: Cataclysm</strong>
-            <p style="margin:6px 0 0 0;">All cave exploration requires the faction to pay 10 resources of their choice, or any unit in their army outside a Province suffers 4 damage.</p>
-          </div>
-          <div>
-            <strong>Presence 16+: Cataclysm+</strong>
-            <p style="margin:6px 0 0 0;">Continue applying Cataclysm effects unless a mission or cave rule adds a stronger consequence.</p>
-          </div>
+          ${renderPresenceThresholdCard(
+            "Presence 3-4: Murmurs",
+            "Minor creatures appear next to each cave.",
+            3,
+            4
+          )}
+
+          ${renderPresenceThresholdCard(
+            "Presence 5-6: Stirring",
+            "Failed cave rolls spawn a medium creature next to the cave being explored.",
+            5,
+            6
+          )}
+
+          ${renderPresenceThresholdCard(
+            "Presence 7-8: Manifestation",
+            "2 heavy health creatures spawn next to two centred Points of Interest.",
+            7,
+            8
+          )}
+
+          ${renderPresenceThresholdCard(
+            "Presence 9-10: Breach",
+            "2 World Events are resolved.",
+            9,
+            10
+          )}
+
+          ${renderPresenceThresholdCard(
+            "Presence 11-12: Convergence",
+            "A Mythological Cave spawns in the centre of the map.",
+            11,
+            12
+          )}
+
+          ${renderPresenceThresholdCard(
+            "Presence 13-15: Cataclysm",
+            "All cave exploration requires the faction to pay 10 resources of their choice, or any unit in their army outside a Province suffers 4 damage.",
+            13,
+            15
+          )}
+
+          ${renderPresenceThresholdCard(
+            "Presence 16+: Cataclysm+",
+            "Continue applying Cataclysm effects unless a mission or cave rule adds a stronger consequence.",
+            16,
+            99
+          )}
         </div>
       </div>
+
 
       <div style="display:grid; grid-template-columns:1fr; gap:20px;">
         ${renderTrackerScale("Harmonic Tracker", "harmonic", trackerState.harmonic, harmonicBands, 0, 10, "rgba(150, 220, 255, 0.92)")}
