@@ -10659,11 +10659,26 @@ const rivalAbilityShopItems = [
   grantAmount: 2
 }));
 
+const boonShopItems = [
+  ["Tier 1", "Spawn: 2 Guards or 1 Knight", 10],
+  ["Tier 2", "Spawn: 1 Rider or 1 Elite", 17],
+  ["Tier 3", "Spawn: 1 Commander & Gain 3 Dragon Coins or Spawn 2 Elites", 24]
+].map(([tier, reward, cost]) => ({
+  id: `boon_${tier}_${reward}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Boons",
+  faction: "All",
+  name: tier,
+  effect: `${reward}. Spawn: when activating this bonus, spawn the chosen unit anywhere within your Province. Objective Specific Shop Purchases: completing an objective during the mission will activate a purchased boon matching the type.`,
+  cost,
+  costResource: "Metal"
+}));
+
 const shopItems = [
   ...makeActionShopItems(),
   ...advancedUnitClassShopItems,
   ...technicalResourceShopItems,
-  ...rivalAbilityShopItems
+  ...rivalAbilityShopItems,
+  ...boonShopItems
 ];
 
 
@@ -10727,14 +10742,16 @@ function renderShop() {
     "Basic Action Upgrades": "Basic Action Upgrades",
     "Advanced: Unit Class Specific": "Advanced Unit Class Upgrades",
     "Technical: Resource Specific": "Technical: Resource Specific",
-    "Rival Ability": "Rival Ability"
+    "Rival Ability": "Rival Ability",
+    "Boons": "Boons"
   };
 
   const sectionOrder = [
     "Basic Action Upgrades",
     "Advanced: Unit Class Specific",
     "Technical: Resource Specific",
-    "Rival Ability"
+    "Rival Ability",
+    "Boons"
   ];
 
   const groupedItems = visibleItems.reduce((groups, item) => {
@@ -10766,6 +10783,8 @@ function renderShop() {
                     ? "Resource upgrades with the listed currency cost."
                     : section.startsWith("Rival")
                       ? "Purchased abilities only apply when attacking or defending from your rival faction."
+                      : section.startsWith("Boons")
+                        ? "Objective-specific purchases activated by matching objectives during the mission."
                     : "One-time purchases applied to every unit of that class."
               }
             </p>
