@@ -10752,6 +10752,24 @@ const gateWallHealthShopItems = [
   costOptions: costOptions.map(([resourceName, amount]) => ({ resourceName, amount }))
 }));
 
+const meleeEngagementDiceShopItems = [
+  ["Guard", "Moved Away: 1 Die. Moved Past: 1 Die."],
+  ["Knight", "Moved Away: 2 Dice. Moved Past: 1 Die."],
+  ["Archer", "Moved Away: 1 Die. Moved Past: none."],
+  ["Rider", "Moved Away: 3 Dice. Moved Past: 2 Dice."],
+  ["Elite", "Moved Away: 4 Dice. Moved Past: 3 Dice."],
+  ["Commander", "Moved Away: 3 Dice. Moved Past: 3 Dice."],
+  ["Special based on RC of unit", "Moved Away: 2-6 = no dice, 3-6 = 1 Die. Moved Past: 4-6 = 2 Dice, 5-6 = 4 Dice."]
+].map(([unit, effect]) => ({
+  id: `melee_engagement_${unit}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Melee Engagement Dice Adding Upgrade",
+  faction: "All",
+  unitClass: unit,
+  name: unit,
+  effect,
+  free: true
+}));
+
 const shopItems = [
   ...makeActionShopItems(),
   ...advancedUnitClassShopItems,
@@ -10761,7 +10779,8 @@ const shopItems = [
   ...ultimateAbilityShopItems,
   ...energyAbilityShopItems,
   ...setupLevelShopItems,
-  ...gateWallHealthShopItems
+  ...gateWallHealthShopItems,
+  ...meleeEngagementDiceShopItems
 ];
 
 
@@ -10779,6 +10798,15 @@ function getResourceByName(name) {
 }
 
 function getShopItemCost(item) {
+  if (item.free) {
+    return {
+      amount: 0,
+      resourceName: "Free",
+      resource: null,
+      free: true
+    };
+  }
+
   if (item.costOptions && item.costOptions.length) {
     const option = item.costOptions[0];
     return {
@@ -10797,6 +10825,10 @@ function getShopItemCost(item) {
 }
 
 function getShopItemCostOptions(item) {
+  if (item.free) {
+    return [getShopItemCost(item)];
+  }
+
   if (item.costOptions && item.costOptions.length) {
     return item.costOptions.map(option => ({
       amount: option.amount,
@@ -10852,7 +10884,8 @@ function renderShop() {
     "Boons": "Boons",
     "Ultimate/ Abilities": "Ultimate/ Abilities",
     "Increase Setup Level, Faction Specific": "Increase Setup Level, Faction Specific",
-    "Gate & Wall Health Upgrade": "Gate & Wall Health Upgrade"
+    "Gate & Wall Health Upgrade": "Gate & Wall Health Upgrade",
+    "Melee Engagement Dice Adding Upgrade": "Melee Engagement Dice Adding Upgrade"
   };
 
   const sectionOrder = [
@@ -10863,7 +10896,8 @@ function renderShop() {
     "Boons",
     "Ultimate/ Abilities",
     "Increase Setup Level, Faction Specific",
-    "Gate & Wall Health Upgrade"
+    "Gate & Wall Health Upgrade",
+    "Melee Engagement Dice Adding Upgrade"
   ];
 
   const groupedItems = visibleItems.reduce((groups, item) => {
@@ -10904,6 +10938,8 @@ function renderShop() {
                             ? "Faction-specific setup level increases purchased in order."
                             : section.startsWith("Gate")
                               ? "Faction-specific health upgrades for gates and walls; pay with either listed resource."
+                              : section.startsWith("Melee")
+                                ? "Adds melee engagement dice when units move away or move past."
                     : "One-time purchases applied to every unit of that class."
               }
             </p>
@@ -10914,23 +10950,23 @@ function renderShop() {
               const purchased = purchases[item.id];
               const costOptions = getShopItemCostOptions(item);
               const prereqMet = !item.prereq || purchases[item.prereq];
-              const costText = costOptions.map(cost => `${cost.amount} ${cost.resourceName}`).join(" or ");
+              const costText = item.free ? "Free" : costOptions.map(cost => `${cost.amount} ${cost.resourceName}`).join(" or ");
               const purchaseControls = purchased
                 ? `
                   <button onclick="purchaseShopItem('${item.id}')">
-                    Refund
+                    ${item.free ? "Unmark" : "Refund"}
                   </button>
                 `
                 : costOptions.map((cost, index) => {
                   const availableResource = cost.resource ? cost.resource.value : 0;
-                  const canAfford = availableResource >= cost.amount;
+                  const canAfford = cost.free || availableResource >= cost.amount;
 
                   return `
                     <button
                       onclick="purchaseShopItem('${item.id}', ${index})"
                       ${(!canAfford || !prereqMet) ? "disabled" : ""}
                     >
-                      ${!prereqMet ? "Requires Previous Purchase" : canAfford ? `Pay ${cost.amount} ${cost.resourceName}` : `Not Enough ${cost.resourceName}`}
+                      ${!prereqMet ? "Requires Previous Purchase" : cost.free ? "Mark Purchased" : canAfford ? `Pay ${cost.amount} ${cost.resourceName}` : `Not Enough ${cost.resourceName}`}
                     </button>
                   `;
                 }).join("");
@@ -10967,15 +11003,17 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
 
   const purchases = data[resourceProfile].shop.purchases;
   const cost = getShopItemCostOptions(item)[costOptionIndex] || getShopItemCost(item);
-  if (!cost.resource) return;
+  if (!cost.free && !cost.resource) return;
 
   // Refund if already purchased
   if (purchases[itemId]) {
     const refundAmount = Number(purchases[itemId].cost || cost.amount);
     const refundResource = getResourceByName(purchases[itemId].costResource || cost.resourceName);
-    if (!refundResource) return;
 
-    refundResource.value += refundAmount;
+    if (refundAmount > 0) {
+      if (!refundResource) return;
+      refundResource.value += refundAmount;
+    }
 
     if (purchases[itemId].grantResource && purchases[itemId].grantAmount) {
       const grantResource = getResourceByName(purchases[itemId].grantResource);
@@ -10991,12 +11029,14 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
     return;
   }
 
-  if (cost.resource.value < cost.amount) {
+  if (!cost.free && cost.resource.value < cost.amount) {
     alert(`Not enough ${cost.resourceName}.`);
     return;
   }
 
-  cost.resource.value -= cost.amount;
+  if (!cost.free) {
+    cost.resource.value -= cost.amount;
+  }
 
   if (item.grantResource && item.grantAmount) {
     const grantResource = getResourceByName(item.grantResource);
@@ -11009,6 +11049,7 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
     name: item.name,
     cost: cost.amount,
     costResource: cost.resourceName,
+    free: Boolean(cost.free),
     grantResource: item.grantResource,
     grantAmount: item.grantAmount,
     purchasedAt: new Date().toISOString()
