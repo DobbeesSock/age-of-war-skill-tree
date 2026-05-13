@@ -1093,6 +1093,8 @@ body.elves {
   <button onclick="showView('potions')">Potions</button>
   <button onclick="showView('relics')">Relics</button>
   <button onclick="showView('keywords')">Keywords</button>
+  <button onclick="showView('shop')">Upgrade Shop</button>
+
   
 
 
@@ -1552,7 +1554,8 @@ body.elves {
 
     <!-- DOCTRINE -->
     <div class="doctrine-wrapper">
-        <div class="node root available" data-id="barbarian_root" data-cost="1">
+        <div class="node root available" data-id="barbarians_root" data-cost="1">
+
             <h3>Doctrine of the Long War</h3>
             <p>
                 Gain +1 Fury whenever a unit with 6+ HP takes damage<br>
@@ -2335,7 +2338,18 @@ body.elves {
     <button onclick="resetResources()">Reset</button>
   </div>
 
+
+
+
+
   <div id="app"></div>
+</div>
+
+<div id="shopView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+    <h2 style="margin-top:0; color:gold;">Upgrade Shop</h2>
+    <div id="shopApp"></div>
+  </div>
 </div>
 
 
@@ -6948,6 +6962,8 @@ function createProfile() {
         potions: { inventory: [] },
         relics: { inventory: [] },
         keywords: { selected: {} },
+        shop: { purchases: {} },
+
 
 
 
@@ -7035,6 +7051,9 @@ function loadProfile() {
     ensureKeywordState(resourceProfile);
     renderKeywords();
 
+    ensureShopState(resourceProfile);
+
+
 }
 
 
@@ -7074,6 +7093,14 @@ function showView(view) {
   
   document.getElementById("mythologicalCavesView").style.display =
     view === "mythologicalCaves" && isHostMode ? "block" : "none";
+  
+  document.getElementById("shopView").style.display =
+  view === "shop" ? "block" : "none";
+
+  if (view === "shop") {
+    renderShop();
+}
+
 
 
 
@@ -10450,6 +10477,123 @@ function renderMythologicalCaves() {
   `;
 }
 
+function ensureShopState(profileName) {
+
+  const shopItems = [
+  {
+    id: "move_action_1",
+    category: "Basic Actions",
+    name: "+1 Movement Action",
+    effect: "Gain +1 Movement Action upgrade.",
+    cost: 20
+  },
+  {
+    id: "attack_action_1",
+    category: "Basic Actions",
+    name: "+1 Attack Action",
+    effect: "Gain +1 Attack Action upgrade.",
+    cost: 10
+  },
+  {
+    id: "gold_collection_1",
+    category: "Economy",
+    name: "+1 Gold Collection",
+    effect: "Increase Gold collection by +1.",
+    cost: 8
+  },
+  {
+    id: "food_collection_1",
+    category: "Economy",
+    name: "+1 Food Collection",
+    effect: "Increase Food collection by +1.",
+    cost: 8
+  },
+  {
+    id: "energy_max_1",
+    category: "Resources",
+    name: "+1 Max Energy",
+    effect: "Increase maximum Energy by +1.",
+    cost: 10
+  }
+];
+
+function getMetalResource() {
+  return resources.find(resource => resource.name === "Metal");
+}
+
+function renderShop() {
+  const app = document.getElementById("shopApp");
+  if (!app) return;
+
+  if (!resourceProfile || !data[resourceProfile]) {
+    app.innerHTML = `<p style="color:#ddd;">Create or load a profile before using the shop.</p>`;
+    return;
+  }
+
+  ensureShopState(resourceProfile);
+
+  const purchases = data[resourceProfile].shop.purchases;
+  const metal = getMetalResource();
+  const metalValue = metal ? metal.value : 0;
+
+  app.innerHTML = `
+    <div style="margin-bottom:16px; color:#ddd;">
+      <strong>Metal:</strong> ${metalValue}
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
+      ${shopItems.map(item => {
+        const purchased = purchases[item.id];
+        const canAfford = metalValue >= item.cost;
+
+        return `
+          <div style="background:rgba(45,45,45,0.95); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${purchased ? "#66cc88" : "#d4af37"}; border-radius:10px; padding:14px;">
+            <small style="color:#cdbb8c; text-transform:uppercase;">${item.category}</small>
+            <h3 style="margin:6px 0; color:#ffe08a;">${item.name}</h3>
+            <p style="color:#ddd;">${item.effect}</p>
+            <p style="color:#bbb;"><strong>Cost:</strong> ${item.cost} Metal</p>
+
+            <button
+              onclick="purchaseShopItem('${item.id}')"
+              ${purchased || !canAfford ? "disabled" : ""}
+            >
+              ${purchased ? "Purchased" : canAfford ? "Buy" : "Not Enough Metal"}
+            </button>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function purchaseShopItem(itemId) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+
+  ensureShopState(resourceProfile);
+
+  const item = shopItems.find(shopItem => shopItem.id === itemId);
+  if (!item) return;
+
+  const purchases = data[resourceProfile].shop.purchases;
+  if (purchases[itemId]) return;
+
+  const metal = getMetalResource();
+  if (!metal || metal.value < item.cost) {
+    alert("Not enough Metal.");
+    return;
+  }
+
+  metal.value -= item.cost;
+
+  purchases[itemId] = {
+    name: item.name,
+    cost: item.cost,
+    purchasedAt: new Date().toISOString()
+  };
+
+  saveResourceProfile();
+  renderShop();
+}
 
 
 
@@ -11564,6 +11708,19 @@ function importCaveSave() {
         alert("Invalid cave randomizer save code");
     }
 }
+
+function ensureShopState(profileName) {
+  if (!profileName || !data[profileName]) return;
+
+  if (!data[profileName].shop) {
+    data[profileName].shop = { purchases: {} };
+  }
+
+  if (!data[profileName].shop.purchases) {
+    data[profileName].shop.purchases = {};
+  }
+}
+
 
 
 
