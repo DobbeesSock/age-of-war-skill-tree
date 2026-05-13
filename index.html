@@ -10480,46 +10480,47 @@ function renderMythologicalCaves() {
 
 
   const shopItems = [
-  {
-    id: "move_action_1",
-    category: "Basic Actions",
-    name: "+1 Movement Action",
-    effect: "Gain +1 Movement Action upgrade.",
-    cost: 20
-  },
-  {
-    id: "attack_action_1",
-    category: "Basic Actions",
-    name: "+1 Attack Action",
-    effect: "Gain +1 Attack Action upgrade.",
-    cost: 10
-  },
-  {
-    id: "gold_collection_1",
-    category: "Economy",
-    name: "+1 Gold Collection",
-    effect: "Increase Gold collection by +1.",
-    cost: 8
-  },
-  {
-    id: "food_collection_1",
-    category: "Economy",
-    name: "+1 Food Collection",
-    effect: "Increase Food collection by +1.",
-    cost: 8
-  },
-  {
-    id: "energy_max_1",
-    category: "Resources",
-    name: "+1 Max Energy",
-    effect: "Increase maximum Energy by +1.",
-    cost: 10
-  }
+  { id: "men_move_action_1", section: "Basic: Overall", faction: "Men", name: "+1 Movement Action", effect: "Gain +1 Movement Action upgrade applied to Round Actions.", cost: 20 },
+  { id: "men_attack_action_1", section: "Basic: Overall", faction: "Men", name: "+1 Attack Action", effect: "Gain +1 Attack Action upgrade applied to Round Actions.", cost: 10 },
+  { id: "men_move_action_2", section: "Basic: Additional Purchases", faction: "Men", name: "+1 Movement Action", effect: "Additional +1 Movement Action upgrade.", cost: 35, prereq: "men_move_action_1" },
+  { id: "men_attack_action_2", section: "Basic: Additional Purchases", faction: "Men", name: "+1 Attack Action", effect: "Additional +1 Attack Action upgrade.", cost: 25, prereq: "men_attack_action_1" },
+
+  { id: "elves_move_action_1", section: "Basic: Overall", faction: "Elves", name: "+1 Movement Action", effect: "Gain +1 Movement Action upgrade applied to Round Actions.", cost: 15 },
+  { id: "elves_attack_action_1", section: "Basic: Overall", faction: "Elves", name: "+1 Attack Action", effect: "Gain +1 Attack Action upgrade applied to Round Actions.", cost: 20 },
+  { id: "elves_move_action_2", section: "Basic: Additional Purchases", faction: "Elves", name: "+1 Movement Action", effect: "Additional +1 Movement Action upgrade.", cost: 30, prereq: "elves_move_action_1" },
+  { id: "elves_attack_action_2", section: "Basic: Additional Purchases", faction: "Elves", name: "+1 Attack Action", effect: "Additional +1 Attack Action upgrade.", cost: 35, prereq: "elves_attack_action_1" },
+
+  { id: "orcs_move_action_1", section: "Basic: Overall", faction: "Orcs", name: "+1 Movement Action", effect: "Gain +1 Movement Action upgrade applied to Round Actions.", cost: 10 },
+  { id: "orcs_attack_action_1", section: "Basic: Overall", faction: "Orcs", name: "+1 Attack Action", effect: "Gain +1 Attack Action upgrade applied to Round Actions.", cost: 15 },
+  { id: "orcs_move_action_2", section: "Basic: Additional Purchases", faction: "Orcs", name: "+1 Movement Action", effect: "Additional +1 Movement Action upgrade.", cost: 25, prereq: "orcs_move_action_1" },
+  { id: "orcs_attack_action_2", section: "Basic: Additional Purchases", faction: "Orcs", name: "+1 Attack Action", effect: "Additional +1 Attack Action upgrade.", cost: 30, prereq: "orcs_attack_action_1" },
+
+  { id: "barbarians_move_action_1", section: "Basic: Overall", faction: "Barbarians", name: "+1 Movement Action", effect: "Gain +1 Movement Action upgrade applied to Round Actions.", cost: 15 },
+  { id: "barbarians_attack_action_1", section: "Basic: Overall", faction: "Barbarians", name: "+1 Attack Action", effect: "Gain +1 Attack Action upgrade applied to Round Actions.", cost: 10 },
+  { id: "barbarians_move_action_2", section: "Basic: Additional Purchases", faction: "Barbarians", name: "+1 Movement Action", effect: "Additional +1 Movement Action upgrade.", cost: 35, prereq: "barbarians_move_action_1" },
+  { id: "barbarians_attack_action_2", section: "Basic: Additional Purchases", faction: "Barbarians", name: "+1 Attack Action", effect: "Additional +1 Attack Action upgrade.", cost: 30, prereq: "barbarians_attack_action_1" },
+
+  { id: "assassins_move_action_1", section: "Basic: Overall", faction: "Assassins", name: "+1 Movement Action", effect: "Gain +1 Movement Action upgrade applied to Round Actions.", cost: 5 },
+  { id: "assassins_attack_action_1", section: "Basic: Overall", faction: "Assassins", name: "+1 Attack Action", effect: "Gain +1 Attack Action upgrade applied to Round Actions.", cost: 15 },
+  { id: "assassins_move_action_2", section: "Basic: Additional Purchases", faction: "Assassins", name: "+1 Movement Action", effect: "Additional +1 Movement Action upgrade.", cost: 20, prereq: "assassins_move_action_1" },
+  { id: "assassins_attack_action_2", section: "Basic: Additional Purchases", faction: "Assassins", name: "+1 Attack Action", effect: "Additional +1 Attack Action upgrade.", cost: 30, prereq: "assassins_attack_action_1" },
+
+  { id: "dwarves_move_action_1", section: "Basic: Overall", faction: "Dwarves", name: "+1 Movement Action", effect: "Gain +1 Movement Action upgrade applied to Round Actions.", cost: 15 },
+  { id: "dwarves_attack_action_1", section: "Basic: Overall", faction: "Dwarves", name: "+1 Attack Action", effect: "Gain +1 Attack Action upgrade applied to Round Actions.", cost: 10 },
+  { id: "dwarves_move_action_2", section: "Basic: Additional Purchases", faction: "Dwarves", name: "+1 Movement Action", effect: "Additional +1 Movement Action upgrade.", cost: 30, prereq: "dwarves_move_action_1" },
+  { id: "dwarves_attack_action_2", section: "Basic: Additional Purchases", faction: "Dwarves", name: "+1 Attack Action", effect: "Additional +1 Attack Action upgrade.", cost: 25, prereq: "dwarves_attack_action_1" }
 ];
+
 
 function getMetalResource() {
   return resources.find(resource => resource.name === "Metal");
 }
+
+function getShopFaction() {
+  if (currentFaction === "order" || currentFaction === "order2") return "Assassins";
+  return getFactionFamily(currentFaction);
+}
+
 
 function renderShop() {
   const app = document.getElementById("shopApp");
@@ -10536,15 +10537,22 @@ function renderShop() {
   const metal = getMetalResource();
   const metalValue = metal ? metal.value : 0;
 
+  const shopFaction = getShopFaction();
+  const visibleItems = shopItems.filter(item => item.faction === shopFaction);
+
+
   app.innerHTML = `
     <div style="margin-bottom:16px; color:#ddd;">
       <strong>Metal:</strong> ${metalValue}
     </div>
 
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
-      ${shopItems.map(item => {
+      ${visibleItems.map(item => {
+
         const purchased = purchases[item.id];
         const canAfford = metalValue >= item.cost;
+        const prereqMet = !item.prereq || purchases[item.prereq];
+
 
         return `
           <div style="background:rgba(45,45,45,0.95); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${purchased ? "#66cc88" : "#d4af37"}; border-radius:10px; padding:14px;">
@@ -10555,9 +10563,11 @@ function renderShop() {
 
             <button
               onclick="purchaseShopItem('${item.id}')"
-              ${purchased || !canAfford ? "disabled" : ""}
+              ${purchased || !canAfford || !prereqMet ? "disabled" : ""}
+
             >
-              ${purchased ? "Purchased" : canAfford ? "Buy" : "Not Enough Metal"}
+              ${purchased ? "Purchased" : !prereqMet ? "Requires First Purchase" : canAfford ? "Buy" : "Not Enough Metal"}
+
             </button>
           </div>
         `;
