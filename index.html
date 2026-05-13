@@ -10819,6 +10819,84 @@ const battleTableKeywordShopItems = [
   costResource: "Metal"
 }));
 
+const tier2KeywordShopItems = [
+  ["Guard", "Impact", 10],
+  ["Guard", "Lesion", 9],
+  ["Guard", "Breakdown", 6],
+  ["Guard", "Lockdown", 12],
+  ["Guard", "Over Hand", 11],
+
+  ["Knight", "Impact", 13],
+  ["Knight", "Lesion", 12],
+  ["Knight", "Breakdown", 7],
+  ["Knight", "Lockdown", 14],
+  ["Knight", "Over Hand", 13],
+
+  ["Archer", "Impact", 11],
+  ["Archer", "Lesion", 9],
+  ["Archer", "Lockdown", 17],
+  ["Archer", "Fire", 12],
+  ["Archer", "Fury", 12],
+  ["Archer", "Frost", 12],
+
+  ["Rider", "Impact", 14],
+  ["Rider", "Lesion", 12],
+  ["Rider", "Breakdown", 8],
+  ["Rider", "Lockdown", 15],
+  ["Rider", "Fire", 13],
+  ["Rider", "Fury", 13],
+  ["Rider", "Frost", 13],
+  ["Rider", "Over Hand", 16],
+
+  ["Elite", "Impact", 17],
+  ["Elite", "Lesion", 15],
+  ["Elite", "Breakdown", 8],
+  ["Elite", "Lockdown", 17],
+  ["Elite", "Fire", 16],
+  ["Elite", "Fury", 16],
+  ["Elite", "Frost", 16],
+  ["Elite", "Over Hand", 16],
+
+  ["Commander", "Impact", 12],
+  ["Commander", "Lesion", 10],
+  ["Commander", "Breakdown", 7],
+  ["Commander", "Lockdown", 16],
+  ["Commander", "Fire", 14],
+  ["Commander", "Fury", 14],
+  ["Commander", "Frost", 14],
+  ["Commander", "Over Hand", 13],
+
+  ["Special", "Impact", 8, "RC 2-6"],
+  ["Special", "Impact", 9, "RC 3-6"],
+  ["Special", "Impact", 11, "RC 4-6"],
+  ["Special", "Impact", 13, "RC 5-6"],
+  ["Special", "Lesion", 5, "RC 2-6"],
+  ["Special", "Lesion", 8, "RC 3-6"],
+  ["Special", "Lesion", 10, "RC 4-6"],
+  ["Special", "Lesion", 15, "RC 5-6"],
+  ["Special", "Breakdown", 4, "RC 2-6"],
+  ["Special", "Breakdown", 5, "RC 3-6"],
+  ["Special", "Breakdown", 8, "RC 4-6"],
+  ["Special", "Breakdown", 12, "RC 5-6"],
+  ["Special", "Lockdown", 7, "RC 2-6"],
+  ["Special", "Lockdown", 9, "RC 3-6"],
+  ["Special", "Lockdown", 12, "RC 4-6"],
+  ["Special", "Lockdown", 15, "RC 5-6"],
+  ["Special", "Fire", 18, "RC 5-6"],
+  ["Special", "Fury", 18, "RC 5-6"],
+  ["Special", "Frost", 18, "RC 5-6"],
+  ["Special", "Over Hand", 19, "RC 5-6"]
+].map(([unitClass, keyword, cost, note]) => ({
+  id: `tier2_keyword_${unitClass}_${keyword}_${note || ""}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Tier 2 Keyword Upgrades",
+  faction: "All",
+  unitClass,
+  name: `${unitClass}: ${keyword}`,
+  effect: `Add Tier 2 keyword ${keyword} to the ${unitClass} battle table.${note ? ` Price based on Roll Check of unit: ${note}.` : ""}`,
+  cost,
+  costResource: "Metal"
+}));
+
 const shopItems = [
   ...makeActionShopItems(),
   ...advancedUnitClassShopItems,
@@ -10830,7 +10908,8 @@ const shopItems = [
   ...setupLevelShopItems,
   ...gateWallHealthShopItems,
   ...meleeEngagementDiceShopItems,
-  ...battleTableKeywordShopItems
+  ...battleTableKeywordShopItems,
+  ...tier2KeywordShopItems
 ];
 
 
@@ -10936,7 +11015,8 @@ function renderShop() {
     "Increase Setup Level, Faction Specific": "Increase Setup Level, Faction Specific",
     "Gate & Wall Health Upgrade": "Gate & Wall Health Upgrade",
     "Melee Engagement Dice Adding Upgrade": "Melee Engagement Dice Adding Upgrade",
-    "Battle Table Keyword Upgrades": "Battle Table Keyword Upgrades"
+    "Battle Table Keyword Upgrades": "Battle Table Keyword Upgrades",
+    "Tier 2 Keyword Upgrades": "Tier 2 Keyword Upgrades"
   };
 
   const sectionOrder = [
@@ -10949,7 +11029,8 @@ function renderShop() {
     "Increase Setup Level, Faction Specific",
     "Gate & Wall Health Upgrade",
     "Melee Engagement Dice Adding Upgrade",
-    "Battle Table Keyword Upgrades"
+    "Battle Table Keyword Upgrades",
+    "Tier 2 Keyword Upgrades"
   ];
 
   const groupedItems = visibleItems.reduce((groups, item) => {
@@ -10994,6 +11075,8 @@ function renderShop() {
                                 ? "Adds melee engagement dice when units move away or move past."
                                 : section.startsWith("Battle Table")
                                   ? "Tier 1 keyword upgrades for unit battle tables."
+                                  : section.startsWith("Tier 2")
+                                    ? "Tier 2 keyword upgrades for unit battle tables."
                     : "One-time purchases applied to every unit of that class."
               }
             </p>
