@@ -11242,21 +11242,77 @@ function renderShop() {
     getShopItemFactions(item).includes(shopFaction) || item.faction === "All"
   );
 
-  const sectionLabels = {
-    "Basic Action Upgrades": "Basic Action Upgrades",
-    "Advanced: Unit Class Specific": "Advanced Unit Class Upgrades",
-    "Technical: Resource Specific": "Technical: Resource Specific",
-    "Rival Ability": "Rival Ability",
-    "Boons": "Boons",
-    "Ultimate/ Abilities": "Ultimate/ Abilities",
-    "Increase Setup Level, Faction Specific": "Increase Setup Level, Faction Specific",
-    "Gate & Wall Health Upgrade": "Gate & Wall Health Upgrade",
-    "Melee Engagement Dice Adding Upgrade": "Melee Engagement Dice Adding Upgrade",
-    "Battle Table Keyword Upgrades": "Battle Table Keyword Upgrades",
-    "Tier 2 Keyword Upgrades": "Tier 2 Keyword Upgrades",
-    "Tier 3 Keyword Upgrades": "Tier 3 Keyword Upgrades",
-    "Tier 4 Keyword Upgrades": "Tier 4 Keyword Upgrades",
-    "Tier 5 Keyword Upgrades": "Tier 5 Keyword Upgrades"
+  const sectionMeta = {
+    "Basic Action Upgrades": {
+      label: "Basic Action Upgrades",
+      description: "Faction-specific movement and attack action purchases.",
+      accent: "#d4af37"
+    },
+    "Advanced: Unit Class Specific": {
+      label: "Advanced Unit Class Upgrades",
+      description: "One-time purchases applied to every unit of that class.",
+      accent: "#66cc88"
+    },
+    "Technical: Resource Specific": {
+      label: "Technical: Resource Specific",
+      description: "Resource upgrades with the listed currency cost.",
+      accent: "#72a5ff"
+    },
+    "Rival Ability": {
+      label: "Rival Ability",
+      description: "Purchased abilities only apply when attacking or defending from your rival faction.",
+      accent: "#c96b6b"
+    },
+    "Boons": {
+      label: "Boons",
+      description: "Objective-specific purchases activated by matching objectives during the mission.",
+      accent: "#ff9800"
+    },
+    "Ultimate/ Abilities": {
+      label: "Ultimate/ Abilities",
+      description: "One-time purchases to lower costs of Ultimate Unit and Faction Abilities.",
+      accent: "#c44dff"
+    },
+    "Increase Setup Level, Faction Specific": {
+      label: "Increase Setup Level, Faction Specific",
+      description: "Faction-specific setup level increases purchased in order.",
+      accent: "#8fd3ff"
+    },
+    "Gate & Wall Health Upgrade": {
+      label: "Gate & Wall Health Upgrade",
+      description: "Faction-specific health upgrades for gates and walls; pay with either listed resource.",
+      accent: "#b9c0c7"
+    },
+    "Melee Engagement Dice Adding Upgrade": {
+      label: "Melee Engagement Dice Adding Upgrade",
+      description: "Adds melee engagement dice when units move away or move past.",
+      accent: "#f472b6"
+    },
+    "Battle Table Keyword Upgrades": {
+      label: "Battle Table Keyword Upgrades",
+      description: "Tier 1 keyword upgrades for unit battle tables.",
+      accent: "#a3e635"
+    },
+    "Tier 2 Keyword Upgrades": {
+      label: "Tier 2 Keyword Upgrades",
+      description: "Tier 2 keyword upgrades for unit battle tables.",
+      accent: "#22d3ee"
+    },
+    "Tier 3 Keyword Upgrades": {
+      label: "Tier 3 Keyword Upgrades",
+      description: "Tier 3 keyword upgrades for unit battle tables.",
+      accent: "#facc15"
+    },
+    "Tier 4 Keyword Upgrades": {
+      label: "Tier 4 Keyword Upgrades",
+      description: "Tier 4 keyword upgrades for unit battle tables.",
+      accent: "#fb7185"
+    },
+    "Tier 5 Keyword Upgrades": {
+      label: "Tier 5 Keyword Upgrades",
+      description: "Tier 5 keyword upgrades for unit battle tables.",
+      accent: "#c084fc"
+    }
   };
 
   const sectionOrder = [
@@ -11292,42 +11348,21 @@ function renderShop() {
 
     ${sectionOrder
       .filter(section => groupedItems[section]?.length)
-      .map(section => `
-        <section style="margin-bottom:32px;">
-          <div style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.12);">
-            <h3 style="margin:0; color:#ffe08a;">
-              ${sectionLabels[section] || section}
+      .map(section => {
+        const meta = sectionMeta[section] || {
+          label: section,
+          description: "Shop upgrades.",
+          accent: "#d4af37"
+        };
+
+        return `
+        <section style="margin-bottom:34px; border-top:3px solid ${meta.accent}; background:rgba(255,255,255,0.035); border-radius:8px; padding:14px;">
+          <div style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid ${meta.accent};">
+            <h3 style="margin:0; color:${meta.accent};">
+              ${meta.label}
             </h3>
             <p style="margin:4px 0 0 0; color:#bbb; font-size:13px;">
-              ${
-                section.startsWith("Basic")
-                  ? "Faction-specific movement and attack action purchases."
-                  : section.startsWith("Technical")
-                    ? "Resource upgrades with the listed currency cost."
-                    : section.startsWith("Rival")
-                      ? "Purchased abilities only apply when attacking or defending from your rival faction."
-                      : section.startsWith("Boons")
-                        ? "Objective-specific purchases activated by matching objectives during the mission."
-                        : section.startsWith("Ultimate")
-                          ? "One-time purchases to lower costs of Ultimate Unit and Faction Abilities."
-                          : section.startsWith("Increase Setup")
-                            ? "Faction-specific setup level increases purchased in order."
-                            : section.startsWith("Gate")
-                              ? "Faction-specific health upgrades for gates and walls; pay with either listed resource."
-                              : section.startsWith("Melee")
-                                ? "Adds melee engagement dice when units move away or move past."
-                                : section.startsWith("Battle Table")
-                                  ? "Tier 1 keyword upgrades for unit battle tables."
-                                  : section.startsWith("Tier 2")
-                                    ? "Tier 2 keyword upgrades for unit battle tables."
-                                    : section.startsWith("Tier 3")
-                                      ? "Tier 3 keyword upgrades for unit battle tables."
-                                      : section.startsWith("Tier 4")
-                                        ? "Tier 4 keyword upgrades for unit battle tables."
-                                        : section.startsWith("Tier 5")
-                                          ? "Tier 5 keyword upgrades for unit battle tables."
-                    : "One-time purchases applied to every unit of that class."
-              }
+              ${meta.description}
             </p>
           </div>
 
@@ -11336,6 +11371,7 @@ function renderShop() {
               const purchased = purchases[item.id];
               const costOptions = getShopItemCostOptions(item);
               const prereqMet = !item.prereq || purchases[item.prereq];
+              const cardAccent = purchased ? "#66cc88" : meta.accent;
               const costText = item.free ? "Free" : costOptions.map(cost => `${cost.amount} ${cost.resourceName}`).join(" or ");
               const purchaseControls = purchased
                 ? `
@@ -11358,8 +11394,8 @@ function renderShop() {
                 }).join("");
 
               return `
-                <div style="background:rgba(45,45,45,0.95); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${purchased ? "#66cc88" : "#d4af37"}; border-radius:10px; padding:14px;">
-                  <small style="color:#cdbb8c; text-transform:uppercase;">${item.section}</small>
+                <div style="background:rgba(45,45,45,0.95); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${cardAccent}; border-radius:10px; padding:14px;">
+                  <small style="color:${meta.accent}; text-transform:uppercase;">${item.section}</small>
                   <h3 style="margin:6px 0; color:#ffe08a;">${item.name}</h3>
                   <p style="color:#ddd;">${item.effect}</p>
                   <p style="color:#bbb;"><strong>Cost:</strong> ${costText}</p>
@@ -11372,7 +11408,8 @@ function renderShop() {
             }).join("")}
           </div>
         </section>
-      `).join("")}
+      `;
+      }).join("")}
   `;
 }
 
