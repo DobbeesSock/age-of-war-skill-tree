@@ -10528,8 +10528,64 @@ function makeActionShopItems() {
 
 const shopItems = [
   ...makeActionShopItems()
-  // Add any non-basic shop purchases after this line.
+
+
+  const advancedUnitClassShopItems = [
+  ["Guard", "+1 Health", 8],
+  ["Guard", "+1 Output Damage", 9],
+  ["Guard", "+2 Movement Speed", 6],
+  ["Guard", "+1 Additional Health", 12],
+  ["Guard", "+1 Additional Output Damage", 15],
+  ["Guard", "+3 Additional Movement Speed", 17],
+
+  ["Knight", "+1 Health", 10],
+  ["Knight", "+1 Output Damage", 11],
+  ["Knight", "+2 Movement Speed", 8],
+  ["Knight", "+1 Additional Health", 15],
+  ["Knight", "+1 Additional Output Damage", 18],
+  ["Knight", "+3 Additional Movement Speed", 24],
+
+  ["Rider", "+1 Health", 14],
+  ["Rider", "+1 Output Damage", 15],
+  ["Rider", "+1 Additional Health", 20],
+  ["Rider", "+1 Additional Output Damage", 22],
+  ["Rider", "+3 Additional Movement Speed", 23],
+
+  ["Commander", "+1 Health", 17],
+  ["Commander", "+1 Output Damage", 10],
+  ["Commander", "+2 Movement Speed", 10],
+  ["Commander", "+1 Additional Health", 25],
+  ["Commander", "+1 Additional Output Damage", 26],
+  ["Commander", "+3 Additional Movement Speed", 26],
+
+  ["Elite", "+1 Output Damage", 14],
+  ["Elite", "+2 Movement Speed", 15],
+  ["Elite", "+1 Additional Output Damage", 24],
+  ["Elite", "+3 Additional Movement Speed", 30],
+
+  ["Special", "+1 Health", 4],
+  ["Special", "+2 Movement Speed", 7],
+  ["Special", "+1 Additional Health", 15],
+
+  ["Ultimate", "+1 Output Damage", 20],
+  ["Ultimate", "+2 Movement Speed", 20],
+  ["Ultimate", "+1 Additional Output Damage", 35],
+  ["Ultimate", "+3 Additional Movement Speed", 40]
+].map(([unitClass, name, cost]) => ({
+  id: `advanced_${unitClass}_${name}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Advanced: Unit Class Specific",
+  faction: "All",
+  unitClass,
+  name: `${unitClass}: ${name}`,
+  effect: `One-time purchase. Applies to all ${unitClass} units of that type.`,
+  cost
+
+
+}));
 ];
+
+
+
 
 
 
@@ -10559,7 +10615,10 @@ function renderShop() {
   const metalValue = metal ? metal.value : 0;
 
   const shopFaction = getShopFaction();
-  const visibleItems = shopItems.filter(item => item.faction === shopFaction);
+  const visibleItems = shopItems.filter(item =>
+  item.faction === shopFaction || item.faction === "All"
+);
+
 
 
   app.innerHTML = `
