@@ -10706,6 +10706,32 @@ const energyAbilityShopItems = [
   prereq: index === 0 ? null : `energy_ability_discount_${index}`
 }));
 
+const setupLevelShopItems = [
+  ["Men", [29, 35, 40, 60]],
+  ["Elves", [27, 34, 39, 55]],
+  ["Dwarves", [30, 38, 41, 65]],
+  ["Assassins", [26, 36, 40, 60]],
+  ["Barbarians", [26, 33, 38, 60]],
+  ["Orcs", [25, 32, 35, 65]]
+].flatMap(([faction, costs]) =>
+  costs.map((cost, index) => {
+    const setupLevel = index + 3;
+    const previousSetupLevel = setupLevel - 1;
+    const id = `setup_${faction}_${setupLevel}`.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+
+    return {
+      id,
+      section: "Increase Setup Level, Faction Specific",
+      faction,
+      name: `Setup ${setupLevel}`,
+      effect: `Increase ${faction} setup level to Setup ${setupLevel}.`,
+      cost,
+      costResource: "Metal",
+      prereq: index === 0 ? null : `setup_${faction}_${previousSetupLevel}`.toLowerCase().replace(/[^a-z0-9]+/g, "_")
+    };
+  })
+);
+
 const shopItems = [
   ...makeActionShopItems(),
   ...advancedUnitClassShopItems,
@@ -10713,7 +10739,8 @@ const shopItems = [
   ...rivalAbilityShopItems,
   ...boonShopItems,
   ...ultimateAbilityShopItems,
-  ...energyAbilityShopItems
+  ...energyAbilityShopItems,
+  ...setupLevelShopItems
 ];
 
 
@@ -10779,7 +10806,8 @@ function renderShop() {
     "Technical: Resource Specific": "Technical: Resource Specific",
     "Rival Ability": "Rival Ability",
     "Boons": "Boons",
-    "Ultimate/ Abilities": "Ultimate/ Abilities"
+    "Ultimate/ Abilities": "Ultimate/ Abilities",
+    "Increase Setup Level, Faction Specific": "Increase Setup Level, Faction Specific"
   };
 
   const sectionOrder = [
@@ -10788,7 +10816,8 @@ function renderShop() {
     "Technical: Resource Specific",
     "Rival Ability",
     "Boons",
-    "Ultimate/ Abilities"
+    "Ultimate/ Abilities",
+    "Increase Setup Level, Faction Specific"
   ];
 
   const groupedItems = visibleItems.reduce((groups, item) => {
@@ -10824,6 +10853,8 @@ function renderShop() {
                         ? "Objective-specific purchases activated by matching objectives during the mission."
                         : section.startsWith("Ultimate")
                           ? "One-time purchases to lower costs of Ultimate Unit and Faction Abilities."
+                          : section.startsWith("Increase Setup")
+                            ? "Faction-specific setup level increases purchased in order."
                     : "One-time purchases applied to every unit of that class."
               }
             </p>
