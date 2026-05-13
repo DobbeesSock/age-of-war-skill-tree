@@ -10673,12 +10673,47 @@ const boonShopItems = [
   costResource: "Metal"
 }));
 
+const ultimateAbilityShopItems = [
+  ["Men", "Decrease Cost of Ultimate Unit(s)", "-7 Dragon Coins", 35],
+  ["Elves", "Decrease Cost of Ultimate Unit(s)", "-5 Dragon Coins", 32],
+  ["Orcs", "Decrease Cost of Ultimate Unit(s)", "-9 Dragon Coins", 38],
+  ["Horde", "Decrease Cost of Ultimate Unit(s)", "-5 Dragon Coins", 30],
+  ["Assassins", "Decrease Cost of Ultimate Unit(s)", "-8 Dragon Coins", 36],
+  ["Dwarves", "Decrease Cost of Ultimate Unit(s)", "-9 Dragon Coins", 40],
+  ["Barbarians", "Decrease Cost of Ultimate Unit(s)", "-7 Dragon Coins", 34]
+].map(([faction, name, effect, cost]) => ({
+  id: `ultimate_${faction}_${name}_${effect}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Ultimate/ Abilities",
+  faction,
+  name,
+  effect: `${effect}. One-time purchase to lower costs of Ultimate Unit & Faction Abilities.`,
+  cost,
+  costResource: "Metal"
+}));
+
+const energyAbilityShopItems = [
+  ["Decrease Cost of Energy Abilities", "-1 Energy", 20],
+  ["Decrease Cost of Energy Abilities", "-2 Energy", 30],
+  ["Decrease Cost of Energy Abilities", "-3 Energy", 45]
+].map(([name, effect, cost], index) => ({
+  id: `energy_ability_discount_${index + 1}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Ultimate/ Abilities",
+  faction: "All",
+  name: `${name} ${index + 1}`,
+  effect: `${effect}. One-time purchase to lower costs of Ultimate Unit & Faction Abilities.`,
+  cost,
+  costResource: "Metal",
+  prereq: index === 0 ? null : `energy_ability_discount_${index}`
+}));
+
 const shopItems = [
   ...makeActionShopItems(),
   ...advancedUnitClassShopItems,
   ...technicalResourceShopItems,
   ...rivalAbilityShopItems,
-  ...boonShopItems
+  ...boonShopItems,
+  ...ultimateAbilityShopItems,
+  ...energyAbilityShopItems
 ];
 
 
@@ -10743,7 +10778,8 @@ function renderShop() {
     "Advanced: Unit Class Specific": "Advanced Unit Class Upgrades",
     "Technical: Resource Specific": "Technical: Resource Specific",
     "Rival Ability": "Rival Ability",
-    "Boons": "Boons"
+    "Boons": "Boons",
+    "Ultimate/ Abilities": "Ultimate/ Abilities"
   };
 
   const sectionOrder = [
@@ -10751,7 +10787,8 @@ function renderShop() {
     "Advanced: Unit Class Specific",
     "Technical: Resource Specific",
     "Rival Ability",
-    "Boons"
+    "Boons",
+    "Ultimate/ Abilities"
   ];
 
   const groupedItems = visibleItems.reduce((groups, item) => {
@@ -10785,6 +10822,8 @@ function renderShop() {
                       ? "Purchased abilities only apply when attacking or defending from your rival faction."
                       : section.startsWith("Boons")
                         ? "Objective-specific purchases activated by matching objectives during the mission."
+                        : section.startsWith("Ultimate")
+                          ? "One-time purchases to lower costs of Ultimate Unit and Faction Abilities."
                     : "One-time purchases applied to every unit of that class."
               }
             </p>
