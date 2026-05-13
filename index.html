@@ -10897,6 +10897,240 @@ const tier2KeywordShopItems = [
   costResource: "Metal"
 }));
 
+const tier3KeywordShopItems = [
+  ["Guard", "Retaliate 1", 11],
+  ["Guard", "Retaliate 2", 19],
+  ["Guard", "Reinforcement 1", 14],
+  ["Guard", "Reinforcement 2", 20],
+  ["Guard", "Impair", 14],
+  ["Guard", "Vicious", 10],
+  ["Guard", "Rage", 9],
+  ["Guard", "Regroup 2", 12],
+
+  ["Knight", "Retaliate 1", 13],
+  ["Knight", "Retaliate 2", 20],
+  ["Knight", "Reinforcement 1", 17],
+  ["Knight", "Reinforcement 2", 24],
+  ["Knight", "Impair", 15],
+  ["Knight", "Vicious", 14],
+  ["Knight", "Rage", 10],
+  ["Knight", "Regroup 2", 15],
+
+  ["Archer", "Reinforcement 1", 10],
+  ["Archer", "Reinforcement 2", 15],
+  ["Archer", "Impair", 18],
+  ["Archer", "Vicious", 15],
+  ["Archer", "Rage", 8],
+
+  ["Rider", "Retaliate 1", 16],
+  ["Rider", "Retaliate 2", 22],
+  ["Rider", "Reinforcement 1", 19],
+  ["Rider", "Reinforcement 2", 24],
+  ["Rider", "Impair", 19],
+  ["Rider", "Vicious", 19],
+  ["Rider", "Rage", 10],
+  ["Rider", "Regroup 2", 19],
+
+  ["Elite", "Retaliate 1", 19],
+  ["Elite", "Retaliate 2", 27],
+  ["Elite", "Reinforcement 1", 22],
+  ["Elite", "Reinforcement 2", 29],
+  ["Elite", "Impair", 21],
+  ["Elite", "Vicious", 25],
+  ["Elite", "Rage", 12],
+  ["Elite", "Regroup 2", 25],
+
+  ["Commander", "Retaliate 1", 18],
+  ["Commander", "Retaliate 2", 25],
+  ["Commander", "Reinforcement 1", 20],
+  ["Commander", "Reinforcement 2", 27],
+  ["Commander", "Impair", 22],
+  ["Commander", "Vicious", 21],
+  ["Commander", "Rage", 12],
+  ["Commander", "Regroup 2", 21],
+
+  ["Special", "Retaliate 1", 6, "RC 2-6"],
+  ["Special", "Retaliate 1", 11, "RC 3-6"],
+  ["Special", "Retaliate 1", 18, "RC 4-6"],
+  ["Special", "Retaliate 1", 20, "RC 5-6"],
+  ["Special", "Retaliate 2", 10, "RC 2-6"],
+  ["Special", "Retaliate 2", 13, "RC 3-6"],
+  ["Special", "Retaliate 2", 21, "RC 4-6"],
+  ["Special", "Retaliate 2", 25, "RC 5-6"],
+  ["Special", "Reinforcement 1", 6, "RC 2-6"],
+  ["Special", "Reinforcement 1", 9, "RC 3-6"],
+  ["Special", "Reinforcement 1", 12, "RC 4-6"],
+  ["Special", "Reinforcement 1", 13, "RC 5-6"],
+  ["Special", "Reinforcement 2", 7, "RC 2-6"],
+  ["Special", "Reinforcement 2", 11, "RC 3-6"],
+  ["Special", "Reinforcement 2", 12, "RC 4-6"],
+  ["Special", "Reinforcement 2", 20, "RC 5-6"],
+  ["Special", "Impair", 10, "RC 2-6"],
+  ["Special", "Impair", 13, "RC 3-6"],
+  ["Special", "Impair", 17, "RC 4-6"],
+  ["Special", "Impair", 20, "RC 5-6"],
+  ["Special", "Vicious", 6, "RC 2-6"],
+  ["Special", "Vicious", 9, "RC 3-6"],
+  ["Special", "Vicious", 12, "RC 4-6"],
+  ["Special", "Vicious", 13, "RC 5-6"],
+  ["Special", "Rage", 6, "RC 2-6"],
+  ["Special", "Rage", 9, "RC 3-6"],
+  ["Special", "Rage", 12, "RC 4-6"],
+  ["Special", "Rage", 13, "RC 5-6"],
+  ["Special", "Regroup 2", 9, "RC 2-6"],
+  ["Special", "Regroup 2", 15, "RC 3-6"],
+  ["Special", "Regroup 2", 21, "RC 4-6"],
+  ["Special", "Regroup 2", 24, "RC 5-6"]
+].map(([unitClass, keyword, cost, note]) => ({
+  id: `tier3_keyword_${unitClass}_${keyword}_${note || ""}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Tier 3 Keyword Upgrades",
+  faction: "All",
+  unitClass,
+  name: `${unitClass}: ${keyword}`,
+  effect: `Add Tier 3 keyword ${keyword} to the ${unitClass} battle table.${note ? ` Price based on Roll Check of unit: ${note}.` : ""}`,
+  cost,
+  costResource: "Metal"
+}));
+
+const tier4KeywordShopItems = [
+  
+  
+  ["Guard", "Frenzy", 18],
+  ["Guard", "Ferocious", 17],
+  ["Guard", "Blunt Force", 13],
+
+  
+  ["Knight", "Frenzy", 20],
+  ["Knight", "Ferocious", 20],
+  ["Knight", "Blunt Force", 15],
+
+  ["Archer", "Shift 2", 12],
+  
+  ["Archer", "Frenzy", 16],
+  ["Archer", "Ferocious", 20],
+  ["Archer", "Blunt Force", 15],
+
+  
+  ["Rider", "Frenzy", 24],
+  ["Rider", "Ferocious", 27],
+  ["Rider", "Roar/Terror", 25],
+  ["Rider", "Blunt Force", 19],
+
+  
+  ["Elite", "Frenzy", 28],
+  ["Elite", "Ferocious", 30],
+  ["Elite", "Roar/Terror", 31],
+  ["Elite", "Blunt Force", 23],
+
+  
+  ["Commander", "Frenzy", 26],
+  ["Commander", "Ferocious", 28],
+  ["Commander", "Roar/Terror", 29],
+  ["Commander", "Blunt Force", 22],
+
+  
+  ["Special", "Frenzy", 16, "RC 2-6"],
+  ["Special", "Frenzy", 20, "RC 3-6"],
+  ["Special", "Frenzy", 26, "RC 4-6"],
+  ["Special", "Frenzy", 30, "RC 5-6"],
+  ["Special", "Ferocious", 16, "RC 2-6"],
+  ["Special", "Ferocious", 20, "RC 3-6"],
+  ["Special", "Ferocious", 25, "RC 4-6"],
+  ["Special", "Ferocious", 30, "RC 5-6"],
+  ["Special", "Roar/Terror", 24, "RC 4-6"],
+  ["Special", "Roar/Terror", 30, "RC 5-6"],
+  ["Special", "Blunt Force", 15, "RC 2-6"],
+  ["Special", "Blunt Force", 16, "RC 3-6"],
+  ["Special", "Blunt Force", 22, "RC 4-6"],
+  ["Special", "Blunt Force", 25, "RC 5-6"]
+].map(([unitClass, keyword, cost, note]) => ({
+  id: `tier4_keyword_${unitClass}_${keyword}_${note || ""}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Tier 4 Keyword Upgrades",
+  faction: "All",
+  unitClass,
+  name: `${unitClass}: ${keyword}`,
+  effect: `Add Tier 4 keyword ${keyword} to the ${unitClass} battle table.${note ? ` Price based on Roll Check of unit: ${note}.` : ""}`,
+  cost,
+  costResource: "Metal"
+}));
+
+const tier5KeywordShopItems = [
+  ["Guard", "Double Strike", 22],
+  ["Guard", "Penetrate", 24],
+  ["Guard", "Setup", 23],
+  ["Guard", "Critical Strike", 24],
+  ["Guard", "Strengthen", 25],
+
+  ["Knight", "Double Strike", 25],
+  ["Knight", "Penetrate", 27],
+  ["Knight", "Setup", 25],
+  ["Knight", "Critical Strike", 29],
+  ["Knight", "Strengthen", 28],
+
+  ["Archer", "+1 Target", 24],
+  ["Archer", "Penetrate", 30],
+  ["Archer", "Setup", 26],
+  ["Archer", "Critical Strike", 27],
+  ["Archer", "Blood Thirsty", 30],
+  ["Archer", "Strengthen", 28],
+
+  ["Rider", "Swipe", 24],
+  ["Rider", "Double Strike", 30],
+  ["Rider", "Penetrate", 34],
+  ["Rider", "Sprout", 30],
+  ["Rider", "Setup", 30],
+  ["Rider", "Critical Strike", 30],
+  ["Rider", "Strengthen", 32],
+
+  ["Elite", "Swipe", 31],
+  ["Elite", "Double Strike", 35],
+  ["Elite", "+1 Target", 34],
+  ["Elite", "Penetrate", 38],
+  ["Elite", "Sprout", 35],
+  ["Elite", "Setup", 36],
+  ["Elite", "Critical Strike", 36],
+  ["Elite", "Blood Thirsty", 40],
+  ["Elite", "Strengthen", 38],
+
+  ["Commander", "Swipe", 28],
+  ["Commander", "Double Strike", 33],
+  ["Commander", "Penetrate", 36],
+  ["Commander", "Sprout", 30],
+  ["Commander", "Setup", 33],
+  ["Commander", "Critical Strike", 35],
+  ["Commander", "Strengthen", 35],
+
+  ["Special", "Swipe", 25, "RC 5-6"],
+  ["Special", "Double Strike", 30, "RC 4-6"],
+  ["Special", "Double Strike", 34, "RC 5-6"],
+  ["Special", "+1 Target", 35, "RC 5-6"],
+  ["Special", "Penetrate", 34, "RC 4-6"],
+  ["Special", "Penetrate", 40, "RC 5-6"],
+  ["Special", "Sprout", 30, "RC 4-6"],
+  ["Special", "Sprout", 35, "RC 5-6"],
+  ["Special", "Setup", 20, "RC 2-6"],
+  ["Special", "Setup", 24, "RC 3-6"],
+  ["Special", "Setup", 29, "RC 4-6"],
+  ["Special", "Setup", 35, "RC 5-6"],
+  ["Special", "Critical Strike", 35, "RC 4-6"],
+  ["Special", "Critical Strike", 39, "RC 5-6"],
+  ["Special", "Blood Thirsty", 36, "RC 4-6"],
+  ["Special", "Blood Thirsty", 40, "RC 5-6"],
+  ["Special", "Strengthen", 26, "RC 2-6"],
+  ["Special", "Strengthen", 28, "RC 3-6"],
+  ["Special", "Strengthen", 38, "RC 4-6"],
+  ["Special", "Strengthen", 40, "RC 5-6"]
+].map(([unitClass, keyword, cost, note]) => ({
+  id: `tier5_keyword_${unitClass}_${keyword}_${note || ""}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Tier 5 Keyword Upgrades",
+  faction: "All",
+  unitClass,
+  name: `${unitClass}: ${keyword}`,
+  effect: `Add Tier 5 keyword ${keyword} to the ${unitClass} battle table.${note ? ` Price based on Roll Check of unit: ${note}.` : ""}`,
+  cost,
+  costResource: "Metal"
+}));
+
 const shopItems = [
   ...makeActionShopItems(),
   ...advancedUnitClassShopItems,
@@ -10909,7 +11143,10 @@ const shopItems = [
   ...gateWallHealthShopItems,
   ...meleeEngagementDiceShopItems,
   ...battleTableKeywordShopItems,
-  ...tier2KeywordShopItems
+  ...tier2KeywordShopItems,
+  ...tier3KeywordShopItems,
+  ...tier4KeywordShopItems,
+  ...tier5KeywordShopItems
 ];
 
 
@@ -11016,7 +11253,10 @@ function renderShop() {
     "Gate & Wall Health Upgrade": "Gate & Wall Health Upgrade",
     "Melee Engagement Dice Adding Upgrade": "Melee Engagement Dice Adding Upgrade",
     "Battle Table Keyword Upgrades": "Battle Table Keyword Upgrades",
-    "Tier 2 Keyword Upgrades": "Tier 2 Keyword Upgrades"
+    "Tier 2 Keyword Upgrades": "Tier 2 Keyword Upgrades",
+    "Tier 3 Keyword Upgrades": "Tier 3 Keyword Upgrades",
+    "Tier 4 Keyword Upgrades": "Tier 4 Keyword Upgrades",
+    "Tier 5 Keyword Upgrades": "Tier 5 Keyword Upgrades"
   };
 
   const sectionOrder = [
@@ -11030,7 +11270,10 @@ function renderShop() {
     "Gate & Wall Health Upgrade",
     "Melee Engagement Dice Adding Upgrade",
     "Battle Table Keyword Upgrades",
-    "Tier 2 Keyword Upgrades"
+    "Tier 2 Keyword Upgrades",
+    "Tier 3 Keyword Upgrades",
+    "Tier 4 Keyword Upgrades",
+    "Tier 5 Keyword Upgrades"
   ];
 
   const groupedItems = visibleItems.reduce((groups, item) => {
@@ -11077,6 +11320,12 @@ function renderShop() {
                                   ? "Tier 1 keyword upgrades for unit battle tables."
                                   : section.startsWith("Tier 2")
                                     ? "Tier 2 keyword upgrades for unit battle tables."
+                                    : section.startsWith("Tier 3")
+                                      ? "Tier 3 keyword upgrades for unit battle tables."
+                                      : section.startsWith("Tier 4")
+                                        ? "Tier 4 keyword upgrades for unit battle tables."
+                                        : section.startsWith("Tier 5")
+                                          ? "Tier 5 keyword upgrades for unit battle tables."
                     : "One-time purchases applied to every unit of that class."
               }
             </p>
