@@ -10753,21 +10753,24 @@ const gateWallHealthShopItems = [
 }));
 
 const meleeEngagementDiceShopItems = [
-  ["Guard", "Moved Away: 1 Die. Moved Past: 1 Die."],
-  ["Knight", "Moved Away: 2 Dice. Moved Past: 1 Die."],
-  ["Archer", "Moved Away: 1 Die. Moved Past: none."],
-  ["Rider", "Moved Away: 3 Dice. Moved Past: 2 Dice."],
-  ["Elite", "Moved Away: 4 Dice. Moved Past: 3 Dice."],
-  ["Commander", "Moved Away: 3 Dice. Moved Past: 3 Dice."],
-  ["Special based on RC of unit", "Moved Away: 2-6 = no dice, 3-6 = 1 Die. Moved Past: 4-6 = 2 Dice, 5-6 = 4 Dice."]
-].map(([unit, effect]) => ({
+  ["Guard", "Moved Away: 1 Die. Moved Past: 1 Die.", 8],
+  ["Knight", "Moved Away: 2 Dice. Moved Past: 1 Die.", 11],
+  ["Archer", "Moved Away: 1 Die. Moved Past: none.", 5],
+  ["Rider", "Moved Away: 3 Dice. Moved Past: 2 Dice.", 14],
+  ["Elite", "Moved Away: 4 Dice. Moved Past: 3 Dice.", 19],
+  ["Commander", "Moved Away: 3 Dice. Moved Past: 3 Dice.", 16],
+  
+].map(([unit, effect, cost]) => ({
+
   id: `melee_engagement_${unit}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
   section: "Melee Engagement Dice Adding Upgrade",
   faction: "All",
   unitClass: unit,
   name: unit,
   effect,
-  free: true
+  cost,
+  costResource: "Metal"
+
 }));
 
 const shopItems = [
