@@ -10598,76 +10598,93 @@ function getShopFaction() {
 }
 
 
-const sectionLabels = {
-  "Basic: Overall": "Basic Action Upgrades",
-  "Basic: Additional Purchases": "Basic Action Upgrades",
-  "Advanced: Unit Class Specific": "Advanced Unit Class Upgrades"
-};
+function renderShop() {
+  const app = document.getElementById("shopApp");
+  if (!app) return;
 
-const sectionOrder = [
-  "Basic Action Upgrades",
-  "Advanced: Unit Class Specific"
-];
-;
+  if (!resourceProfile || !data[resourceProfile]) {
+    app.innerHTML = `<p style="color:#ddd;">Create or load a profile before using the shop.</p>`;
+    return;
+  }
 
-const groupedItems = visibleItems.reduce((groups, item) => {
-  const section = item.section || "Other";
-  if (!groups[section]) groups[section] = [];
-  groups[section].push(item);
-  return groups;
-}, {});
+  ensureShopState(resourceProfile);
 
+  const purchases = data[resourceProfile].shop.purchases;
+  const metal = getMetalResource();
+  const metalValue = metal ? metal.value : 0;
 
+  const shopFaction = getShopFaction();
+  const visibleItems = shopItems.filter(item =>
+    item.faction === shopFaction || item.faction === "All"
+  );
 
+  const sectionLabels = {
+    "Basic Action Upgrades": "Basic Action Upgrades",
+    "Advanced: Unit Class Specific": "Advanced Unit Class Upgrades"
+  };
+
+  const sectionOrder = [
+    "Basic Action Upgrades",
+    "Advanced: Unit Class Specific"
+  ];
+
+  const groupedItems = visibleItems.reduce((groups, item) => {
+    const section = item.section || "Other";
+    if (!groups[section]) groups[section] = [];
+    groups[section].push(item);
+    return groups;
+  }, {});
 
   app.innerHTML = `
-  <div style="margin-bottom:16px; color:#ddd;">
-    <strong>Metal:</strong> ${metalValue}
-  </div>
+    <div style="margin-bottom:16px; color:#ddd;">
+      <strong>Metal:</strong> ${metalValue}
+    </div>
 
-  ${sectionOrder
-    .filter(section => groupedItems[section]?.length)
-    .map(section => `
-      <section style="margin-bottom:28px;">
-        <div style="margin-bottom:10px;">
-          <h3 style="margin:0; color:#ffe08a;">
-            ${sectionLabels[section] || section}
-          </h3>
-          <p style="margin:4px 0 0 0; color:#bbb; font-size:13px;">
-            ${
-              section.startsWith("Basic")
-                ? "Faction-specific movement and attack action purchases."
-                : "One-time purchases applied to every unit of that class."
-            }
-          </p>
-        </div>
+    ${sectionOrder
+      .filter(section => groupedItems[section]?.length)
+      .map(section => `
+        <section style="margin-bottom:32px;">
+          <div style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.12);">
+            <h3 style="margin:0; color:#ffe08a;">
+              ${sectionLabels[section] || section}
+            </h3>
+            <p style="margin:4px 0 0 0; color:#bbb; font-size:13px;">
+              ${
+                section.startsWith("Basic")
+                  ? "Faction-specific movement and attack action purchases."
+                  : "One-time purchases applied to every unit of that class."
+              }
+            </p>
+          </div>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
-          ${groupedItems[section].map(item => {
-            const purchased = purchases[item.id];
-            const canAfford = metalValue >= item.cost;
-            const prereqMet = !item.prereq || purchases[item.prereq];
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
+            ${groupedItems[section].map(item => {
+              const purchased = purchases[item.id];
+              const canAfford = metalValue >= item.cost;
+              const prereqMet = !item.prereq || purchases[item.prereq];
 
-            return `
-              <div style="background:rgba(45,45,45,0.95); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${purchased ? "#66cc88" : "#d4af37"}; border-radius:10px; padding:14px;">
-                <small style="color:#cdbb8c; text-transform:uppercase;">${item.section}</small>
-                <h3 style="margin:6px 0; color:#ffe08a;">${item.name}</h3>
-                <p style="color:#ddd;">${item.effect}</p>
-                <p style="color:#bbb;"><strong>Cost:</strong> ${item.cost} Metal</p>
+              return `
+                <div style="background:rgba(45,45,45,0.95); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${purchased ? "#66cc88" : "#d4af37"}; border-radius:10px; padding:14px;">
+                  <small style="color:#cdbb8c; text-transform:uppercase;">${item.section}</small>
+                  <h3 style="margin:6px 0; color:#ffe08a;">${item.name}</h3>
+                  <p style="color:#ddd;">${item.effect}</p>
+                  <p style="color:#bbb;"><strong>Cost:</strong> ${item.cost} Metal</p>
 
-                <button
-                  onclick="purchaseShopItem('${item.id}')"
-                  ${!purchased && (!canAfford || !prereqMet) ? "disabled" : ""}
-                >
-                  ${purchased ? "Refund" : !prereqMet ? "Requires Previous Purchase" : canAfford ? "Buy" : "Not Enough Metal"}
-                </button>
-              </div>
-            `;
-          }).join("")}
-        </div>
-      </section>
-    `).join("")}
-`;
+                  <button
+                    onclick="purchaseShopItem('${item.id}')"
+                    ${!purchased && (!canAfford || !prereqMet) ? "disabled" : ""}
+                  >
+                    ${purchased ? "Refund" : !prereqMet ? "Requires Previous Purchase" : canAfford ? "Buy" : "Not Enough Metal"}
+                  </button>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </section>
+      `).join("")}
+  `;
+}
+
 
 
 
