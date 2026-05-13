@@ -10633,10 +10633,37 @@ const technicalResourceShopItems = [
   costResource
 }));
 
+const rivalAbilityShopItems = [
+  ["Orcs vs Dwarves", "Orcs", "Orcs: +1 Damage for all Melee units", 25],
+  ["Orcs vs Dwarves", "Dwarves", "Dwarves: +1 Roll Check for all Knight Units when facing Orc units", 25],
+  ["Orcs vs Men", "Orcs", "Orcs: Elites gain +1 Armour while adjacent to Men units", 20],
+  ["Orcs vs Men", "Men", "Men: Legionary & Champion gain +1 Roll Check against Orc units", 25],
+  ["Elves vs Orcs", "Elves", "Elves: +2 Food per Orc unit killed", 15],
+  ["Elves vs Orcs", "Orcs", "Orcs: +1 Damage against Elven Structures", 22],
+  ["The Order vs Men", "Assassins", "Assassins: Whenever the Men discover/gain a PoI, move up to 3 Assassins 10", 25],
+  ["The Order vs Men", "Men", "Men: Whenever the Assassins attack a Structure, gain +2 Food", 10],
+  ["Barbarian vs The Order & Dwarves", "Barbarians", "Barbarians: Elites gain +1 Roll Check when attacking Order/Dwarven Structures", 15],
+  ["Barbarian vs The Order & Dwarves", ["Assassins", "Dwarves"], "The Order & Dwarves: Gain +1 Food per successful hit against Elites", 15],
+  ["Monsters vs Every Faction", "Monsters", "Monsters: +1 OD & +1 Roll Check against enemy building", 40],
+  ["Monsters vs Every Faction", "All", "Every Faction: Take 1 less Melee damage when targeted by Monster Faction", 30]
+].map(([matchup, faction, effect, cost]) => ({
+  id: `rival_${matchup}_${Array.isArray(faction) ? faction.join("_") : faction}_${effect}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Rival Ability",
+  faction: Array.isArray(faction) ? null : faction,
+  factions: Array.isArray(faction) ? faction : null,
+  name: matchup,
+  effect: `${effect}. Purchased ability only applies when attacking or defending from your rival faction. Gain 2 Dragon Coins after purchasing this bonus.`,
+  cost,
+  costResource: "Metal",
+  grantResource: "Dragon Coins",
+  grantAmount: 2
+}));
+
 const shopItems = [
   ...makeActionShopItems(),
   ...advancedUnitClassShopItems,
-  ...technicalResourceShopItems
+  ...technicalResourceShopItems,
+  ...rivalAbilityShopItems
 ];
 
 
@@ -10660,6 +10687,12 @@ function getShopItemCost(item) {
     resourceName,
     resource: getResourceByName(resourceName)
   };
+}
+
+function getShopItemFactions(item) {
+  if (item.factions) return item.factions;
+  if (item.faction) return [item.faction];
+  return [];
 }
 
 function getShopFaction() {
@@ -10687,19 +10720,21 @@ function renderShop() {
 
   const shopFaction = getShopFaction();
   const visibleItems = shopItems.filter(item =>
-    item.faction === shopFaction || item.faction === "All"
+    getShopItemFactions(item).includes(shopFaction) || item.faction === "All"
   );
 
   const sectionLabels = {
     "Basic Action Upgrades": "Basic Action Upgrades",
     "Advanced: Unit Class Specific": "Advanced Unit Class Upgrades",
-    "Technical: Resource Specific": "Technical: Resource Specific"
+    "Technical: Resource Specific": "Technical: Resource Specific",
+    "Rival Ability": "Rival Ability"
   };
 
   const sectionOrder = [
     "Basic Action Upgrades",
     "Advanced: Unit Class Specific",
-    "Technical: Resource Specific"
+    "Technical: Resource Specific",
+    "Rival Ability"
   ];
 
   const groupedItems = visibleItems.reduce((groups, item) => {
@@ -10729,6 +10764,8 @@ function renderShop() {
                   ? "Faction-specific movement and attack action purchases."
                   : section.startsWith("Technical")
                     ? "Resource upgrades with the listed currency cost."
+                    : section.startsWith("Rival")
+                      ? "Purchased abilities only apply when attacking or defending from your rival faction."
                     : "One-time purchases applied to every unit of that class."
               }
             </p>
@@ -10786,6 +10823,14 @@ function purchaseShopItem(itemId) {
     if (!refundResource) return;
 
     refundResource.value += refundAmount;
+
+    if (purchases[itemId].grantResource && purchases[itemId].grantAmount) {
+      const grantResource = getResourceByName(purchases[itemId].grantResource);
+      if (grantResource) {
+        grantResource.value = Math.max(0, grantResource.value - Number(purchases[itemId].grantAmount));
+      }
+    }
+
     delete purchases[itemId];
 
     saveResourceProfile();
@@ -10800,10 +10845,19 @@ function purchaseShopItem(itemId) {
 
   cost.resource.value -= cost.amount;
 
+  if (item.grantResource && item.grantAmount) {
+    const grantResource = getResourceByName(item.grantResource);
+    if (grantResource) {
+      grantResource.value += item.grantAmount;
+    }
+  }
+
   purchases[itemId] = {
     name: item.name,
     cost: cost.amount,
     costResource: cost.resourceName,
+    grantResource: item.grantResource,
+    grantAmount: item.grantAmount,
     purchasedAt: new Date().toISOString()
   };
 
