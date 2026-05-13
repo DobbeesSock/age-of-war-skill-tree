@@ -10582,14 +10582,13 @@ function renderShop() {
             <p style="color:#ddd;">${item.effect}</p>
             <p style="color:#bbb;"><strong>Cost:</strong> ${item.cost} Metal</p>
 
-            <button
-              onclick="purchaseShopItem('${item.id}')"
-              ${purchased || !canAfford || !prereqMet ? "disabled" : ""}
+          <button
+            onclick="purchaseShopItem('${item.id}')"
+            ${!purchased && (!canAfford || !prereqMet) ? "disabled" : ""}
+          >
+            ${purchased ? "Refund" : !prereqMet ? "Requires Previous Purchase" : canAfford ? "Buy" : "Not Enough Metal"}
+          </button>
 
-            >
-              ${purchased ? "Purchased" : !prereqMet ? "Requires First Purchase" : canAfford ? "Buy" : "Not Enough Metal"}
-
-            </button>
           </div>
         `;
       }).join("")}
@@ -10606,10 +10605,22 @@ function purchaseShopItem(itemId) {
   if (!item) return;
 
   const purchases = data[resourceProfile].shop.purchases;
-  if (purchases[itemId]) return;
-
   const metal = getMetalResource();
-  if (!metal || metal.value < item.cost) {
+  if (!metal) return;
+
+  // Refund if already purchased
+  if (purchases[itemId]) {
+    const refundAmount = Number(purchases[itemId].cost || item.cost);
+
+    metal.value += refundAmount;
+    delete purchases[itemId];
+
+    saveResourceProfile();
+    renderShop();
+    return;
+  }
+
+  if (metal.value < item.cost) {
     alert("Not enough Metal.");
     return;
   }
@@ -10625,6 +10636,7 @@ function purchaseShopItem(itemId) {
   saveResourceProfile();
   renderShop();
 }
+
 
 
 
