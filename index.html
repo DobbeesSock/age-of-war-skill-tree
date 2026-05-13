@@ -10577,9 +10577,66 @@ const advancedUnitClassShopItems = [
   cost
 }));
 
+const technicalResourceShopItems = [
+  ["Men", "Gold Per Kill", 12, "+1", "Metal"],
+  ["Men", "Gold Per Kill", 19, "+2", "Metal"],
+  ["Men", "Gold Per Kill", 25, "+3", "Metal"],
+  ["Elves", "Gold Per Kill", 12, "+1", "Metal"],
+  ["Elves", "Gold Per Kill", 19, "+2", "Metal"],
+  ["Elves", "Gold Per Kill", 25, "+3", "Metal"],
+  ["Orcs", "Gold Per Kill", 9, "+2", "Metal"],
+  ["Orcs", "Gold Per Kill", 14, "+3", "Metal"],
+  ["Dwarves", "Gold Per Kill", 5, "+1", "Metal"],
+  ["Dwarves", "Gold Per Kill", 13, "+3", "Metal"],
+  ["Assassins", "Gold Per Kill", 5, "+1", "Metal"],
+  ["Assassins", "Gold Per Kill", 13, "+3", "Metal"],
+  ["Barbarians", "Gold Per Kill", 5, "+1", "Metal"],
+  ["Barbarians", "Gold Per Kill", 16, "+2", "Metal"],
+  ["Barbarians", "Gold Per Kill", 25, "+3", "Metal"],
+
+  ["Men", "Metal from Sources", 1, "+1", "Dragon Coins"],
+  ["Men", "Metal from Sources", 7, "+3", "Dragon Coins"],
+  ["Men", "Metal from Sources", 10, "+5", "Dragon Coins"],
+  ["Elves", "Metal from Sources", 1, "+1", "Dragon Coins"],
+  ["Elves", "Metal from Sources", 7, "+3", "Dragon Coins"],
+  ["Elves", "Metal from Sources", 10, "+5", "Dragon Coins"],
+  ["Orcs", "Metal from Sources", 4, "+2", "Dragon Coins"],
+  ["Orcs", "Metal from Sources", 7, "+4", "Dragon Coins"],
+  ["Dwarves", "Metal from Sources", 3, "+2", "Dragon Coins"],
+  ["Dwarves", "Metal from Sources", 6, "+4", "Dragon Coins"],
+  ["Assassins", "Metal from Sources", 3, "+2", "Dragon Coins"],
+  ["Assassins", "Metal from Sources", 6, "+4", "Dragon Coins"],
+  ["Barbarians", "Metal from Sources", 4, "+2", "Dragon Coins"],
+  ["Barbarians", "Metal from Sources", 6, "+4", "Dragon Coins"],
+
+  ["Men", "Dragon Coins from Sources", 22, "+2", "Metal"],
+  ["Men", "Dragon Coins from Sources", 28, "+3", "Metal"],
+  ["Men", "Dragon Coins from Sources", 32, "+5", "Metal"],
+  ["Elves", "Dragon Coins from Sources", 22, "+2", "Metal"],
+  ["Elves", "Dragon Coins from Sources", 28, "+3", "Metal"],
+  ["Elves", "Dragon Coins from Sources", 32, "+5", "Metal"],
+  ["Orcs", "Dragon Coins from Sources", 24, "+4", "Metal"],
+  ["Orcs", "Dragon Coins from Sources", 30, "+6", "Metal"],
+  ["Dwarves", "Dragon Coins from Sources", 26, "+5", "Metal"],
+  ["Dwarves", "Dragon Coins from Sources", 32, "+6", "Metal"],
+  ["Assassins", "Dragon Coins from Sources", 26, "+5", "Metal"],
+  ["Assassins", "Dragon Coins from Sources", 32, "+6", "Metal"],
+  ["Barbarians", "Dragon Coins from Sources", 27, "+5", "Metal"],
+  ["Barbarians", "Dragon Coins from Sources", 33, "+7", "Metal"]
+].map(([faction, resource, cost, bonus, costResource]) => ({
+  id: `technical_${faction}_${resource}_${bonus}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Technical: Resource Specific",
+  faction,
+  name: `${resource} ${bonus}`,
+  effect: `Unlock ${bonus} ${resource}.`,
+  cost,
+  costResource
+}));
+
 const shopItems = [
   ...makeActionShopItems(),
-  ...advancedUnitClassShopItems
+  ...advancedUnitClassShopItems,
+  ...technicalResourceShopItems
 ];
 
 
@@ -10590,6 +10647,19 @@ const shopItems = [
 
 function getMetalResource() {
   return resources.find(resource => resource.name === "Metal");
+}
+
+function getResourceByName(name) {
+  return resources.find(resource => resource.name === name);
+}
+
+function getShopItemCost(item) {
+  const resourceName = item.costResource || "Metal";
+  return {
+    amount: item.cost,
+    resourceName,
+    resource: getResourceByName(resourceName)
+  };
 }
 
 function getShopFaction() {
@@ -10612,6 +10682,8 @@ function renderShop() {
   const purchases = data[resourceProfile].shop.purchases;
   const metal = getMetalResource();
   const metalValue = metal ? metal.value : 0;
+  const dragonCoins = getResourceByName("Dragon Coins");
+  const dragonCoinValue = dragonCoins ? dragonCoins.value : 0;
 
   const shopFaction = getShopFaction();
   const visibleItems = shopItems.filter(item =>
@@ -10620,12 +10692,14 @@ function renderShop() {
 
   const sectionLabels = {
     "Basic Action Upgrades": "Basic Action Upgrades",
-    "Advanced: Unit Class Specific": "Advanced Unit Class Upgrades"
+    "Advanced: Unit Class Specific": "Advanced Unit Class Upgrades",
+    "Technical: Resource Specific": "Technical: Resource Specific"
   };
 
   const sectionOrder = [
     "Basic Action Upgrades",
-    "Advanced: Unit Class Specific"
+    "Advanced: Unit Class Specific",
+    "Technical: Resource Specific"
   ];
 
   const groupedItems = visibleItems.reduce((groups, item) => {
@@ -10638,6 +10712,7 @@ function renderShop() {
   app.innerHTML = `
     <div style="margin-bottom:16px; color:#ddd;">
       <strong>Metal:</strong> ${metalValue}
+      <span style="margin-left:14px;"><strong>Dragon Coins:</strong> ${dragonCoinValue}</span>
     </div>
 
     ${sectionOrder
@@ -10652,7 +10727,9 @@ function renderShop() {
               ${
                 section.startsWith("Basic")
                   ? "Faction-specific movement and attack action purchases."
-                  : "One-time purchases applied to every unit of that class."
+                  : section.startsWith("Technical")
+                    ? "Resource upgrades with the listed currency cost."
+                    : "One-time purchases applied to every unit of that class."
               }
             </p>
           </div>
@@ -10660,7 +10737,9 @@ function renderShop() {
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
             ${groupedItems[section].map(item => {
               const purchased = purchases[item.id];
-              const canAfford = metalValue >= item.cost;
+              const cost = getShopItemCost(item);
+              const availableResource = cost.resource ? cost.resource.value : 0;
+              const canAfford = availableResource >= cost.amount;
               const prereqMet = !item.prereq || purchases[item.prereq];
 
               return `
@@ -10668,13 +10747,13 @@ function renderShop() {
                   <small style="color:#cdbb8c; text-transform:uppercase;">${item.section}</small>
                   <h3 style="margin:6px 0; color:#ffe08a;">${item.name}</h3>
                   <p style="color:#ddd;">${item.effect}</p>
-                  <p style="color:#bbb;"><strong>Cost:</strong> ${item.cost} Metal</p>
+                  <p style="color:#bbb;"><strong>Cost:</strong> ${cost.amount} ${cost.resourceName}</p>
 
                   <button
                     onclick="purchaseShopItem('${item.id}')"
                     ${!purchased && (!canAfford || !prereqMet) ? "disabled" : ""}
                   >
-                    ${purchased ? "Refund" : !prereqMet ? "Requires Previous Purchase" : canAfford ? "Buy" : "Not Enough Metal"}
+                    ${purchased ? "Refund" : !prereqMet ? "Requires Previous Purchase" : canAfford ? "Buy" : `Not Enough ${cost.resourceName}`}
                   </button>
                 </div>
               `;
@@ -10697,14 +10776,16 @@ function purchaseShopItem(itemId) {
   if (!item) return;
 
   const purchases = data[resourceProfile].shop.purchases;
-  const metal = getMetalResource();
-  if (!metal) return;
+  const cost = getShopItemCost(item);
+  if (!cost.resource) return;
 
   // Refund if already purchased
   if (purchases[itemId]) {
-    const refundAmount = Number(purchases[itemId].cost || item.cost);
+    const refundAmount = Number(purchases[itemId].cost || cost.amount);
+    const refundResource = getResourceByName(purchases[itemId].costResource || cost.resourceName);
+    if (!refundResource) return;
 
-    metal.value += refundAmount;
+    refundResource.value += refundAmount;
     delete purchases[itemId];
 
     saveResourceProfile();
@@ -10712,16 +10793,17 @@ function purchaseShopItem(itemId) {
     return;
   }
 
-  if (metal.value < item.cost) {
-    alert("Not enough Metal.");
+  if (cost.resource.value < cost.amount) {
+    alert(`Not enough ${cost.resourceName}.`);
     return;
   }
 
-  metal.value -= item.cost;
+  cost.resource.value -= cost.amount;
 
   purchases[itemId] = {
     name: item.name,
-    cost: item.cost,
+    cost: cost.amount,
+    costResource: cost.resourceName,
     purchasedAt: new Date().toISOString()
   };
 
