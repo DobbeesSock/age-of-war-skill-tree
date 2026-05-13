@@ -869,7 +869,22 @@ body.men {
     float: right;
 }
 .node h3 { margin:0; color:#ffd700; font-size:14px; }
-.node p { margin:5px 0; font-size:12px; }
+.node p {
+    margin:5px 0;
+    font-size:12px;
+    color:#f1e4bd;
+    text-shadow: 0 1px 2px #000;
+}
+
+.node.locked {
+    opacity: 0.92;
+}
+
+.node.locked::after,
+.node.available::after {
+    color:#e7d6a3;
+    text-shadow: 0 1px 2px #000;
+}
 
 .locked { opacity: 0.75; }
 .available { box-shadow:0 0 6px #c9a66b; }
@@ -877,6 +892,16 @@ body.men {
     background: linear-gradient(145deg, #d4af37, #b8962e);
     color:black;
     box-shadow: 0 0 15px gold, inset 0 0 5px #fff3;
+}
+
+.node.unlocked p {
+    color:#111;
+    text-shadow:none;
+}
+
+.node.unlocked::after {
+    color:#222;
+    text-shadow:none;
 }
 
 
