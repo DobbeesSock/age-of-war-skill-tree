@@ -10773,6 +10773,52 @@ const meleeEngagementDiceShopItems = [
 
 }));
 
+const battleTableKeywordShopItems = [
+  ["Guard", "+1 Armour", 8],
+  ["Guard", "+1 Heal Self", 8],
+  ["Guard", "Elevation", 12],
+
+  ["Knight", "+1 Armour", 10],
+  ["Knight", "+1 Heal Self", 10],
+  ["Knight", "Elevation", 10],
+
+  ["Archer", "+1 Armour", 8],
+  ["Archer", "+1 Heal Self", 8],
+  ["Archer", "Elevation", 10],
+  ["Archer", "+1 Pierce", 12],
+
+  ["Rider", "+1 Armour", 12],
+  ["Rider", "+1 Heal Self", 10],
+  ["Rider", "+1 Pierce", 14],
+
+  ["Elite", "+1 Armour", 14],
+  ["Elite", "+1 Heal Self", 12],
+
+  ["Commander", "+1 Armour", 10],
+  ["Commander", "+1 Heal Self", 9],
+  ["Commander", "Elevation", 10],
+
+  ["Special", "+1 Armour", 6, "RC 2-6"],
+  ["Special", "+1 Armour", 8, "RC 3-6"],
+  ["Special", "+1 Armour", 10, "RC 4-6"],
+  ["Special", "+1 Armour", 14, "RC 5-6"],
+  ["Special", "+1 Heal Self", 4, "RC 2-6"],
+  ["Special", "+1 Heal Self", 6, "RC 3-6"],
+  ["Special", "+1 Heal Self", 10, "RC 4-6"],
+  ["Special", "+1 Heal Self", 10, "RC 5-6"],
+  ["Special", "Elevation", 5, "RC 2-6"],
+  ["Special", "Elevation", 7, "RC 3-6"]
+].map(([unitClass, keyword, cost, note]) => ({
+  id: `battle_keyword_${unitClass}_${keyword}_${note || ""}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Battle Table Keyword Upgrades",
+  faction: "All",
+  unitClass,
+  name: `${unitClass}: ${keyword}`,
+  effect: `Add ${keyword} to the ${unitClass} battle table.${note ? ` Price based on Roll Check of unit: ${note}.` : ""}`,
+  cost,
+  costResource: "Metal"
+}));
+
 const shopItems = [
   ...makeActionShopItems(),
   ...advancedUnitClassShopItems,
@@ -10783,7 +10829,8 @@ const shopItems = [
   ...energyAbilityShopItems,
   ...setupLevelShopItems,
   ...gateWallHealthShopItems,
-  ...meleeEngagementDiceShopItems
+  ...meleeEngagementDiceShopItems,
+  ...battleTableKeywordShopItems
 ];
 
 
@@ -10888,7 +10935,8 @@ function renderShop() {
     "Ultimate/ Abilities": "Ultimate/ Abilities",
     "Increase Setup Level, Faction Specific": "Increase Setup Level, Faction Specific",
     "Gate & Wall Health Upgrade": "Gate & Wall Health Upgrade",
-    "Melee Engagement Dice Adding Upgrade": "Melee Engagement Dice Adding Upgrade"
+    "Melee Engagement Dice Adding Upgrade": "Melee Engagement Dice Adding Upgrade",
+    "Battle Table Keyword Upgrades": "Battle Table Keyword Upgrades"
   };
 
   const sectionOrder = [
@@ -10900,7 +10948,8 @@ function renderShop() {
     "Ultimate/ Abilities",
     "Increase Setup Level, Faction Specific",
     "Gate & Wall Health Upgrade",
-    "Melee Engagement Dice Adding Upgrade"
+    "Melee Engagement Dice Adding Upgrade",
+    "Battle Table Keyword Upgrades"
   ];
 
   const groupedItems = visibleItems.reduce((groups, item) => {
@@ -10943,6 +10992,8 @@ function renderShop() {
                               ? "Faction-specific health upgrades for gates and walls; pay with either listed resource."
                               : section.startsWith("Melee")
                                 ? "Adds melee engagement dice when units move away or move past."
+                                : section.startsWith("Battle Table")
+                                  ? "Tier 1 keyword upgrades for unit battle tables."
                     : "One-time purchases applied to every unit of that class."
               }
             </p>
