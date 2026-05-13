@@ -10526,11 +10526,7 @@ function makeActionShopItems() {
   return items;
 }
 
-const shopItems = [
-  ...makeActionShopItems()
-
-
-  const advancedUnitClassShopItems = [
+const advancedUnitClassShopItems = [
   ["Guard", "+1 Health", 8],
   ["Guard", "+1 Output Damage", 9],
   ["Guard", "+2 Movement Speed", 6],
@@ -10579,10 +10575,13 @@ const shopItems = [
   name: `${unitClass}: ${name}`,
   effect: `One-time purchase. Applies to all ${unitClass} units of that type.`,
   cost
-
-
 }));
+
+const shopItems = [
+  ...makeActionShopItems(),
+  ...advancedUnitClassShopItems
 ];
+
 
 
 
