@@ -10732,6 +10732,26 @@ const setupLevelShopItems = [
   })
 );
 
+const gateWallHealthShopItems = [
+  ["Men", "Wall Health Upgrade", "+4 HP", [["Gold", 45], ["Metal", 20]]],
+  ["Men", "Gate Health Upgrade", "+6 HP", [["Gold", 40], ["Metal", 15]]],
+  ["Elves", "Wall Health Upgrade", "+3 HP", [["Gold", 45], ["Metal", 20]]],
+  ["Elves", "Gate Health Upgrade", "+5 HP", [["Gold", 40], ["Metal", 15]]],
+  ["Dwarves", "Wall Health Upgrade", "+5 HP", [["Gold", 45], ["Metal", 20]]],
+  ["Dwarves", "Gate Health Upgrade", "+7 HP", [["Gold", 40], ["Metal", 15]]],
+  ["Assassins", "Wall Health Upgrade", "+4 HP", [["Gold", 45], ["Metal", 20]]],
+  ["Assassins", "Gate Health Upgrade", "+6 HP", [["Gold", 40], ["Metal", 15]]],
+  ["Barbarians", "Wall Health Upgrade", "+3 HP", [["Gold", 45], ["Metal", 20]]],
+  ["Barbarians", "Gate Health Upgrade", "+5 HP", [["Gold", 40], ["Metal", 15]]]
+].map(([faction, name, effect, costOptions]) => ({
+  id: `gate_wall_${faction}_${name}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Gate & Wall Health Upgrade",
+  faction,
+  name,
+  effect,
+  costOptions: costOptions.map(([resourceName, amount]) => ({ resourceName, amount }))
+}));
+
 const shopItems = [
   ...makeActionShopItems(),
   ...advancedUnitClassShopItems,
@@ -10740,7 +10760,8 @@ const shopItems = [
   ...boonShopItems,
   ...ultimateAbilityShopItems,
   ...energyAbilityShopItems,
-  ...setupLevelShopItems
+  ...setupLevelShopItems,
+  ...gateWallHealthShopItems
 ];
 
 
@@ -10758,12 +10779,33 @@ function getResourceByName(name) {
 }
 
 function getShopItemCost(item) {
+  if (item.costOptions && item.costOptions.length) {
+    const option = item.costOptions[0];
+    return {
+      amount: option.amount,
+      resourceName: option.resourceName,
+      resource: getResourceByName(option.resourceName)
+    };
+  }
+
   const resourceName = item.costResource || "Metal";
   return {
     amount: item.cost,
     resourceName,
     resource: getResourceByName(resourceName)
   };
+}
+
+function getShopItemCostOptions(item) {
+  if (item.costOptions && item.costOptions.length) {
+    return item.costOptions.map(option => ({
+      amount: option.amount,
+      resourceName: option.resourceName,
+      resource: getResourceByName(option.resourceName)
+    }));
+  }
+
+  return [getShopItemCost(item)];
 }
 
 function getShopItemFactions(item) {
@@ -10790,6 +10832,8 @@ function renderShop() {
   ensureShopState(resourceProfile);
 
   const purchases = data[resourceProfile].shop.purchases;
+  const gold = getResourceByName("Gold");
+  const goldValue = gold ? gold.value : 0;
   const metal = getMetalResource();
   const metalValue = metal ? metal.value : 0;
   const dragonCoins = getResourceByName("Dragon Coins");
@@ -10807,7 +10851,8 @@ function renderShop() {
     "Rival Ability": "Rival Ability",
     "Boons": "Boons",
     "Ultimate/ Abilities": "Ultimate/ Abilities",
-    "Increase Setup Level, Faction Specific": "Increase Setup Level, Faction Specific"
+    "Increase Setup Level, Faction Specific": "Increase Setup Level, Faction Specific",
+    "Gate & Wall Health Upgrade": "Gate & Wall Health Upgrade"
   };
 
   const sectionOrder = [
@@ -10817,7 +10862,8 @@ function renderShop() {
     "Rival Ability",
     "Boons",
     "Ultimate/ Abilities",
-    "Increase Setup Level, Faction Specific"
+    "Increase Setup Level, Faction Specific",
+    "Gate & Wall Health Upgrade"
   ];
 
   const groupedItems = visibleItems.reduce((groups, item) => {
@@ -10829,7 +10875,8 @@ function renderShop() {
 
   app.innerHTML = `
     <div style="margin-bottom:16px; color:#ddd;">
-      <strong>Metal:</strong> ${metalValue}
+      <strong>Gold:</strong> ${goldValue}
+      <span style="margin-left:14px;"><strong>Metal:</strong> ${metalValue}</span>
       <span style="margin-left:14px;"><strong>Dragon Coins:</strong> ${dragonCoinValue}</span>
     </div>
 
@@ -10855,6 +10902,8 @@ function renderShop() {
                           ? "One-time purchases to lower costs of Ultimate Unit and Faction Abilities."
                           : section.startsWith("Increase Setup")
                             ? "Faction-specific setup level increases purchased in order."
+                            : section.startsWith("Gate")
+                              ? "Faction-specific health upgrades for gates and walls; pay with either listed resource."
                     : "One-time purchases applied to every unit of that class."
               }
             </p>
@@ -10863,24 +10912,39 @@ function renderShop() {
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
             ${groupedItems[section].map(item => {
               const purchased = purchases[item.id];
-              const cost = getShopItemCost(item);
-              const availableResource = cost.resource ? cost.resource.value : 0;
-              const canAfford = availableResource >= cost.amount;
+              const costOptions = getShopItemCostOptions(item);
               const prereqMet = !item.prereq || purchases[item.prereq];
+              const costText = costOptions.map(cost => `${cost.amount} ${cost.resourceName}`).join(" or ");
+              const purchaseControls = purchased
+                ? `
+                  <button onclick="purchaseShopItem('${item.id}')">
+                    Refund
+                  </button>
+                `
+                : costOptions.map((cost, index) => {
+                  const availableResource = cost.resource ? cost.resource.value : 0;
+                  const canAfford = availableResource >= cost.amount;
+
+                  return `
+                    <button
+                      onclick="purchaseShopItem('${item.id}', ${index})"
+                      ${(!canAfford || !prereqMet) ? "disabled" : ""}
+                    >
+                      ${!prereqMet ? "Requires Previous Purchase" : canAfford ? `Pay ${cost.amount} ${cost.resourceName}` : `Not Enough ${cost.resourceName}`}
+                    </button>
+                  `;
+                }).join("");
 
               return `
                 <div style="background:rgba(45,45,45,0.95); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${purchased ? "#66cc88" : "#d4af37"}; border-radius:10px; padding:14px;">
                   <small style="color:#cdbb8c; text-transform:uppercase;">${item.section}</small>
                   <h3 style="margin:6px 0; color:#ffe08a;">${item.name}</h3>
                   <p style="color:#ddd;">${item.effect}</p>
-                  <p style="color:#bbb;"><strong>Cost:</strong> ${cost.amount} ${cost.resourceName}</p>
+                  <p style="color:#bbb;"><strong>Cost:</strong> ${costText}</p>
 
-                  <button
-                    onclick="purchaseShopItem('${item.id}')"
-                    ${!purchased && (!canAfford || !prereqMet) ? "disabled" : ""}
-                  >
-                    ${purchased ? "Refund" : !prereqMet ? "Requires Previous Purchase" : canAfford ? "Buy" : `Not Enough ${cost.resourceName}`}
-                  </button>
+                  <div class="potion-actions">
+                    ${purchaseControls}
+                  </div>
                 </div>
               `;
             }).join("")}
@@ -10893,7 +10957,7 @@ function renderShop() {
 
 
 
-function purchaseShopItem(itemId) {
+function purchaseShopItem(itemId, costOptionIndex = 0) {
   if (!resourceProfile || !data[resourceProfile]) return;
 
   ensureShopState(resourceProfile);
@@ -10902,7 +10966,7 @@ function purchaseShopItem(itemId) {
   if (!item) return;
 
   const purchases = data[resourceProfile].shop.purchases;
-  const cost = getShopItemCost(item);
+  const cost = getShopItemCostOptions(item)[costOptionIndex] || getShopItemCost(item);
   if (!cost.resource) return;
 
   // Refund if already purchased
