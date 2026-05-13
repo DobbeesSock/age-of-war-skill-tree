@@ -214,6 +214,21 @@ h1 {
   color: #ffe08a;
 }
 
+.keyword-search {
+  min-width: 240px;
+  padding: 9px 10px;
+  background: rgba(20,20,20,0.92);
+  color: #f2e6c0;
+  border: 1px solid rgba(212,175,55,0.7);
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+.keyword-search:focus {
+  outline: none;
+  box-shadow: 0 0 8px rgba(212,175,55,0.55);
+}
+
 .keyword-grid {
   display: flex;
   flex-wrap: wrap;
@@ -2378,6 +2393,13 @@ body.elves {
       <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
         <h2 style="margin:0; color:gold;">Keyword Tracker</h2>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <input
+            id="keywordSearch"
+            class="keyword-search"
+            type="search"
+            placeholder="Search keywords..."
+            oninput="renderKeywords()"
+          >
           <span id="keywordCount" style="color:#ddd;">0 selected</span>
           <button onclick="clearKeywords()">Clear Keywords</button>
         </div>
@@ -11536,30 +11558,57 @@ function renderKeywords() {
   ensureKeywordState(resourceProfile);
 
   const selected = data[resourceProfile].keywords.selected;
+  const searchInput = document.getElementById("keywordSearch");
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
 
   const count = document.getElementById("keywordCount");
   if (count) {
     const total = getSelectedKeywordCount();
-    count.textContent = `${total} selected`;
+    const matchTotal = keywordSections.reduce((sum, section) => {
+      return sum + section.keywords.filter(keyword =>
+        !query || keyword.toLowerCase().includes(query)
+      ).length;
+    }, 0);
+
+    count.textContent = query
+      ? `${total} selected / ${matchTotal} match${matchTotal === 1 ? "" : "es"}`
+      : `${total} selected`;
   }
 
-  app.innerHTML = keywordSections.map(section => `
+  const renderedSections = keywordSections
+    .map(section => {
+      const keywords = section.keywords.filter(keyword =>
+        !query || keyword.toLowerCase().includes(query)
+      );
+
+      if (keywords.length === 0) return "";
+
+      return `
+        <div class="keyword-section">
+          <h3>${section.title}</h3>
+          <div class="keyword-grid">
+            ${keywords.map(keyword => `
+              <label class="keyword-chip ${selected[keyword] ? "active" : ""}">
+                <input
+                  type="checkbox"
+                  ${selected[keyword] ? "checked" : ""}
+                  onchange="toggleKeyword('${keyword.replace(/'/g, "\\'")}')"
+                >
+                ${keyword}
+              </label>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  app.innerHTML = renderedSections || `
     <div class="keyword-section">
-      <h3>${section.title}</h3>
-      <div class="keyword-grid">
-        ${section.keywords.map(keyword => `
-          <label class="keyword-chip ${selected[keyword] ? "active" : ""}">
-            <input
-              type="checkbox"
-              ${selected[keyword] ? "checked" : ""}
-              onchange="toggleKeyword('${keyword.replace(/'/g, "\\'")}')"
-            >
-            ${keyword}
-          </label>
-        `).join("")}
-      </div>
+      <h3>No Keywords Found</h3>
+      <p style="margin:0; color:#bbb;">Try a different search.</p>
     </div>
-  `).join("");
+  `;
 }
 
 
