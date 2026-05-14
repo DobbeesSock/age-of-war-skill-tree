@@ -6879,7 +6879,8 @@ function renderResources() {
 
 
 
-  document.getElementById("abilityChartPanel").innerHTML = renderFactionAbilityChart();
+  document.getElementById("abilityChartPanel").innerHTML =
+    renderFactionAbilityChart() + renderPurchasedShopReminders();
 
   const centerPanel = document.getElementById("collectionAndResourcesPanel");
   centerPanel.innerHTML = renderCollectionChart();
@@ -6923,8 +6924,6 @@ function renderResources() {
 
     centerPanel.appendChild(row);
   });
-
-  centerPanel.insertAdjacentHTML("beforeend", renderPurchasedShopReminders());
 
   document.getElementById("abilityDescriptionsPanel").innerHTML = renderFactionAbilityDescriptions();
 }
