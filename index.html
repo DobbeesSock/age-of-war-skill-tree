@@ -10626,23 +10626,36 @@ const advancedUnitClassShopItems = [
   cost
 }));
 
-const technicalResourceShopItems = [
-  ["Men", "Gold Per Kill", 12, "+1", "Metal"],
-  ["Men", "Gold Per Kill", 19, "+2", "Metal"],
-  ["Men", "Gold Per Kill", 25, "+3", "Metal"],
-  ["Elves", "Gold Per Kill", 12, "+1", "Metal"],
-  ["Elves", "Gold Per Kill", 19, "+2", "Metal"],
-  ["Elves", "Gold Per Kill", 25, "+3", "Metal"],
-  ["Orcs", "Gold Per Kill", 9, "+2", "Metal"],
-  ["Orcs", "Gold Per Kill", 14, "+3", "Metal"],
-  ["Dwarves", "Gold Per Kill", 5, "+1", "Metal"],
-  ["Dwarves", "Gold Per Kill", 13, "+3", "Metal"],
-  ["Assassins", "Gold Per Kill", 5, "+1", "Metal"],
-  ["Assassins", "Gold Per Kill", 13, "+3", "Metal"],
-  ["Barbarians", "Gold Per Kill", 5, "+1", "Metal"],
-  ["Barbarians", "Gold Per Kill", 16, "+2", "Metal"],
-  ["Barbarians", "Gold Per Kill", 25, "+3", "Metal"],
+const unitMatrixGoldUpgradeShopItems = [
+  ["White Base", "2 Gold", "+1 Gold", 8],
+  ["White Base", "2 Gold", "+2 Gold", 14],
+  ["Black Base", "3 Gold", "+1 Gold", 12],
+  ["Black Base", "3 Gold", "+2 Gold", 21],
+  ["Red Base", "3 Gold", "+1 Gold", 12],
+  ["Red Base", "3 Gold", "+2 Gold", 21],
+  ["Yellow Base", "3 Gold", "+1 Gold", 12],
+  ["Yellow Base", "3 Gold", "+2 Gold", 21],
+  ["Purple Base", "4 Gold", "+1 Gold", 16],
+  ["Purple Base", "4 Gold", "+2 Gold", 28],
+  ["Brown Base", "5 Gold", "+1 Gold", 20],
+  ["Brown Base", "5 Gold", "+2 Gold", 35],
+  ["Blue Base", "6 Gold", "+1 Gold", 24],
+  ["Blue Base", "6 Gold", "+2 Gold", 42],
+  ["Yellow/Blue Base", "7 Gold", "+1 Gold", 28],
+  ["Yellow/Blue Base", "7 Gold", "+2 Gold", 49],
+  ["Ultimate Base", "5 Dragon Coins", "+1 Dragon Coin", 30],
+  ["Ultimate Base", "5 Dragon Coins", "+2 Dragon Coins", 55]
+].map(([baseColor, matrixValue, bonus, cost]) => ({
+  id: `technical_unit_matrix_${baseColor}_${bonus}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+  section: "Technical: Resource Specific",
+  faction: "All",
+  name: `${baseColor}: ${bonus}`,
+  effect: `Increase ${baseColor} unit matrix value from ${matrixValue} by ${bonus}. Applies when that base color is killed.`,
+  cost,
+  costResource: "Metal"
+}));
 
+const technicalResourceSourceShopItems = [
   ["Men", "Metal from Sources", 1, "+1", "Dragon Coins"],
   ["Men", "Metal from Sources", 7, "+3", "Dragon Coins"],
   ["Men", "Metal from Sources", 10, "+5", "Dragon Coins"],
@@ -10681,6 +10694,11 @@ const technicalResourceShopItems = [
   cost,
   costResource
 }));
+
+const technicalResourceShopItems = [
+  ...unitMatrixGoldUpgradeShopItems,
+  ...technicalResourceSourceShopItems
+];
 
 const rivalAbilityShopItems = [
   ["Orcs vs Dwarves", "Orcs", "Orcs: +1 Damage for all Melee units", 25],
@@ -11304,7 +11322,7 @@ function renderShop() {
     },
     "Technical: Resource Specific": {
       label: "Technical: Resource Specific",
-      description: "Resource upgrades with the listed currency cost.",
+      description: "Unit matrix kill-value upgrades plus resource source upgrades with the listed currency cost.",
       accent: "#72a5ff"
     },
     "Rival Ability": {
