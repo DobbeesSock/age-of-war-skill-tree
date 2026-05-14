@@ -11527,6 +11527,13 @@ function renderShop() {
   `;
 }
 
+function refreshResourceViewIfReady() {
+  const app = document.getElementById("app");
+  if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+  renderResources();
+}
+
 
 
 
@@ -11562,6 +11569,7 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
     delete purchases[itemId];
 
     saveResourceProfile();
+    refreshResourceViewIfReady();
     renderShop();
     return;
   }
@@ -11593,6 +11601,7 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
   };
 
   saveResourceProfile();
+  refreshResourceViewIfReady();
   renderShop();
 }
 
