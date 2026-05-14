@@ -6820,6 +6820,52 @@ function renderCollectionChart() {
   `;
 }
 
+function renderPurchasedShopReminders() {
+  if (!resourceProfile || !data[resourceProfile]?.shop?.purchases) return "";
+
+  const reminderSections = ["Rival Ability", "Boons", "Ultimate/ Abilities"];
+  const reminderColors = {
+    "Rival Ability": "#c96b6b",
+    "Boons": "#ff9800",
+    "Ultimate/ Abilities": "#c44dff"
+  };
+
+  const purchases = data[resourceProfile].shop.purchases;
+  const purchasedReminderItems = Object.keys(purchases)
+    .map(itemId => shopItems.find(item => item.id === itemId))
+    .filter(item => item && reminderSections.includes(item.section));
+
+  if (!purchasedReminderItems.length) return "";
+
+  const groupedItems = purchasedReminderItems.reduce((groups, item) => {
+    if (!groups[item.section]) groups[item.section] = [];
+    groups[item.section].push(item);
+    return groups;
+  }, {});
+
+  return `
+    <div style="margin:18px 10px 10px; padding:16px; border-radius:12px; background:rgba(35,35,35,0.92); border:1px solid rgba(255,255,255,0.14); box-shadow:0 0 12px rgba(0,0,0,0.35);">
+      <h2 style="margin:0 0 12px 0; color:gold;">Purchased Upgrade Reminders</h2>
+
+      ${reminderSections
+        .filter(section => groupedItems[section]?.length)
+        .map(section => `
+          <div style="margin-top:14px;">
+            <h3 style="margin:0 0 8px 0; color:${reminderColors[section]}; font-size:16px;">${section}</h3>
+            <div style="display:grid; gap:10px;">
+              ${groupedItems[section].map(item => `
+                <div style="padding:12px; border-radius:8px; background:rgba(55,55,55,0.88); border:1px solid rgba(255,255,255,0.1); border-left:5px solid ${reminderColors[section]};">
+                  <h4 style="margin:0 0 6px 0; color:#ffe08a;">${item.name}</h4>
+                  <p style="margin:0; color:#ddd; line-height:1.4;">${item.effect}</p>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `).join("")}
+    </div>
+  `;
+}
+
 
 function renderResources() {
   const app = document.getElementById("app");
@@ -6877,6 +6923,8 @@ function renderResources() {
 
     centerPanel.appendChild(row);
   });
+
+  centerPanel.insertAdjacentHTML("beforeend", renderPurchasedShopReminders());
 
   document.getElementById("abilityDescriptionsPanel").innerHTML = renderFactionAbilityDescriptions();
 }
