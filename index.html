@@ -10281,54 +10281,21 @@ const keywordSections = [
 ];
 
 const mythologicalCaveCards = [
-  {
-    id: "steel_door_oaths",
-    title: "The Steel Door of Oaths",
-    theme: "Trust ledger, shared symbols, reward negotiation",
-    entrance: "All factions must place one unit with 6+ HP adjacent to the Steel Door.",
-    summary: "A table-wide oath cave where players choose symbols, cross a shared burden bridge, solve the Crown Puzzle, then decide whether to divide rewards or betray each other.",
-    tags: ["Trust", "Betrayal", "Oaths", "Shared Rewards"]
-  },
-  {
-    id: "iron_choir",
-    title: "The Iron Choir",
-    theme: "Harmony versus discord",
-    entrance: "All factions must place one unit with 6+ HP adjacent to the Steel Door.",
-    summary: "Players choose notes, perform hidden roles, build a shared verse, and decide whether one faction may claim the Choir's blessing.",
-    tags: ["Harmony", "Discord", "Hidden Roles", "Voice"]
-  },
-  {
-    id: "weighing_crowns",
-    title: "The Weighing of Crowns",
-    theme: "Leadership, burden, and shared rule",
-    entrance: "All factions must place one unit with 6+ HP adjacent to the Steel Door.",
-    summary: "Each faction places offerings on crowned scales, votes for temporary rule, solves the crown-statue puzzle, and risks becoming Crown-Debtor.",
-    tags: ["Crowns", "Burden", "Rule", "Judgment"]
-  },
-  {
-    id: "lantern_maze",
-    title: "The Lantern Maze",
-    theme: "Separated paths and indirect cooperation",
-    entrance: "All factions must place one unit with 6+ HP adjacent to the Steel Door.",
-    summary: "Players are split into separate corridors where each choice affects another faction. The final exit requires sacrifice, random loss, or breaking the lantern.",
-    tags: ["Lanterns", "Separation", "Sacrifice", "Secrets"]
-  },
-  {
-    id: "table_unbroken_bread",
-    title: "The Table of Unbroken Bread",
-    theme: "Hospitality, hunger, and accusation",
-    entrance: "All factions must place one unit with 6+ HP adjacent to the Steel Door.",
-    summary: "A feast-hall cave where players serve each other, swap poisoned cups, and decide who deserves to leave hungry.",
-    tags: ["Hospitality", "Hunger", "Feast", "Accusation"]
-  },
-  {
-    id: "mirror_six_wounds",
-    title: "The Mirror of Six Wounds",
-    theme: "Truth, lies, and reflected betrayal",
-    entrance: "All factions must place one unit with 6+ HP adjacent to the Steel Door.",
-    summary: "Each faction receives private visions, assigns wounds to others, faces a mirrored party, and decides whether to share or rush the hidden vault.",
-    tags: ["Mirrors", "Lies", "Wounds", "Trust"]
-  }
+  { id: "steel_door_oaths", title: "The Steel Door of Oaths" },
+  { id: "iron_choir", title: "The Iron Choir" },
+  { id: "weighing_crowns", title: "The Weighing of Crowns" },
+  { id: "lantern_maze", title: "The Lantern Maze" },
+  { id: "table_unbroken_bread", title: "The Table of Unbroken Bread" },
+  { id: "mirror_six_wounds", title: "The Mirror of Six Wounds" },
+  { id: "vault_many_hands", title: "The Vault of Many Hands" },
+  { id: "sundered_hall_three_roads", title: "The Sundered Hall of Three Roads" },
+  { id: "deep_market_unnamed_things", title: "The Deep Market of Unnamed Things" },
+  { id: "clockwork_parliament", title: "The Clockwork Parliament" },
+  { id: "well_borrowed_victories", title: "The Well of Borrowed Victories" },
+  { id: "siege_beneath_map", title: "The Siege Beneath the Map" },
+  { id: "library_last_words", title: "The Library of Last Words" },
+  { id: "garden_chained_seasons", title: "The Garden of Chained Seasons" },
+  { id: "tribunal_ashen_banners", title: "The Tribunal of Ashen Banners" }
 ];
 
 let mythologicalCaveState = {
@@ -10345,6 +10312,7 @@ function initializeMythologicalCaves() {
 
   if (saved) {
     mythologicalCaveState = JSON.parse(saved);
+    syncMythologicalCaveDeck();
     return;
   }
 
@@ -10367,6 +10335,34 @@ function resetMythologicalCaves(shouldRender = true) {
   saveMythologicalCaves();
 
   if (shouldRender) renderMythologicalCaves();
+}
+
+function normalizeMythologicalCaveCard(card) {
+  const matchingCard = mythologicalCaveCards.find(cave => cave.id === card.id);
+  return matchingCard ? { ...matchingCard } : { id: card.id, title: card.title };
+}
+
+function syncMythologicalCaveDeck() {
+  mythologicalCaveState.deck = (mythologicalCaveState.deck || []).map(normalizeMythologicalCaveCard);
+  mythologicalCaveState.completed = (mythologicalCaveState.completed || []).map(normalizeMythologicalCaveCard);
+  mythologicalCaveState.current = mythologicalCaveState.current
+    ? normalizeMythologicalCaveCard(mythologicalCaveState.current)
+    : null;
+
+  const knownIds = new Set([
+    ...mythologicalCaveState.deck.map(card => card.id),
+    ...mythologicalCaveState.completed.map(card => card.id),
+    ...(mythologicalCaveState.current ? [mythologicalCaveState.current.id] : [])
+  ]);
+
+  mythologicalCaveCards.forEach(card => {
+    if (!knownIds.has(card.id)) {
+      mythologicalCaveState.deck.push({ ...card });
+    }
+  });
+
+  mythologicalCaveState.triggerLog = mythologicalCaveState.triggerLog || [];
+  saveMythologicalCaves();
 }
 
 function drawMythologicalCave(trigger = "Manual Draw") {
@@ -10429,12 +10425,8 @@ function renderMythologicalCaveCard(card) {
   }
 
   return `
-    <div style="background:rgba(45,45,45,0.96); border:1px solid rgba(255,255,255,0.12); border-left:6px solid #b9c0c7; border-radius:10px; padding:18px; box-shadow:0 0 14px rgba(185,192,199,0.35);">
-      <h3 style="margin:0 0 8px 0; color:#f0e6c8;">${card.title}</h3>
-      <p style="margin:0 0 8px 0; color:#ddd;"><strong>Entrance:</strong> ${card.entrance}</p>
-      <p style="margin:0 0 8px 0; color:#ddd;"><strong>Theme:</strong> ${card.theme}</p>
-      <p style="margin:0 0 12px 0; color:#ddd; line-height:1.45;">${card.summary}</p>
-      <p style="margin:0; color:#bbb;"><strong>Tags:</strong> ${card.tags.join(", ")}</p>
+    <div style="background:rgba(45,45,45,0.96); border:1px solid rgba(255,255,255,0.12); border-left:6px solid #b9c0c7; border-radius:10px; padding:22px; box-shadow:0 0 14px rgba(185,192,199,0.35); min-height:220px; display:flex; align-items:center; justify-content:center; text-align:center;">
+      <h3 style="margin:0; color:#f0e6c8; font-size:28px; line-height:1.25;">${card.title}</h3>
     </div>
   `;
 }
