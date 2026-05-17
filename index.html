@@ -13238,7 +13238,7 @@ function renderKeywords() {
                 <input
                   type="checkbox"
                   ${selected[keyword] ? "checked" : ""}
-                  onchange="toggleKeyword(${JSON.stringify(keyword)})"
+                  onchange="toggleKeyword('${keyword.replace(/'/g, "\\'")}')"
                 >
                 ${keyword}
 
