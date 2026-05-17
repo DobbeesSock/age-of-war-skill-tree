@@ -383,6 +383,24 @@ h1 {
   color: #dcecff;
 }
 
+.keyword-chip-impact {
+  font-size: 11px;
+  font-weight: bold;
+  opacity: 0.82;
+}
+
+.keyword-chip.virtue .keyword-chip-impact {
+  color: #9ff0bb;
+}
+
+.keyword-chip.corruption .keyword-chip-impact {
+  color: #ff9b9b;
+}
+
+.keyword-chip.campaign .keyword-chip-impact {
+  color: #9bc5ff;
+}
+
 
 
 @media (max-width: 900px) {
@@ -13135,10 +13153,17 @@ function getKeywordAlignmentTitle(score) {
   return "Unsettled";
 }
 
+function getKeywordImpactLabel(category) {
+  if (category === "virtue") return "+1";
+  if (category === "corruption") return "-1";
+  return "Story";
+}
+
 function renderKeywordScale(selected) {
   const alignment = calculateKeywordAlignment(selected);
-  const clampedScore = Math.max(-12, Math.min(12, alignment.score));
-  const markerPosition = ((clampedScore + 12) / 24) * 100;
+  const scaleLimit = 5;
+  const clampedScore = Math.max(-scaleLimit, Math.min(scaleLimit, alignment.score));
+  const markerPosition = ((clampedScore + scaleLimit) / (scaleLimit * 2)) * 100;
   const fillClass = clampedScore > 0 ? "virtue" : clampedScore < 0 ? "corruption" : "";
   const fillLeft = clampedScore < 0 ? markerPosition : 50;
   const fillWidth = Math.abs(markerPosition - 50);
@@ -13216,6 +13241,8 @@ function renderKeywords() {
                   onchange="toggleKeyword(${JSON.stringify(keyword)})"
                 >
                 ${keyword}
+
+                <span class="keyword-chip-impact">${getKeywordImpactLabel(section.category)}</span>
               </label>
             `).join("")}
           </div>
