@@ -2719,6 +2719,198 @@ const collectionTables = {
 
 };
 
+const blueprintBuildingCards = [
+  {
+    building: "Battlement",
+    income: "",
+    limit: "max 4",
+    size: "1x1",
+    cost: "10 Gold",
+    hp: "8",
+    ability: "Build on a wall. Increase strength of wall by HP. Archers occupying a Battlement gain +1 Roll Check."
+  },
+  {
+    building: "Moat",
+    income: "",
+    limit: "max 2",
+    size: "1x5",
+    cost: "25 Gold",
+    hp: "-",
+    ability: "Build outside province adjacent to wall. Prevents enemy ladders from being placed on adjacent walls and stops enemy units from targeting that wall."
+  },
+  {
+    building: "Mobile Barricade",
+    income: "",
+    limit: "max 2",
+    size: "1x2",
+    cost: "10 Gold",
+    hp: "6",
+    ability: "Up to 2 adjacent units cannot be targeted by ranged attacks. Adjacent units may move with the barricade as 1 movement action."
+  },
+  {
+    building: "Battering Ram",
+    income: "",
+    limit: "max 1",
+    size: "Siege",
+    cost: "15 Gold",
+    hp: "5",
+    ability: "Movement 8. Adjacent RC 3-6. OD 2 + 4 Engagement Dice. +1 Roll Check against Gates."
+  },
+  {
+    building: "Trebuchet",
+    income: "",
+    limit: "max 1",
+    size: "Siege",
+    cost: "20 Gold",
+    hp: "8",
+    ability: "Movement 2. Range 4-8. RC 3-6. OD 3 + 4 Engagement Dice. +1 OD against Elites."
+  },
+  {
+    building: "Catapult",
+    income: "",
+    limit: "max 1",
+    size: "Siege",
+    cost: "26 Gold",
+    hp: "6",
+    ability: "Movement 5. Range 5-10. RC 3-6. OD 3 + 3 Engagement Dice. Deal 1 damage to up to 2 targets adjacent to the initial target."
+  },
+  {
+    building: "Reinforced Wall",
+    income: "",
+    limit: "Universal Buff",
+    size: "-",
+    cost: "10 Gold",
+    hp: "-",
+    ability: "Increase Walls HP by 5. Adjacent enemies suffer 1 damage every round."
+  },
+  {
+    building: "Reinforced Gate",
+    income: "",
+    limit: "Universal Buff",
+    size: "-",
+    cost: "20 Gold",
+    hp: "-",
+    ability: "Increase Gates HP by 10. May be repaired during the Building Phase by paying Metal. 1 Metal = 2 HP."
+  },
+  {
+    building: "Supply Cart",
+    income: "",
+    limit: "max 2",
+    size: "1x2",
+    cost: "14 Gold",
+    hp: "5",
+    ability: "Heal friendly adjacent units for 2 HP per round. May move 10 once every Game Phase for free."
+  },
+  {
+    building: "Well",
+    income: "+1 Food",
+    limit: "max 3",
+    size: "1x1",
+    cost: "8 Gold",
+    hp: "2",
+    ability: "Heal friendly adjacent units for 2 HP per round."
+  },
+  {
+    building: "Silo",
+    income: "",
+    limit: "max 2",
+    size: "1x1",
+    cost: "10 Gold",
+    hp: "2",
+    ability: "Can store up to 50 Food. Prevents up to 50 Food from being lost per Silo. Adjacent units heal 1 HP per round."
+  },
+  {
+    building: "Iron Chest",
+    income: "",
+    limit: "max 2",
+    size: "1x1",
+    cost: "10 Food",
+    hp: "10",
+    ability: "Can store up to 50 Gold. Prevents up to 50 Gold from being lost per Chest. Bonus Ability: +3 Armour."
+  },
+  {
+    building: "Mine",
+    income: "+4 Gold",
+    limit: "max 2",
+    size: "1x1",
+    cost: "25 Food",
+    hp: "5",
+    ability: "Buildings gain a -3 Gold discount when building per built Mine."
+  },
+  {
+    building: "Nest",
+    income: "+2 Dragon Coins",
+    limit: "max 2",
+    size: "2x3",
+    cost: "40 Gold",
+    hp: "5",
+    ability: "If a Nest is destroyed, roll a D4. On 2-4 nothing happens. On 1 spawn a Lurking Dragon."
+  },
+  {
+    building: "Refiner",
+    income: "+3 Metal",
+    limit: "max 3",
+    size: "2x2",
+    cost: "25 Gold",
+    hp: "5",
+    ability: "Gain Shop Upgrade discount of -2 Metal per built Refiner."
+  },
+  {
+    building: "Orchard",
+    income: "+4 Food",
+    limit: "max 2",
+    size: "1x2",
+    cost: "18 Gold",
+    hp: "5",
+    ability: "Adjacent Food producing buildings gain +2 Armour per adjacent Orchard."
+  },
+  {
+    building: "Energy Conductor",
+    income: "",
+    limit: "max 1",
+    size: "1x1",
+    cost: "20 Gold",
+    hp: "7",
+    ability: "Allows trading Energy as a resource with other Factions who also have this structure built."
+  },
+  {
+    building: "Energy Bank",
+    income: "",
+    limit: "max 2",
+    size: "1x1",
+    cost: "15 Gold",
+    hp: "9",
+    ability: "May hold up to 10 Energy. If destroyed, all Energy is lost and causes 5 damage to adjacent units or structures."
+  },
+  {
+    building: "Superior Energy Bank",
+    income: "",
+    limit: "max 2",
+    size: "2x2",
+    cost: "20 Gold",
+    hp: "12",
+    ability: "May hold up to 17 Energy. If destroyed, all Energy is lost and causes 5 damage to adjacent units or structures."
+  }
+].map(card => ({ ...card, source: "Blueprint" }));
+
+const blueprintBenefitCards = [
+  {
+    name: "Burning Oil",
+    type: "Keep until needed",
+    effect: "Play when enemy unit(s) are adjacent to your Wall or Gate. May be played before, during, or after movement. Engagement attack dice 7 to the target and 1 unavoidable damage to all units adjacent to the target."
+  },
+  {
+    name: "Repair Kit",
+    type: "Keep until needed",
+    effect: "Apply to a damaged Siege Weapon and heal it to max HP. After healing at least 2 HP for a Siege Weapon, discard and draw a new card."
+  },
+  {
+    name: "Torch",
+    type: "Cave tool",
+    effect: "Usable in certain Caves denoted by a Torch icon or text. Keep secret until needed."
+  }
+];
+
 function addResourceByName(name, amount) {
   const resource = resources.find(r => r.name === name);
   if (!resource) return;
@@ -2770,6 +2962,19 @@ function collectBuildingIncome(incomeText) {
   saveResourceProfile();
   renderResources();
   renderBuildings();
+}
+
+function getBuildingTrackerRows() {
+  const hub = getCurrentHub();
+  const factionRows = (collectionTables[hub.family] || []).map(row => ({
+    ...row,
+    source: "Faction",
+    cost: row.cost || "-",
+    hp: row.hp || "-",
+    ability: row.ability || ""
+  }));
+
+  return factionRows.concat(blueprintBuildingCards);
 }
 
 const factionAbilityCharts = {
@@ -7015,7 +7220,7 @@ function collectCheckedBuildings() {
   ensureBuildingState(resourceProfile);
 
   const hub = getCurrentHub();
-  const rows = collectionTables[hub.family] || [];
+  const rows = getBuildingTrackerRows();
   const constructed = data[resourceProfile].buildings.constructed;
   const collectEnabled = data[resourceProfile].buildings.collectEnabled;
 
@@ -7048,8 +7253,7 @@ function renderBuildings() {
 
   ensureBuildingState(resourceProfile);
 
-  const hub = getCurrentHub();
-  const rows = collectionTables[hub.family] || [];
+  const rows = getBuildingTrackerRows();
   const constructed = data[resourceProfile].buildings.constructed;
   const collectEnabled = data[resourceProfile].buildings.collectEnabled;
 
@@ -7068,8 +7272,11 @@ function renderBuildings() {
             <tr>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Collect</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Building</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Source</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Income</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Built</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Cost</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">HP</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Limit</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Size</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Adjust</th>
@@ -7080,15 +7287,19 @@ function renderBuildings() {
               const count = constructed[row.building] || 0;
               const checked = collectEnabled[row.building] ? "checked" : "";
               const buildingArg = JSON.stringify(row.building).replace(/"/g, "&quot;");
+              const hasCollection = Boolean(row.income);
 
               return `
               <tr>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">
-                  <input type="checkbox" ${checked} onchange="toggleBuildingCollection(${buildingArg})">
+                  <input type="checkbox" ${checked} ${hasCollection ? "" : "disabled"} onchange="toggleBuildingCollection(${buildingArg})">
                 </td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.building}</td>
-                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.income}</td>
+                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.source || "Faction"}</td>
+                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.income || "-"}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${count}</td>
+                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.cost || "-"}</td>
+                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.hp || "-"}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.limit}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.size}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">
@@ -7121,6 +7332,19 @@ function renderBuildings() {
             </div>
           `;
         }).join("")}
+      </div>
+
+      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:#ffe08a;">Blueprint Benefits</h3>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+          ${blueprintBenefitCards.map(card => `
+            <div style="background:rgba(55,55,55,0.9); border:1px solid rgba(255,255,255,0.12); border-left:5px solid #72a5ff; border-radius:8px; padding:12px;">
+              <small style="color:#9fc0ff; text-transform:uppercase;">${card.type}</small>
+              <h4 style="margin:6px 0; color:#ffe08a;">${card.name}</h4>
+              <p style="margin:0; color:#ddd; line-height:1.4;">${card.effect}</p>
+            </div>
+          `).join("")}
+        </div>
       </div>
     </div>
   `;
