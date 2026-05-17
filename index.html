@@ -13341,14 +13341,6 @@ function renderRelics() {
         lockedRelicGroups[card.type].push(card);
     });
 
-    const discardRelicGroups = {};
-    sharedRelicState.discard.forEach(card => {
-        if (!discardRelicGroups[card.type]) {
-            discardRelicGroups[card.type] = [];
-        }
-        discardRelicGroups[card.type].push(card);
-    });
-
     app.innerHTML = `
         <div class="relic-zone">
             <h2>Relic Deck</h2>
@@ -13362,7 +13354,7 @@ function renderRelics() {
 
         <div class="relic-zone">
             <h2>Discard (${sharedRelicState.discard.length})</h2>
-            ${Object.entries(discardRelicGroups).map(([type, cards]) => renderDiscardRelicPile(type, cards)).join("") || "<p>No discarded relics.</p>"}
+            ${renderRelicDiscardPile(sharedRelicState.discard)}
 
             <h2 style="margin-top:20px;">Locked Relics</h2>
             ${Object.entries(lockedRelicGroups).map(([type, cards]) => renderLockedRelicPile(type, cards)).join("") || "<p>All relics unlocked.</p>"}
@@ -13406,40 +13398,27 @@ function renderRelicCard(card, zone, index) {
     `;
 }
 
-function renderDiscardRelicPile(type, cards) {
-    const previewCard = cards[0];
+function renderRelicDiscardPile(cards) {
+    if (!cards.length) return "<p>No discarded relics.</p>";
+
+    const previewCard = cards[cards.length - 1];
 
     return `
         <div class="relic-card discard">
-            <small>${type}</small>
-            <h3>${type}</h3>
+            <small>Shared Discard</small>
+            <h3>Relic Discard Pile</h3>
             ${
                 previewCard && previewCard.frontImage
-                    ? `<img src="${previewCard.frontImage}" alt="${type}" style="width:100%; border-radius:8px; margin:8px 0;">`
+                    ? `<img src="${previewCard.frontImage}" alt="Relic discard preview" style="width:100%; border-radius:8px; margin:8px 0;">`
                     : ""
             }
-            <p><strong>${cards.length}</strong> card${cards.length === 1 ? "" : "s"} discarded</p>
+            <p><strong>${cards.length}</strong> relic${cards.length === 1 ? "" : "s"} discarded</p>
+            <p style="color:#bbb;"><strong>Top:</strong> ${previewCard ? previewCard.name : "-"}</p>
             <div class="potion-actions">
-                <button onclick="returnDiscardRelicTypeToDeck('${type}')">Return to Deck</button>
+                <button onclick="shuffleRelicDiscardIntoDeck()">Shuffle Discard Into Deck</button>
             </div>
         </div>
     `;
-}
-
-function returnDiscardRelicTypeToDeck(type) {
-    if (!resourceProfile) return;
-    ensureRelicState(resourceProfile);
-
-    const sharedRelicState = data.sharedRelics;
-
-    const returningCards = sharedRelicState.discard.filter(card => card.type === type);
-    const remainingDiscard = sharedRelicState.discard.filter(card => card.type !== type);
-
-    sharedRelicState.deck = sharedRelicState.deck.concat(returningCards);
-    sharedRelicState.discard = remainingDiscard;
-
-    saveProfiles();
-    renderRelics();
 }
 
 
