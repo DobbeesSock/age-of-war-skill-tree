@@ -7456,7 +7456,7 @@ function createProfile() {
     if (!name) return;
 
     data[name] = {
-        hubFaction: currentHubFaction || getHubKeyFromFaction(currentFaction),
+        hubFaction: null,
         shared: { fury: 0 },
         resources: JSON.parse(JSON.stringify(defaultResources)),
         potions: { inventory: [] },
@@ -7530,11 +7530,7 @@ function loadProfile() {
 
 
     resourceProfile = name;
-    if (!data[name].hubFaction) {
-        data[name].hubFaction = getHubKeyFromFaction(currentFaction);
-    }
-
-    currentHubFaction = data[name].hubFaction;
+    currentHubFaction = data[name].hubFaction || currentHubFaction || getHubKeyFromFaction(currentFaction);
     const hub = getCurrentHub();
     if (!hub.trees.includes(currentFaction)) {
         currentFaction = hub.trees[0];
