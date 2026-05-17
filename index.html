@@ -2508,7 +2508,7 @@ body.elves {
 <div id="potionsView" style="display:none;">
   <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap;">
   <label style="color:white;">Give to: <select id="gmPotionTargetSelect"></select></label>
-  <button onclick="gainRandomPotionFromAnyDeck()">Gain Random Potion</button>
+  <button onclick="gainRandomPotionFromAnyDeck()">Give Random Potion From Any Pile</button>
   <button onclick="shuffleDiscardIntoDeck()">Shuffle Discard Into Deck</button>
   <button onclick="resetPotions()">Reset Potions</button>
 </div>
@@ -12866,7 +12866,7 @@ const backImages = {
             <p>${count} card${count === 1 ? "" : "s"} remaining</p>
             <div class="potion-actions">
                 <button onclick="gainRandomPotionByRarity('${rarity}')" ${count === 0 ? "disabled" : ""}>
-                    Gain to Inventory
+                    Give ${rarity} to Player
                 </button>
                 <button onclick="shufflePotionDeckByRarity('${rarity}')" ${count < 2 ? "disabled" : ""}>
                     Shuffle Deck
@@ -13323,6 +13323,28 @@ function gainRandomRelic(targetProfile = getGmTargetProfile("gmRelicTargetSelect
     renderInventory();
 }
 
+function gainRandomRelicByType(type, targetProfile = getGmTargetProfile("gmRelicTargetSelect")) {
+    if (!targetProfile) return;
+    ensureRelicState(targetProfile);
+
+    const sharedRelicState = data.sharedRelics;
+    const playerRelicState = data[targetProfile].relics;
+    const matchingIndexes = sharedRelicState.deck
+        .map((card, index) => ({ card, index }))
+        .filter(entry => entry.card.type === type);
+
+    if (matchingIndexes.length === 0) return;
+
+    const randomPick = matchingIndexes[Math.floor(Math.random() * matchingIndexes.length)];
+    const card = sharedRelicState.deck.splice(randomPick.index, 1)[0];
+
+    playerRelicState.inventory.push(card);
+
+    saveProfiles();
+    renderRelics();
+    renderInventory();
+}
+
 function shuffleRelicDeck() {
     if (!resourceProfile) return;
     ensureRelicState(resourceProfile);
@@ -13390,6 +13412,14 @@ function resetRelics() {
 
 function renderRelicDeck(deckCards) {
     const backImage = "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relic-back.png";
+    const deckGroups = {};
+
+    deckCards.forEach(card => {
+        if (!deckGroups[card.type]) {
+            deckGroups[card.type] = [];
+        }
+        deckGroups[card.type].push(card);
+    });
 
     return `
         <div class="relic-card deck">
@@ -13398,10 +13428,26 @@ function renderRelicDeck(deckCards) {
             <img src="${backImage}" alt="Relic Deck Back" style="width:100%; border-radius:8px; margin:8px 0; opacity:0.95;">
             <p>${deckCards.length} card${deckCards.length === 1 ? "" : "s"} remaining</p>
             <div class="potion-actions">
-                <button onclick="gainRandomRelic()" ${deckCards.length === 0 ? "disabled" : ""}>Gain to Inventory</button>
+                <button onclick="gainRandomRelic()" ${deckCards.length === 0 ? "disabled" : ""}>Give Random Relic From Any Pile</button>
                 <button onclick="shuffleRelicDeck()" ${deckCards.length < 2 ? "disabled" : ""}>Shuffle Deck</button>
             </div>
         </div>
+
+        ${Object.entries(deckGroups).map(([type, cards]) => `
+            <div class="relic-card deck">
+                <small>Relic Pile</small>
+                <h3>${type}</h3>
+                ${
+                    cards[0]?.frontImage
+                        ? `<img src="${cards[0].frontImage}" alt="${type}" style="width:100%; border-radius:8px; margin:8px 0; opacity:0.95;">`
+                        : ""
+                }
+                <p>${cards.length} card${cards.length === 1 ? "" : "s"} remaining</p>
+                <div class="potion-actions">
+                    <button onclick="gainRandomRelicByType('${type.replace(/'/g, "\\'")}')" ${cards.length === 0 ? "disabled" : ""}>Give ${type} to Player</button>
+                </div>
+            </div>
+        `).join("")}
     `;
 }
 
