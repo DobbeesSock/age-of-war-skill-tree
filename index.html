@@ -260,6 +260,105 @@ h1 {
   color: #fff2b2;
 }
 
+.keyword-scale-panel {
+  grid-column: 1 / -1;
+  background: rgba(28,28,28,0.96);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 0 14px rgba(0,0,0,0.38);
+}
+
+.keyword-scale-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.keyword-scale-title {
+  margin: 0;
+  color: #ffe08a;
+}
+
+.keyword-scale-status {
+  color: #f5e9c8;
+  font-weight: bold;
+}
+
+.keyword-scale-track {
+  position: relative;
+  height: 16px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #8a2424 0%, #3b3424 50%, #3b7d5a 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  overflow: hidden;
+}
+
+.keyword-scale-center {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: 50%;
+  width: 2px;
+  background: rgba(255,255,255,0.65);
+}
+
+.keyword-scale-marker {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffe08a;
+  border: 2px solid #1b140b;
+  box-shadow: 0 0 10px rgba(255,224,138,0.75);
+  transform: translate(-50%, -50%);
+}
+
+.keyword-scale-labels,
+.keyword-scale-counts {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #cfcfcf;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.keyword-chip.virtue {
+  border-color: rgba(99, 206, 142, 0.45);
+}
+
+.keyword-chip.virtue.active {
+  background: rgba(99, 206, 142, 0.22);
+  border-color: #63ce8e;
+  color: #dfffe8;
+}
+
+.keyword-chip.corruption {
+  border-color: rgba(209, 78, 78, 0.45);
+}
+
+.keyword-chip.corruption.active {
+  background: rgba(209, 78, 78, 0.24);
+  border-color: #d14e4e;
+  color: #ffe0e0;
+}
+
+.keyword-chip.campaign {
+  border-color: rgba(105, 167, 255, 0.42);
+}
+
+.keyword-chip.campaign.active {
+  background: rgba(105, 167, 255, 0.20);
+  border-color: #69a7ff;
+  color: #dcecff;
+}
+
+
 
 @media (max-width: 900px) {
     #relicsApp {
@@ -11469,7 +11568,7 @@ const relicCards = [
 
 ];
 
-const keywordSections = [
+const keywordSourceSections = [
   {
     title: "Section A - Aggression / Dominance",
     keywords: [
@@ -11565,6 +11664,82 @@ const keywordSections = [
     ]
   }
 ];
+
+const virtueKeywordSet = new Set([
+  ...keywordSourceSections.find(section => section.title.includes("Restraint"))?.keywords || [],
+  "Absolution", "Adaptable", "Agile", "Alert", "Aligned", "Ally", "Archivist", "Attuned", "Aware",
+  "Bonded", "Brave", "Cartographer of Fate", "Chosen", "Clarity", "Clever", "Comforted", "Commune",
+  "Compassion", "Confidence", "Cultivator", "Curious", "Decisive", "Determined", "Diplomat",
+  "Discernment", "Discover", "Discovery", "Engineer", "Engineering", "Enlightened", "Explorer",
+  "Favored", "Foreseen", "Forewarned", "Fortunate", "Geometric Insight", "Gladiator Renown",
+  "Guided", "Heard", "Hope", "Illuminated", "In Sync", "Independent", "Inspiring", "Inquiry",
+  "Insight", "Insightful", "Known", "Labyrinthine", "Legacy", "Legitimate", "Legitimate Ruler",
+  "Martyr", "Massed Ranks", "Observer", "On the Path", "Peacemaker", "Perceptive", "Recorded",
+  "Reflected", "Reflection", "Remembered", "Remembering", "Resourceful", "Satisfied", "Scholar",
+  "Seen", "Self-Aware", "Self-Reliant", "Shielded", "Simple", "Strategist", "Studied", "Tactician",
+  "Transparency", "Unified Truth", "Unscripted", "Unspoken Bond", "Unwritten", "Waymarked",
+  "Wit", "Witness", "Witnessed"
+]);
+
+const corruptionKeywordSet = new Set([
+  ...keywordSourceSections.find(section => section.title.includes("Aggression"))?.keywords || [],
+  ...keywordSourceSections.find(section => section.title.includes("Risk"))?.keywords || [],
+  "Assimilated Flesh", "Assimilated Trade", "Claimed", "Crownbound", "Fragile Pact", "Indebted",
+  "Prisoner NPC", "Reflected Hunger", "Shadowbound", "Swarm Shadow", "Swarmbound", "Trophy",
+  "Amnesia", "Authored", "Detached", "Indulgent", "Presumed", "Revealed", "Scrapper", "Sneak",
+  "Transformed", "Twisted", "Upheaval", "Vent", "Wary"
+]);
+
+const campaignKeywordSet = new Set([
+  "Aligned", "Assimilated", "Bloodline", "Bound", "Chosen", "Chosen by Green", "Choirborn",
+  "Choirbound", "Chorus", "Comforted", "Crowned", "Crownbound", "Deepbound", "Favored",
+  "Goblin-Favored", "Guest", "Inheritance", "Labyrinthine", "Legacy", "Legitimate",
+  "Legitimate Ruler", "Marked", "Marked by Light", "Martyr", "Massed Ranks", "Oathbound",
+  "Omen", "Omen of Return", "On the Path", "Prisoner NPC", "Promise", "Reflected Hunger",
+  "Resonant", "Rootbound Omen", "Runebound", "Shadowbound", "Shared Rule", "Storm-Hardened",
+  "Swarm Shadow", "Swarmbound", "Tamer", "Trophy", "Unbound", "Verdant Omen", "Waybound",
+  "Waymarked", "Worldscarred", "Amnesia", "Attention", "Awaken", "Changed", "Confess",
+  "Confession", "Discovery", "Finality", "Gladiator Renown", "Inevitable", "Momentum",
+  "Primordial", "Respiration", "Sealed Fate", "Stonekin"
+]);
+
+["Command", "Commander", "Commander of Ash", "Crowned", "Judgment", "Justice", "Lawbringer", "Might", "Reclaimed", "Rule", "Ruler", "Utilitarian", "Valor", "Victor", "Warborn", "Warbound"].forEach(keyword => {
+  corruptionKeywordSet.delete(keyword);
+  campaignKeywordSet.add(keyword);
+});
+
+campaignKeywordSet.forEach(keyword => {
+  virtueKeywordSet.delete(keyword);
+  corruptionKeywordSet.delete(keyword);
+});
+
+const allKeywords = [...new Set(keywordSourceSections.flatMap(section => section.keywords))]
+  .sort((a, b) => a.localeCompare(b));
+
+const keywordSections = [
+  {
+    title: "Virtue Keywords",
+    category: "virtue",
+    description: "Good intention, trust, restraint, mercy, and alliance-building marks. These push the scale positive.",
+    keywords: allKeywords.filter(keyword => virtueKeywordSet.has(keyword))
+  },
+  {
+    title: "Corruption Keywords",
+    category: "corruption",
+    description: "Selfish, cruel, dishonest, reckless, or destabilizing marks. These push the scale negative.",
+    keywords: allKeywords.filter(keyword => corruptionKeywordSet.has(keyword))
+  },
+  {
+    title: "Campaign & Story Keywords",
+    category: "campaign",
+    description: "Long-term campaign identity, prophecy, faction history, cave outcomes, and endgame scoring hooks.",
+    keywords: allKeywords.filter(keyword =>
+      campaignKeywordSet.has(keyword) ||
+      (!virtueKeywordSet.has(keyword) && !corruptionKeywordSet.has(keyword))
+    )
+  }
+];
+
 
 const mythologicalCaveCards = [
   { id: "steel_door_oaths", title: "The Steel Door of Oaths" },
@@ -12891,6 +13066,82 @@ function getSelectedKeywordCount() {
     .length;
 }
 
+function getKeywordCategory(keyword) {
+  const section = keywordSections.find(keywordSection => keywordSection.keywords.includes(keyword));
+  return section ? section.category : "campaign";
+}
+
+function calculateKeywordAlignment(selected) {
+  const totals = {
+    virtue: 0,
+    corruption: 0,
+    campaign: 0,
+    score: 0
+  };
+
+  Object.entries(selected).forEach(([keyword, isSelected]) => {
+    if (!isSelected) return;
+
+    const category = getKeywordCategory(keyword);
+
+    if (category === "virtue") {
+      totals.virtue += 1;
+      totals.score += 1;
+      return;
+    }
+
+    if (category === "corruption") {
+      totals.corruption += 1;
+      totals.score -= 1;
+      return;
+    }
+
+    totals.campaign += 1;
+  });
+
+  return totals;
+}
+
+function getKeywordAlignmentTitle(score) {
+  if (score >= 10) return "Revered";
+  if (score >= 5) return "Trusted";
+  if (score <= -10) return "Corrupted";
+  if (score <= -5) return "Suspect";
+  return "Unsettled";
+}
+
+function renderKeywordScale(selected) {
+  const alignment = calculateKeywordAlignment(selected);
+  const clampedScore = Math.max(-12, Math.min(12, alignment.score));
+  const markerPosition = ((clampedScore + 12) / 24) * 100;
+
+  return `
+    <div class="keyword-scale-panel">
+      <div class="keyword-scale-header">
+        <h3 class="keyword-scale-title">Alignment Scale</h3>
+        <div class="keyword-scale-status">${getKeywordAlignmentTitle(alignment.score)} (${alignment.score >= 0 ? "+" : ""}${alignment.score})</div>
+      </div>
+
+      <div class="keyword-scale-track">
+        <div class="keyword-scale-center"></div>
+        <div class="keyword-scale-marker" style="left:${markerPosition}%;"></div>
+      </div>
+
+      <div class="keyword-scale-labels">
+        <span>Corruption</span>
+        <span>Neutral</span>
+        <span>Virtue</span>
+      </div>
+
+      <div class="keyword-scale-counts">
+        <span>${alignment.corruption} corruption</span>
+        <span>${alignment.campaign} campaign/story</span>
+        <span>${alignment.virtue} virtue</span>
+      </div>
+    </div>
+  `;
+}
+
 function renderKeywords() {
   const app = document.getElementById("keywordsApp");
   if (!app || !resourceProfile || !data[resourceProfile]) return;
@@ -12926,13 +13177,14 @@ function renderKeywords() {
       return `
         <div class="keyword-section">
           <h3>${section.title}</h3>
+          <p style="margin:0 0 12px 0; color:#bbb; font-size:13px; line-height:1.4;">${section.description}</p>
           <div class="keyword-grid">
             ${keywords.map(keyword => `
-              <label class="keyword-chip ${selected[keyword] ? "active" : ""}">
+              <label class="keyword-chip ${section.category} ${selected[keyword] ? "active" : ""}">
                 <input
                   type="checkbox"
                   ${selected[keyword] ? "checked" : ""}
-                  onchange="toggleKeyword('${keyword.replace(/'/g, "\\'")}')"
+                  onchange="toggleKeyword(${JSON.stringify(keyword)})"
                 >
                 ${keyword}
               </label>
@@ -12943,14 +13195,13 @@ function renderKeywords() {
     })
     .join("");
 
-  app.innerHTML = renderedSections || `
+  app.innerHTML = renderKeywordScale(selected) + (renderedSections || `
     <div class="keyword-section">
       <h3>No Keywords Found</h3>
       <p style="margin:0; color:#bbb;">Try a different search.</p>
     </div>
-  `;
+  `);
 }
-
 
 
 function ensurePotionState(profileName) {
