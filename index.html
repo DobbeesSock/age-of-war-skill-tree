@@ -7363,10 +7363,32 @@ function changeConstructedBuilding(buildingName, amount) {
 
   ensureBuildingState(resourceProfile);
   const constructed = data[resourceProfile].buildings.constructed;
-  constructed[buildingName] = Math.max(0, (constructed[buildingName] || 0) + amount);
+  const row = getBuildingTrackerRows().find(building => building.building === buildingName);
+  const limit = getBuildingLimit(row);
+  const currentCount = constructed[buildingName] || 0;
+  const nextCount = Math.max(0, currentCount + amount);
+
+  if (amount > 0 && limit !== null && currentCount >= limit) {
+    alert(`${buildingName} is already at its limit of ${limit}.`);
+    return;
+  }
+
+  constructed[buildingName] = limit === null ? nextCount : Math.min(nextCount, limit);
 
   saveProfiles();
   renderBuildings();
+}
+
+function getBuildingLimit(row) {
+  if (!row || !row.limit) return null;
+
+  const match = String(row.limit).match(/max\s*(\d+)/i);
+  if (match) return parseInt(match[1], 10);
+
+  if (String(row.limit).toLowerCase().includes("universal buff")) return 1;
+
+  const numeric = parseInt(row.limit, 10);
+  return Number.isNaN(numeric) ? null : numeric;
 }
 
 function toggleBuildingCollection(buildingName) {
@@ -7454,6 +7476,8 @@ function renderBuildings() {
               const count = constructed[row.building] || 0;
               const checked = collectEnabled[row.building] ? "checked" : "";
               const buildingArg = JSON.stringify(row.building).replace(/"/g, "&quot;");
+              const limit = getBuildingLimit(row);
+              const atLimit = limit !== null && count >= limit;
 
               return `
               <tr>
@@ -7470,7 +7494,7 @@ function renderBuildings() {
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.size}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">
                   <button onclick="changeConstructedBuilding(${buildingArg}, -1)">-</button>
-                  <button onclick="changeConstructedBuilding(${buildingArg}, 1)">+</button>
+                  <button onclick="changeConstructedBuilding(${buildingArg}, 1)" ${atLimit ? "disabled" : ""}>+</button>
                 </td>
               </tr>
             `;
@@ -7484,6 +7508,8 @@ function renderBuildings() {
         ${rows.map(row => {
           const count = constructed[row.building] || 0;
           const buildingArg = JSON.stringify(row.building).replace(/"/g, "&quot;");
+          const limit = getBuildingLimit(row);
+          const atLimit = limit !== null && count >= limit;
           return `
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
               <div>
@@ -7493,7 +7519,7 @@ function renderBuildings() {
               <div style="display:flex; align-items:center; gap:8px;">
                 <button onclick="changeConstructedBuilding(${buildingArg}, -1)">-</button>
                 <strong style="min-width:28px; text-align:center;">${count}</strong>
-                <button onclick="changeConstructedBuilding(${buildingArg}, 1)">+</button>
+                <button onclick="changeConstructedBuilding(${buildingArg}, 1)" ${atLimit ? "disabled" : ""}>+</button>
               </div>
             </div>
           `;
