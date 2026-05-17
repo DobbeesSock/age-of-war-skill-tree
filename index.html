@@ -1122,7 +1122,7 @@ body.elves {
     padding: 5px;
   }
 
-  #app {
+#app {
   max-width: 1500px;
   margin: 0 auto;
   background: rgba(30, 30, 30, 0.85);
@@ -1131,17 +1131,94 @@ body.elves {
   backdrop-filter: blur(6px);
 }
 
+#hubLanding,
+#hubHomeView {
+  margin: 20px;
+  color: white;
+}
+
+.hub-panel {
+  max-width: 1500px;
+  margin: 0 auto;
+  background: rgba(30, 30, 30, 0.88);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.hub-choice {
+  min-height: 92px;
+  text-align: left;
+  border-left: 6px solid #d4af37;
+}
+
+.hub-header {
+  display: none;
+  margin: 0 20px 14px;
+  padding: 12px 16px;
+  color: white;
+  background: rgba(30,30,30,0.82);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+}
+
+.hub-header h2 {
+  margin: 0;
+  color: #ffe08a;
+}
+
 </style>
 </head>
 <body>
 
 <h1>The Veiled Realm Companion</h1>
 
-<div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-  <button onclick="showView('skill')">Skill Tree</button>
+<div id="hubLanding">
+  <div class="hub-panel">
+    <h2 style="margin-top:0; color:gold;">Choose Your Faction Hub</h2>
+    <p style="color:#ddd; margin-bottom:14px;">Create or load a profile, then choose the faction hub this profile will use.</p>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <input id="landingPlayerName" placeholder="Player Name">
+      <select id="landingProfileSelect" onchange="loadProfileFromLanding()"></select>
+      <button onclick="createProfileFromLanding()">Create Profile</button>
+      <button onclick="loadProfileFromLanding()">Load Profile</button>
+    </div>
+
+    <div class="hub-grid">
+      <button class="hub-choice" onclick="chooseFactionHub('men')"><strong>Men</strong><br><span>Industry and War Council</span></button>
+      <button class="hub-choice" onclick="chooseFactionHub('dwarves')"><strong>Dwarves</strong><br><span>Mountain Hold and Deep Forge</span></button>
+      <button class="hub-choice" onclick="chooseFactionHub('elves')"><strong>Elves</strong><br><span>Twin Canopies and Veiled Horizon</span></button>
+      <button class="hub-choice" onclick="chooseFactionHub('orcs')"><strong>Orcs</strong><br><span>Bloodied Path and War Path</span></button>
+      <button class="hub-choice" onclick="chooseFactionHub('order')"><strong>Order</strong><br><span>Divine Mandate and Silent Judgment</span></button>
+      <button class="hub-choice" onclick="chooseFactionHub('barbarians')"><strong>Barbarians</strong><br><span>Long War and Raging Host</span></button>
+    </div>
+  </div>
+</div>
+
+<div id="hubHeader" class="hub-header">
+  <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
+    <div>
+      <h2 id="hubTitle">Faction Hub</h2>
+      <div id="hubSubtitle" style="color:#bbb; margin-top:4px;"></div>
+    </div>
+    <button onclick="returnToHubLanding()">Change Hub</button>
+  </div>
+</div>
+
+<div id="mainNav" style="margin-bottom:15px; display:none; gap:10px; flex-wrap:wrap; align-items:center;">
+  <button onclick="showView('hubHome')">Hub</button>
+  <button onclick="showView('skill')">Skill Trees</button>
   <button onclick="showView('resources')">Resources</button>
-  <button onclick="showView('potions')">Potions</button>
-  <button onclick="showView('relics')">Relics</button>
+  <button onclick="showView('buildings')">Buildings</button>
+  <button onclick="showView('inventory')">Inventory</button>
   <button onclick="showView('keywords')">Keywords</button>
   <button onclick="showView('shop')">Upgrade Shop</button>
 
@@ -1159,12 +1236,22 @@ body.elves {
   <button onclick="showView('trackers')">Trackers</button>
   <button onclick="showView('caveRandomizer')">Cave Randomizer</button>
   <button onclick="showView('mythologicalCaves')">Mythological Caves</button>
+  <button onclick="showView('potions')">Potion Deck</button>
+  <button onclick="showView('relics')">Relic Deck</button>
 
 
   
 
 </div>
 
+
+
+<div id="hubHomeView" style="display:none;">
+  <div class="hub-panel">
+    <h2 style="margin-top:0; color:gold;">Faction Hub</h2>
+    <div id="hubHomeApp"></div>
+  </div>
+</div>
 
 
 
@@ -2367,6 +2454,20 @@ body.elves {
 </div>
 
 
+<div id="buildingsView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+    <h2 style="margin-top:0; color:gold;">Building Tracker</h2>
+    <div id="buildingsApp"></div>
+  </div>
+</div>
+
+<div id="inventoryView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+    <h2 style="margin-top:0; color:gold;">Inventory</h2>
+    <div id="inventoryApp"></div>
+  </div>
+</div>
+
 
 
 <div id="resourceView" style="display:none;">
@@ -2405,6 +2506,7 @@ body.elves {
 
 <div id="potionsView" style="display:none;">
   <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap;">
+  <label style="color:white;">Give to: <select id="gmPotionTargetSelect"></select></label>
   <button onclick="gainRandomPotionFromAnyDeck()">Gain Random Potion</button>
   <button onclick="shuffleDiscardIntoDeck()">Shuffle Discard Into Deck</button>
   <button onclick="resetPotions()">Reset Potions</button>
@@ -2415,6 +2517,7 @@ body.elves {
 
 <div id="relicsView" style="display:none;">
   <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap;">
+    <label style="color:white;">Give to: <select id="gmRelicTargetSelect"></select></label>
     <button onclick="shuffleRelicDiscardIntoDeck()">Shuffle Discard Into Deck</button>
     <button onclick="resetRelics()">Reset Relics</button>
   </div>
@@ -2665,6 +2768,7 @@ function collectBuildingIncome(incomeText) {
   applyCollectionIncome(incomeText);
   saveResourceProfile();
   renderResources();
+  renderBuildings();
 }
 
 const factionAbilityCharts = {
@@ -6866,6 +6970,113 @@ function renderPurchasedShopReminders() {
   `;
 }
 
+function ensureBuildingState(profileName) {
+  if (!profileName || !data[profileName]) return;
+
+  if (!data[profileName].buildings) {
+    data[profileName].buildings = { constructed: {} };
+  }
+
+  if (!data[profileName].buildings.constructed) {
+    data[profileName].buildings.constructed = {};
+  }
+}
+
+function changeConstructedBuilding(buildingName, amount) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+
+  ensureBuildingState(resourceProfile);
+  const constructed = data[resourceProfile].buildings.constructed;
+  constructed[buildingName] = Math.max(0, (constructed[buildingName] || 0) + amount);
+
+  saveProfiles();
+  renderBuildings();
+}
+
+function renderBuildings() {
+  const app = document.getElementById("buildingsApp");
+  if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+  ensureBuildingState(resourceProfile);
+
+  const hub = getCurrentHub();
+  const rows = collectionTables[hub.family] || [];
+  const constructed = data[resourceProfile].buildings.constructed;
+
+  app.innerHTML = `
+    <div style="display:grid; grid-template-columns:minmax(320px, 1fr) minmax(320px, 1fr); gap:20px; align-items:start;">
+      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:#ffe08a;">Collection Buildings</h3>
+        <table style="width:100%; border-collapse:collapse; color:white;">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Building</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Income</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Limit</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Size</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr onclick="collectBuildingIncome(${JSON.stringify(row.income).replace(/"/g, "&quot;")})" style="cursor:pointer;" title="Click to collect this income">
+                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.building}</td>
+                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.income}</td>
+                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.limit}</td>
+                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.size}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:#ffe08a;">Constructed In Base</h3>
+        ${rows.map(row => {
+          const count = constructed[row.building] || 0;
+          return `
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+              <div>
+                <strong>${row.building}</strong>
+                <div style="color:#aaa; font-size:13px;">Limit ${row.limit} | ${row.size}</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <button onclick="changeConstructedBuilding('${row.building.replace(/'/g, "\\'")}', -1)">-</button>
+                <strong style="min-width:28px; text-align:center;">${count}</strong>
+                <button onclick="changeConstructedBuilding('${row.building.replace(/'/g, "\\'")}', 1)">+</button>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderInventory() {
+  const app = document.getElementById("inventoryApp");
+  if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+  ensurePotionState(resourceProfile);
+  ensureRelicState(resourceProfile);
+
+  const potions = data[resourceProfile].potions.inventory;
+  const relics = data[resourceProfile].relics.inventory;
+
+  app.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(2, minmax(300px, 1fr)); gap:20px; align-items:start;">
+      <div class="potion-zone">
+        <h2>Potions (${potions.length})</h2>
+        ${potions.map((card, index) => renderPotionCard(card, "inventory", index)).join("") || "<p>No potions in inventory.</p>"}
+      </div>
+
+      <div class="relic-zone">
+        <h2>Relics (${relics.length})</h2>
+        ${relics.map((card, index) => renderRelicCard(card, "inventory", index)).join("") || "<p>No relics in inventory.</p>"}
+      </div>
+    </div>
+  `;
+}
+
 
 function renderResources() {
   const app = document.getElementById("app");
@@ -7023,6 +7234,7 @@ function updateProfileList() {
         if (name === resourceProfile) option.selected = true;
         select.appendChild(option);
     }
+
 }
 
 function increaseMaxEnergy(amount) {
@@ -7051,8 +7263,168 @@ updateProfileList();
 
 let sm = 0;
 let currentFaction = "dwarves";
+let currentHubFaction = null;
 let isHostMode = false;
 const hostPassword = "ageofwar";
+
+const factionHubs = {
+  men: {
+    label: "Men",
+    family: "Men",
+    trees: ["men", "men2"],
+    subtitle: "Industry and War Council"
+  },
+  dwarves: {
+    label: "Dwarves",
+    family: "Dwarves",
+    trees: ["dwarves", "dwarves2"],
+    subtitle: "Mountain Hold and Deep Forge"
+  },
+  elves: {
+    label: "Elves",
+    family: "Elves",
+    trees: ["elves", "elves2"],
+    subtitle: "Twin Canopies and Veiled Horizon"
+  },
+  orcs: {
+    label: "Orcs",
+    family: "Orcs",
+    trees: ["orcs", "orcsWar"],
+    subtitle: "Bloodied Path and War Path"
+  },
+  order: {
+    label: "Order",
+    family: "The Order",
+    trees: ["order", "order2"],
+    subtitle: "Divine Mandate and Silent Judgment"
+  },
+  barbarians: {
+    label: "Barbarians",
+    family: "Barbarians",
+    trees: ["barbarians", "barbarians2"],
+    subtitle: "Long War and Raging Host"
+  }
+};
+
+function getHubKeyFromFaction(faction) {
+  return Object.keys(factionHubs).find(key => factionHubs[key].trees.includes(faction)) || "dwarves";
+}
+
+function getCurrentHub() {
+  return factionHubs[currentHubFaction] || factionHubs[getHubKeyFromFaction(currentFaction)];
+}
+
+function syncLandingProfileSelect() {
+  const select = document.getElementById("landingProfileSelect");
+  if (!select) return;
+
+  select.innerHTML = "";
+
+  Object.keys(data).forEach(name => {
+    if (name === "sharedPotions" || name === "sharedRelics") return;
+
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    if (name === resourceProfile) option.selected = true;
+    select.appendChild(option);
+  });
+}
+
+function createProfileFromLanding() {
+  const input = document.getElementById("landingPlayerName");
+  const name = input ? input.value.trim() : "";
+  if (!name) {
+    alert("Enter a player name first.");
+    return;
+  }
+
+  document.getElementById("playerName").value = name;
+  createProfile();
+  syncLandingProfileSelect();
+}
+
+function loadProfileFromLanding() {
+  const select = document.getElementById("landingProfileSelect");
+  if (!select || !select.value) return;
+
+  const skillSelect = document.getElementById("skillProfileSelect");
+  if (skillSelect) skillSelect.value = select.value;
+
+  loadProfile();
+  openFactionHub(data[select.value].hubFaction || getHubKeyFromFaction(currentFaction));
+}
+
+function chooseFactionHub(hubKey) {
+  currentHubFaction = hubKey;
+
+  if (!resourceProfile) {
+    const select = document.getElementById("landingProfileSelect");
+    if (select && select.value) {
+      const skillSelect = document.getElementById("skillProfileSelect");
+      if (skillSelect) skillSelect.value = select.value;
+      loadProfile();
+    }
+  }
+
+  if (!resourceProfile) {
+    createProfileFromLanding();
+  }
+
+  if (!resourceProfile || !data[resourceProfile]) return;
+
+  if (data[resourceProfile].hubFaction && data[resourceProfile].hubFaction !== hubKey) {
+    alert("This profile is already locked to its faction hub. Create a new profile for a different faction.");
+    openFactionHub(data[resourceProfile].hubFaction);
+    return;
+  }
+
+  data[resourceProfile].hubFaction = hubKey;
+  openFactionHub(hubKey);
+  saveProfiles();
+}
+
+function openFactionHub(hubKey) {
+  currentHubFaction = hubKey || currentHubFaction || getHubKeyFromFaction(currentFaction);
+  const hub = getCurrentHub();
+  currentFaction = hub.trees[0];
+
+  document.getElementById("hubLanding").style.display = "none";
+  document.getElementById("mainNav").style.display = "flex";
+  document.getElementById("hubHeader").style.display = "block";
+  document.getElementById("hubTitle").textContent = `${hub.label} Hub`;
+  document.getElementById("hubSubtitle").textContent = hub.subtitle;
+
+  const collectionSelect = document.getElementById("collectionFactionSelect");
+  if (collectionSelect) collectionSelect.value = "auto";
+  selectedCollectionFaction = "auto";
+
+  setFaction(currentFaction);
+  renderHubHome();
+  showView("hubHome");
+}
+
+function returnToHubLanding() {
+  document.getElementById("hubLanding").style.display = "block";
+  document.getElementById("mainNav").style.display = "none";
+  document.getElementById("hubHeader").style.display = "none";
+  showView("landing");
+}
+
+function renderHubHome() {
+  const app = document.getElementById("hubHomeApp");
+  if (!app) return;
+
+  const hub = getCurrentHub();
+  app.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+      <button onclick="showView('skill')" class="hub-choice"><strong>Skill Trees</strong><br>${hub.trees.length} faction paths on one page.</button>
+      <button onclick="showView('resources')" class="hub-choice"><strong>Resources</strong><br>Resource counters, faction abilities, and purchased reminders.</button>
+      <button onclick="showView('buildings')" class="hub-choice"><strong>Buildings</strong><br>Collection table and constructed building tracker.</button>
+      <button onclick="showView('inventory')" class="hub-choice"><strong>Inventory</strong><br>Potions and relics assigned by the GM.</button>
+    </div>
+  `;
+}
 
 
 // CREATE / LOAD PROFILE
@@ -7061,11 +7433,13 @@ function createProfile() {
     if (!name) return;
 
     data[name] = {
+        hubFaction: currentHubFaction || getHubKeyFromFaction(currentFaction),
         shared: { fury: 0 },
         resources: JSON.parse(JSON.stringify(defaultResources)),
         potions: { inventory: [] },
         relics: { inventory: [] },
         keywords: { selected: {} },
+        buildings: { constructed: {} },
         shop: { purchases: {} },
 
 
@@ -7133,6 +7507,15 @@ function loadProfile() {
 
 
     resourceProfile = name;
+    if (!data[name].hubFaction) {
+        data[name].hubFaction = getHubKeyFromFaction(currentFaction);
+    }
+
+    currentHubFaction = data[name].hubFaction;
+    const hub = getCurrentHub();
+    if (!hub.trees.includes(currentFaction)) {
+        currentFaction = hub.trees[0];
+    }
 
     updateProfileList();
     document.getElementById("resourceProfileSelect").value = name;
@@ -7165,17 +7548,32 @@ function loadProfile() {
 
 
 function showView(view) {
+  const hubHomeView = document.getElementById("hubHomeView");
+  if (hubHomeView) {
+    hubHomeView.style.display = view === "hubHome" ? "block" : "none";
+  }
+
   document.getElementById("skillTreeView").style.display =
     view === "skill" ? "block" : "none";
 
   document.getElementById("resourceView").style.display =
     view === "resources" ? "block" : "none";
 
+  const buildingsView = document.getElementById("buildingsView");
+  if (buildingsView) {
+    buildingsView.style.display = view === "buildings" ? "block" : "none";
+  }
+
+  const inventoryView = document.getElementById("inventoryView");
+  if (inventoryView) {
+    inventoryView.style.display = view === "inventory" ? "block" : "none";
+  }
+
   document.getElementById("potionsView").style.display =
-    view === "potions" ? "block" : "none";
+    view === "potions" && isHostMode ? "block" : "none";
 
   document.getElementById("relicsView").style.display =
-    view === "relics" ? "block" : "none";
+    view === "relics" && isHostMode ? "block" : "none";
   
   document.getElementById("keywordsView").style.display =
     view === "keywords" ? "block" : "none";
@@ -7204,6 +7602,22 @@ function showView(view) {
   if (view === "shop") {
     renderShop();
 }
+
+  if (view === "hubHome") {
+    renderHubHome();
+  }
+
+  if (view === "skill") {
+    showHubSkillTrees();
+  }
+
+  if (view === "buildings") {
+    renderBuildings();
+  }
+
+  if (view === "inventory") {
+    renderInventory();
+  }
 
 
 
@@ -7592,6 +8006,10 @@ document.querySelectorAll(".capstone").forEach(cap=>{
 
         if(!resourceProfile) return;
 
+        const treeId = cap.closest(".tree")?.id || currentFaction;
+        currentFaction = treeId;
+        sm = data[resourceProfile][treeId].sm ?? 0;
+
         let id = cap.dataset.id;
         let cost = parseInt(cap.dataset.cost);
 
@@ -7599,7 +8017,7 @@ document.querySelectorAll(".capstone").forEach(cap=>{
 
         if(cap.classList.contains("available")){
             if(sm >= cost){
-                data[resourceProfile][currentFaction].skills[id] = true;
+                data[resourceProfile][treeId].skills[id] = true;
                 sm -= cost;
 
                 
@@ -7625,9 +8043,13 @@ document.querySelectorAll(".node").forEach(node=>{
 
         if(!resourceProfile) return;
 
+        const treeId = node.closest(".tree")?.id || currentFaction;
+        currentFaction = treeId;
+        sm = data[resourceProfile][treeId].sm ?? 0;
+
         let id = node.dataset.id;
         let cost = parseInt(node.dataset.cost);
-        let skills = data[resourceProfile][currentFaction].skills;
+        let skills = data[resourceProfile][treeId].skills;
 
         // REMOVE
         if(node.classList.contains("unlocked")){
@@ -7801,6 +8223,8 @@ function refreshProfiles() {
         opt.innerText = name;
         select.appendChild(opt);
     }
+
+    syncLandingProfileSelect();
 }
 
 
@@ -7851,6 +8275,111 @@ function setFaction(f) {
   updateFury();
   document.getElementById("furyContainer").style.display =
     currentFaction.startsWith("barbarians") ? "flex" : "none";
+}
+
+const skillTreeRootIds = {
+  dwarves: "dwarves_root",
+  dwarves2: "dwarves2_root",
+  elves: "elves_root",
+  elves2: "elves2_root",
+  orcs: "orcs_root",
+  orcsWar: "orcsWar_root",
+  order: "order_root",
+  order2: "order2_root",
+  barbarians: "barbarians_root",
+  barbarians2: "barbarians2_root",
+  men: "men_root",
+  men2: "men2_root"
+};
+
+function showHubSkillTrees() {
+  const hub = getCurrentHub();
+  const topbar = document.getElementById("topbar");
+  const factionBar = document.getElementById("factionBar");
+
+  if (topbar) topbar.style.display = "flex";
+  if (factionBar) factionBar.style.display = "none";
+
+  document.querySelectorAll(".tree").forEach(tree => tree.classList.remove("active"));
+
+  hub.trees.forEach(treeId => {
+    const tree = document.getElementById(treeId);
+    if (tree) tree.classList.add("active");
+  });
+
+  currentFaction = hub.trees[0];
+  document.body.className = currentFaction;
+
+  if (resourceProfile && data[resourceProfile]) {
+    sm = data[resourceProfile][currentFaction].sm ?? 0;
+    applySkills();
+    updateSM();
+    updateFury();
+  }
+}
+
+function refreshSkillTree(treeId) {
+  if (!resourceProfile || !data[resourceProfile]?.[treeId]) return;
+
+  const tree = document.getElementById(treeId);
+  if (!tree) return;
+
+  const skills = data[resourceProfile][treeId].skills;
+  const rootId = skillTreeRootIds[treeId];
+  const rootUnlocked = Boolean(skills[rootId]);
+
+  tree.querySelectorAll(".node").forEach(node => {
+    const id = node.dataset.id;
+    const prereq = node.dataset.prereq;
+
+    node.classList.remove("unlocked", "available", "locked");
+
+    if (skills[id]) {
+      node.classList.add("unlocked");
+      return;
+    }
+
+    if (id === rootId || (rootUnlocked && (!prereq || skills[prereq]))) {
+      node.classList.add("available");
+    } else {
+      node.classList.add("locked");
+    }
+  });
+
+  const cap = tree.querySelector(".capstone");
+  if (!cap) return;
+
+  const capId = cap.dataset.id;
+  const nodes = tree.querySelectorAll(":scope > .branch-container .node");
+  const unlockedNodes = tree.querySelectorAll(":scope > .branch-container .node.unlocked");
+
+  cap.classList.remove("unlocked", "available", "locked");
+
+  if (skills[capId]) {
+    cap.classList.add("unlocked");
+  } else if (nodes.length > 0 && nodes.length === unlockedNodes.length) {
+    cap.classList.add("available");
+  } else {
+    cap.classList.add("locked");
+  }
+}
+
+function applySkills() {
+  const hub = getCurrentHub();
+  const treeIds = hub?.trees || [currentFaction];
+  treeIds.forEach(refreshSkillTree);
+}
+
+function updateUI() {
+  applySkills();
+}
+
+function updateAvailability() {
+  applySkills();
+}
+
+function updateCapstones() {
+  applySkills();
 }
 
 const commonPotionCards = [
@@ -11733,11 +12262,36 @@ function ensurePotionState(profileName) {
     }
 }
 
+function renderGmTargetOptions(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    const currentValue = select.value || resourceProfile;
+    select.innerHTML = "";
+
+    Object.keys(data).forEach(name => {
+        if (name === "sharedPotions" || name === "sharedRelics") return;
+        if (!data[name] || !data[name].resources) return;
+
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        if (name === currentValue) option.selected = true;
+        select.appendChild(option);
+    });
+}
+
+function getGmTargetProfile(selectId) {
+    const select = document.getElementById(selectId);
+    return select?.value || resourceProfile;
+}
+
 
 function renderPotions() {
     const app = document.getElementById("potionsApp");
     if (!app || !resourceProfile || !data[resourceProfile]) return;
 
+    renderGmTargetOptions("gmPotionTargetSelect");
     ensurePotionState(resourceProfile);
 
     const sharedPotionState = data.sharedPotions;
@@ -11815,8 +12369,9 @@ const backImages = {
 }
 
 function gainRandomPotionFromAnyDeck() {
-    if (!resourceProfile) return;
-    ensurePotionState(resourceProfile);
+    const targetProfile = getGmTargetProfile("gmPotionTargetSelect");
+    if (!targetProfile) return;
+    ensurePotionState(targetProfile);
 
     const sharedPotionState = data.sharedPotions;
 
@@ -11829,7 +12384,7 @@ function gainRandomPotionFromAnyDeck() {
     const randomRarity =
         availableRarities[Math.floor(Math.random() * availableRarities.length)];
 
-    gainRandomPotionByRarity(randomRarity);
+    gainRandomPotionByRarity(randomRarity, targetProfile);
 }
 
 
@@ -11930,12 +12485,12 @@ function shufflePotionDeckByRarity(rarity) {
 }
 
 
-function gainRandomPotionByRarity(rarity) {
-    if (!resourceProfile) return;
-    ensurePotionState(resourceProfile);
+function gainRandomPotionByRarity(rarity, targetProfile = getGmTargetProfile("gmPotionTargetSelect")) {
+    if (!targetProfile) return;
+    ensurePotionState(targetProfile);
 
     const sharedPotionState = data.sharedPotions;
-    const playerPotionState = data[resourceProfile].potions;
+    const playerPotionState = data[targetProfile].potions;
 
     const matchingIndexes = sharedPotionState.deck
         .map((card, index) => ({ card, index }))
@@ -11949,6 +12504,7 @@ function gainRandomPotionByRarity(rarity) {
     playerPotionState.inventory.push(card);
     saveProfiles();
     renderPotions();
+    renderInventory();
 }
 
 
@@ -11966,6 +12522,7 @@ function usePotion(index) {
     sharedPotionState.discard.push(card);
     saveProfiles();
     renderPotions();
+    renderInventory();
 }
 
 
@@ -11982,6 +12539,7 @@ function returnPotionToDeck(index) {
     sharedPotionState.deck.push(card);
     saveProfiles();
     renderPotions();
+    renderInventory();
 }
 
 
@@ -12057,6 +12615,7 @@ function renderRelics() {
     const app = document.getElementById("relicsApp");
     if (!app || !resourceProfile || !data[resourceProfile]) return;
 
+    renderGmTargetOptions("gmRelicTargetSelect");
     ensureRelicState(resourceProfile);
 
     const sharedRelicState = data.sharedRelics;
@@ -12234,14 +12793,15 @@ function useRelic(index) {
 
     saveProfiles();
     renderRelics();
+    renderInventory();
 }
 
-function gainRandomRelic() {
-    if (!resourceProfile) return;
-    ensureRelicState(resourceProfile);
+function gainRandomRelic(targetProfile = getGmTargetProfile("gmRelicTargetSelect")) {
+    if (!targetProfile) return;
+    ensureRelicState(targetProfile);
 
     const sharedRelicState = data.sharedRelics;
-    const playerRelicState = data[resourceProfile].relics;
+    const playerRelicState = data[targetProfile].relics;
 
     if (sharedRelicState.deck.length === 0) return;
 
@@ -12252,6 +12812,7 @@ function gainRandomRelic() {
 
     saveProfiles();
     renderRelics();
+    renderInventory();
 }
 
 function shuffleRelicDeck() {
@@ -12279,6 +12840,7 @@ function returnRelicToDeck(index) {
 
     saveProfiles();
     renderRelics();
+    renderInventory();
 }
 
 
@@ -12782,6 +13344,9 @@ initializeCaves();
 if (document.getElementById("skillProfileSelect").options.length > 0) {
     loadProfile();
 }
+
+syncLandingProfileSelect();
+returnToHubLanding();
 
 
 
