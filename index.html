@@ -7221,6 +7221,8 @@ function collectCheckedBuildings() {
 
   const hub = getCurrentHub();
   const rows = getBuildingTrackerRows();
+  const collectionRows = rows.filter(row => row.income);
+  const nonCollectionRows = rows.filter(row => !row.income);
   const constructed = data[resourceProfile].buildings.constructed;
   const collectEnabled = data[resourceProfile].buildings.collectEnabled;
 
@@ -7283,20 +7285,19 @@ function renderBuildings() {
             </tr>
           </thead>
           <tbody>
-            ${rows.map(row => {
+            ${collectionRows.map(row => {
               const count = constructed[row.building] || 0;
               const checked = collectEnabled[row.building] ? "checked" : "";
               const buildingArg = JSON.stringify(row.building).replace(/"/g, "&quot;");
-              const hasCollection = Boolean(row.income);
 
               return `
               <tr>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">
-                  <input type="checkbox" ${checked} ${hasCollection ? "" : "disabled"} onchange="toggleBuildingCollection(${buildingArg})">
+                  <input type="checkbox" ${checked} onchange="toggleBuildingCollection(${buildingArg})">
                 </td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.building}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.source || "Faction"}</td>
-                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.income || "-"}</td>
+                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.income}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${count}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.cost || "-"}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.hp || "-"}</td>
@@ -7332,6 +7333,20 @@ function renderBuildings() {
             </div>
           `;
         }).join("")}
+      </div>
+
+      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:#ffe08a;">Non-Collection Blueprint Buildings</h3>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+          ${nonCollectionRows.map(row => `
+            <div style="background:rgba(55,55,55,0.9); border:1px solid rgba(255,255,255,0.12); border-left:5px solid #b9c0c7; border-radius:8px; padding:12px;">
+              <small style="color:#bbb; text-transform:uppercase;">${row.source || "Building"}</small>
+              <h4 style="margin:6px 0; color:#ffe08a;">${row.building}</h4>
+              <p style="margin:0 0 6px 0; color:#ddd;"><strong>Cost:</strong> ${row.cost || "-"} | <strong>HP:</strong> ${row.hp || "-"} | <strong>Limit:</strong> ${row.limit}</p>
+              <p style="margin:0; color:#ddd; line-height:1.4;">${row.ability || "No reminder text added."}</p>
+            </div>
+          `).join("") || `<p style="margin:0; color:#bbb;">No non-collection blueprint buildings added.</p>`}
+        </div>
       </div>
 
       <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
