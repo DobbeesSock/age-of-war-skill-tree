@@ -7221,8 +7221,6 @@ function collectCheckedBuildings() {
 
   const hub = getCurrentHub();
   const rows = getBuildingTrackerRows();
-  const collectionRows = rows.filter(row => row.income);
-  const nonCollectionRows = rows.filter(row => !row.income);
   const constructed = data[resourceProfile].buildings.constructed;
   const collectEnabled = data[resourceProfile].buildings.collectEnabled;
 
@@ -7256,6 +7254,8 @@ function renderBuildings() {
   ensureBuildingState(resourceProfile);
 
   const rows = getBuildingTrackerRows();
+  const collectionRows = rows.filter(row => row.income);
+  const nonCollectionRows = rows.filter(row => !row.income);
   const constructed = data[resourceProfile].buildings.constructed;
   const collectEnabled = data[resourceProfile].buildings.collectEnabled;
 
