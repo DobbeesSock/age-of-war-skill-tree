@@ -1389,6 +1389,7 @@ body.elves {
   <button onclick="showView('buildings')">Buildings</button>
   <button onclick="showView('inventory')">Inventory</button>
   <button onclick="showView('keywords')">Keywords</button>
+  <button onclick="showView('allianceTrading')">Alliance & Trading</button>
   <button onclick="showView('shop')">Upgrade Shop</button>
 
   
@@ -2717,6 +2718,19 @@ body.elves {
   </div>
 </div>
 
+<div id="allianceTradingView" style="display:none;">
+  <div style="margin:20px; color:white;">
+    <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+        <div>
+          <h2 style="margin:0; color:gold;">Alliance & Trading</h2>
+          <p style="margin:6px 0 0 0; color:#bbb;">Keyword alignment changes alliance cost, trust requirements, and trade expectations.</p>
+        </div>
+      </div>
+      <div id="allianceTradingApp"></div>
+    </div>
+  </div>
+</div>
 
 <div id="memoriesView" style="display:none; margin:20px; color:white;">
   <div style="max-width:1400px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
@@ -8429,6 +8443,11 @@ function showView(view) {
   document.getElementById("keywordsView").style.display =
     view === "keywords" ? "block" : "none";
 
+  const allianceTradingView = document.getElementById("allianceTradingView");
+  if (allianceTradingView) {
+    allianceTradingView.style.display = view === "allianceTrading" ? "block" : "none";
+  }
+
   document.getElementById("memoriesView").style.display =
     view === "memories" && isHostMode ? "block" : "none";
 
@@ -8519,7 +8538,11 @@ function showView(view) {
 
   if (view === "keywords") {
     renderKeywords();
-}
+  }
+
+  if (view === "allianceTrading") {
+    renderAllianceTrading();
+  }
 
 }
 
@@ -13259,6 +13282,161 @@ function renderKeywords() {
   `);
 }
 
+function getPlayableProfileNames() {
+  return Object.keys(data).filter(name => {
+    const profile = data[name];
+    return profile && typeof profile === "object" && !name.startsWith("shared") && (profile.resources || profile.hubFaction || profile.keywords);
+  });
+}
+
+function getProfileAlignment(profileName) {
+  const profile = data[profileName];
+  if (!profile) {
+    return { virtue: 0, corruption: 0, campaign: 0, score: 0 };
+  }
+
+  const selected = profile.keywords?.selected || {};
+  return calculateKeywordAlignment(selected);
+}
+
+function getAllianceBand(score) {
+  if (score >= 10) return { label: "Revered", type: "good", modifier: -8, trade: "Trusted partner. Fair trades are expected; alliance cost is heavily reduced." };
+  if (score >= 5) return { label: "Trusted", type: "good", modifier: -5, trade: "Reliable partner. Standard 1:1 trades are accepted with a small alliance discount." };
+  if (score <= -10) return { label: "Corrupted", type: "evil", modifier: 15, trade: "Dangerous partner. Must offer collateral such as a Relic, Potion, Chest Card, or major resource payment." };
+  if (score <= -5) return { label: "Suspect", type: "evil", modifier: 8, trade: "Unreliable partner. Trades should include a surcharge or guarantee before alliance is accepted." };
+  return { label: "Unsettled", type: "neutral", modifier: 0, trade: "Neutral partner. Standard alliance price; trades should be direct and equal." };
+}
+
+function getAllianceRelationshipModifier(proposerBand, targetBand) {
+  if (proposerBand.type === targetBand.type) {
+    return { amount: -5, label: "Aligned reputations: -5 Gold" };
+  }
+
+  if (proposerBand.type === "neutral" || targetBand.type === "neutral") {
+    return { amount: 5, label: "Mixed reputation: +5 Gold" };
+  }
+
+  return { amount: 15, label: "Opposed virtue/corruption: +15 Gold" };
+}
+
+function getAllianceExchangeGuidance(proposerBand, targetBand, cost) {
+  if (proposerBand.type === "good" && targetBand.type === "good") {
+    return `Suggested pact: each side pays 5 resources or publicly exchanges one small benefit. Final alliance fee: ${cost} Gold.`;
+  }
+
+  if (proposerBand.type === "evil" && targetBand.type === "good") {
+    return `Suggested pact: proposer pays ${cost} Gold plus collateral. The target may demand 1 Relic use, 1 Potion, 1 Chest Card, or a future defensive promise.`;
+  }
+
+  if (proposerBand.type === "good" && targetBand.type === "evil") {
+    return `Suggested pact: proposer pays ${cost} Gold, but the target must give proof of intent: 10 resources, a public keyword concession, or one guaranteed non-aggression phase.`;
+  }
+
+  if (proposerBand.type === "evil") {
+    return `Suggested pact: proposer pays ${cost} Gold plus a 25% trade surcharge or one collateral item until the alliance survives one mission.`;
+  }
+
+  if (targetBand.type === "evil") {
+    return `Suggested pact: proposer pays ${cost} Gold, while the target pays a trust deposit of 5 resources or reveals one campaign/story keyword.`;
+  }
+
+  return `Suggested pact: proposer pays ${cost} Gold. Trades should stay close to 1:1 unless one side offers protection, territory, or mission support.`;
+}
+
+function renderAlignmentMiniCard(profileName, roleLabel) {
+  if (!profileName || !data[profileName]) {
+    return `<div style="background:rgba(45,45,45,0.92); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:14px; color:#bbb;">Choose a ${roleLabel}.</div>`;
+  }
+
+  const alignment = getProfileAlignment(profileName);
+  const band = getAllianceBand(alignment.score);
+  const scoreText = alignment.score >= 0 ? `+${alignment.score}` : `${alignment.score}`;
+
+  return `
+    <div style="background:rgba(45,45,45,0.95); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${band.type === "good" ? "#63ce8e" : band.type === "evil" ? "#d14e4e" : "#d4af37"}; border-radius:10px; padding:14px;">
+      <small style="color:#cdbb8c; text-transform:uppercase;">${roleLabel}</small>
+      <h3 style="margin:6px 0; color:#ffe08a;">${profileName}</h3>
+      <p style="margin:4px 0; color:#f0f0f0;"><strong>${band.label}</strong> (${scoreText})</p>
+      <p style="margin:4px 0; color:#bbb;">${alignment.virtue} virtue / ${alignment.corruption} corruption / ${alignment.campaign} story</p>
+    </div>
+  `;
+}
+
+function renderAllianceTrading() {
+  const app = document.getElementById("allianceTradingApp");
+  if (!app) return;
+
+  const profileNames = getPlayableProfileNames();
+  if (profileNames.length === 0) {
+    app.innerHTML = `<p style="color:#bbb;">Create or load profiles before using alliance and trading tools.</p>`;
+    return;
+  }
+
+  const proposerSelect = document.getElementById("allianceProposerSelect");
+  const targetSelect = document.getElementById("allianceTargetSelect");
+  const proposer = proposerSelect?.value || resourceProfile || profileNames[0];
+  const target = targetSelect?.value || profileNames.find(name => name !== proposer) || proposer;
+
+  const proposerAlignment = getProfileAlignment(proposer);
+  const targetAlignment = getProfileAlignment(target);
+  const proposerBand = getAllianceBand(proposerAlignment.score);
+  const targetBand = getAllianceBand(targetAlignment.score);
+  const relationshipModifier = proposer === target
+    ? { amount: 0, label: "Choose two different profiles for a real alliance." }
+    : getAllianceRelationshipModifier(proposerBand, targetBand);
+  const baseCost = 20;
+  const finalCost = Math.max(5, baseCost + proposerBand.modifier + targetBand.modifier + relationshipModifier.amount);
+  const optionHtml = profileNames.map(name => `<option value="${name}">${name}</option>`).join("");
+
+  app.innerHTML = `
+    <div style="display:grid; gap:18px;">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:end;">
+        <label style="display:grid; gap:6px; color:#ddd;">
+          Proposing Faction
+          <select id="allianceProposerSelect" onchange="renderAllianceTrading()" style="min-width:220px; padding:8px; background:#2a2017; color:#e6d3a3; border:1px solid gold; border-radius:4px;">
+            ${optionHtml}
+          </select>
+        </label>
+        <label style="display:grid; gap:6px; color:#ddd;">
+          Target Faction
+          <select id="allianceTargetSelect" onchange="renderAllianceTrading()" style="min-width:220px; padding:8px; background:#2a2017; color:#e6d3a3; border:1px solid gold; border-radius:4px;">
+            ${optionHtml}
+          </select>
+        </label>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
+        ${renderAlignmentMiniCard(proposer, "Proposer")}
+        ${renderAlignmentMiniCard(target, "Target")}
+      </div>
+
+      <div style="background:rgba(35,35,35,0.95); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:16px;">
+        <h3 style="margin:0 0 10px 0; color:#ffe08a;">Alliance Cost</h3>
+        <p style="font-size:28px; margin:0 0 8px 0; color:#fff;"><strong>${finalCost} Gold</strong></p>
+        <p style="margin:0 0 6px 0; color:#bbb;">Base: ${baseCost} Gold</p>
+        <p style="margin:0 0 6px 0; color:#bbb;">Proposer reputation: ${proposerBand.modifier >= 0 ? "+" : ""}${proposerBand.modifier} Gold (${proposerBand.label})</p>
+        <p style="margin:0 0 6px 0; color:#bbb;">Target reputation: ${targetBand.modifier >= 0 ? "+" : ""}${targetBand.modifier} Gold (${targetBand.label})</p>
+        <p style="margin:0; color:#bbb;">${relationshipModifier.label}</p>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px;">
+        <div style="background:rgba(40,40,40,0.92); border:1px solid rgba(255,255,255,0.12); border-left:6px solid #d4af37; border-radius:10px; padding:16px;">
+          <h3 style="margin:0 0 8px 0; color:#ffe08a;">Recommended Exchange</h3>
+          <p style="margin:0; color:#ddd; line-height:1.45;">${getAllianceExchangeGuidance(proposerBand, targetBand, finalCost)}</p>
+        </div>
+
+        <div style="background:rgba(40,40,40,0.92); border:1px solid rgba(255,255,255,0.12); border-left:6px solid #69a7ff; border-radius:10px; padding:16px;">
+          <h3 style="margin:0 0 8px 0; color:#ffe08a;">Trade Baseline</h3>
+          <p style="margin:0 0 8px 0; color:#ddd; line-height:1.45;"><strong>${proposer}:</strong> ${proposerBand.trade}</p>
+          <p style="margin:0; color:#ddd; line-height:1.45;"><strong>${target}:</strong> ${targetBand.trade}</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("allianceProposerSelect").value = proposer;
+  document.getElementById("allianceTargetSelect").value = target;
+}
 
 function ensurePotionState(profileName) {
     if (!data.sharedPotions) {
