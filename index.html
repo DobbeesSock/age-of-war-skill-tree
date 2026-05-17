@@ -13614,14 +13614,6 @@ function resetRelics() {
 
 function renderRelicDeck(deckCards) {
     const backImage = "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relic-back.png";
-    const deckGroups = {};
-
-    deckCards.forEach(card => {
-        if (!deckGroups[card.type]) {
-            deckGroups[card.type] = [];
-        }
-        deckGroups[card.type].push(card);
-    });
 
     return `
         <div class="relic-card deck">
@@ -13634,22 +13626,6 @@ function renderRelicDeck(deckCards) {
                 <button onclick="shuffleRelicDeck()" ${deckCards.length < 2 ? "disabled" : ""}>Shuffle Deck</button>
             </div>
         </div>
-
-        ${Object.entries(deckGroups).map(([type, cards]) => `
-            <div class="relic-card deck">
-                <small>Relic Pile</small>
-                <h3>${type}</h3>
-                ${
-                    cards[0]?.frontImage
-                        ? `<img src="${cards[0].frontImage}" alt="${type}" style="width:100%; border-radius:8px; margin:8px 0; opacity:0.95;">`
-                        : ""
-                }
-                <p>${cards.length} card${cards.length === 1 ? "" : "s"} remaining</p>
-                <div class="potion-actions">
-                    <button onclick="gainRandomRelicByType('${type.replace(/'/g, "\\'")}')" ${cards.length === 0 ? "disabled" : ""}>Give ${type} to Player</button>
-                </div>
-            </div>
-        `).join("")}
     `;
 }
 
