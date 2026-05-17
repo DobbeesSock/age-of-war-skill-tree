@@ -1190,6 +1190,7 @@ body.elves {
       <select id="landingProfileSelect" onchange="loadProfileFromLanding()"></select>
       <button onclick="createProfileFromLanding()">Create Profile</button>
       <button onclick="loadProfileFromLanding()">Load Profile</button>
+      <button onclick="deleteProfileFromLanding()">Delete Profile</button>
     </div>
 
     <div class="hub-grid">
@@ -7353,6 +7354,28 @@ function loadProfileFromLanding() {
 
   loadProfile();
   openFactionHub(data[select.value].hubFaction || getHubKeyFromFaction(currentFaction));
+}
+
+function deleteProfileFromLanding() {
+  const select = document.getElementById("landingProfileSelect");
+  const name = select?.value;
+
+  if (!name || !data[name]) return;
+  if (!confirm("Delete profile '" + name + "'?")) return;
+
+  delete data[name];
+
+  if (resourceProfile === name) {
+    resourceProfile = "";
+    sm = 0;
+  }
+
+  localStorage.setItem("skillTreeData", JSON.stringify(data));
+
+  refreshProfiles();
+  updateProfileList();
+  syncLandingProfileSelect();
+  updateSM();
 }
 
 function chooseFactionHub(hubKey) {
