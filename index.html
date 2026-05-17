@@ -8158,6 +8158,7 @@ function refreshAfterRemoteCampaignUpdate() {
   renderPotions();
   renderRelics();
   renderKeywords();
+  renderAllianceTrading();
   renderShop();
 }
 
@@ -13372,10 +13373,12 @@ function renderAllianceTrading() {
     return;
   }
 
+  ensureTradeState();
+  const activeTrade = data.sharedTrades.active;
   const proposerSelect = document.getElementById("allianceProposerSelect");
   const targetSelect = document.getElementById("allianceTargetSelect");
-  const proposer = proposerSelect?.value || resourceProfile || profileNames[0];
-  const target = targetSelect?.value || profileNames.find(name => name !== proposer) || proposer;
+  const proposer = activeTrade?.proposer || proposerSelect?.value || resourceProfile || profileNames[0];
+  const target = activeTrade?.target || targetSelect?.value || profileNames.find(name => name !== proposer) || proposer;
 
   const proposerAlignment = getProfileAlignment(proposer);
   const targetAlignment = getProfileAlignment(target);
@@ -13438,6 +13441,11 @@ function renderAllianceTrading() {
 
   document.getElementById("allianceProposerSelect").value = proposer;
   document.getElementById("allianceTargetSelect").value = target;
+}
+
+function persistCampaignData() {
+  localStorage.setItem("skillTreeData", JSON.stringify(data));
+  queueLiveCampaignSave();
 }
 function ensureTradeState() {
   if (!data.sharedTrades) {
@@ -13505,7 +13513,7 @@ function startTradeSession(proposer, target) {
     }
   };
 
-  saveProfiles();
+  persistCampaignData();
   renderAllianceTrading();
 }
 
@@ -13515,7 +13523,7 @@ function acceptTradeSession() {
   if (!trade) return;
 
   trade.status = "accepted";
-  saveProfiles();
+  persistCampaignData();
   renderAllianceTrading();
 }
 
@@ -13529,7 +13537,7 @@ function cancelTradeSession(reason = "cancelled") {
   data.sharedTrades.history.unshift(trade);
   data.sharedTrades.active = null;
 
-  saveProfiles();
+  persistCampaignData();
   renderAllianceTrading();
 }
 
@@ -13550,7 +13558,7 @@ function updateTradeResource(profileName, resourceName, rawValue) {
   }
 
   resetTradeLocks(trade);
-  saveProfiles();
+  persistCampaignData();
   renderAllianceTrading();
 }
 
@@ -13573,7 +13581,7 @@ function toggleTradeInventoryItem(profileName, type, index) {
 
   list.sort((a, b) => a - b);
   resetTradeLocks(trade);
-  saveProfiles();
+  persistCampaignData();
   renderAllianceTrading();
 }
 
@@ -13586,7 +13594,7 @@ function lockTradeOffer(profileName) {
   const offer = getTradeOffer(trade, profileName);
   offer.locked = !offer.locked;
 
-  saveProfiles();
+  persistCampaignData();
   renderAllianceTrading();
 }
 
@@ -13669,7 +13677,7 @@ function completeTradeSession() {
     resources = JSON.parse(JSON.stringify(data[resourceProfile].resources));
   }
 
-  saveProfiles();
+  persistCampaignData();
   renderAllianceTrading();
   renderResources();
   renderInventory();
