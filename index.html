@@ -1399,6 +1399,8 @@ body.elves {
   <button id="hostLogoutBtn" onclick="disableHostMode()" style="display:none;">Hide Host Tools</button>
 </div>
 
+<div id="tradeNotificationBar" style="display:none; margin:0 20px 12px 20px;"></div>
+
 <div id="hostTabs" style="display:none; margin-bottom:15px;">
   <button onclick="showView('memories')">Memories</button>
   <button onclick="showView('worldEvents')">World Events</button>
@@ -8414,6 +8416,7 @@ function loadProfile() {
 
 
 function showView(view) {
+  renderTradeNotification();
   const hubHomeView = document.getElementById("hubHomeView");
   if (hubHomeView) {
     hubHomeView.style.display = view === "hubHome" ? "block" : "none";
@@ -13777,6 +13780,43 @@ function renderTradeOfferPanel(profileName, trade) {
   `;
 }
 
+
+function renderTradeNotification() {
+  const bar = document.getElementById("tradeNotificationBar");
+  if (!bar) return;
+
+  ensureTradeState();
+  const trade = data.sharedTrades.active;
+  const isParticipant = trade && resourceProfile && (resourceProfile === trade.proposer || resourceProfile === trade.target);
+
+  if (!trade || !isParticipant) {
+    bar.style.display = "none";
+    bar.innerHTML = "";
+    return;
+  }
+
+  const otherPlayer = resourceProfile === trade.proposer ? trade.target : trade.proposer;
+  const actionText = trade.status === "proposed" && resourceProfile === trade.target
+    ? "Trade request waiting for your response."
+    : trade.status === "proposed"
+      ? "Waiting for the other player to accept."
+      : "Trade window is active.";
+
+  bar.style.display = "block";
+  bar.innerHTML = `
+    <div style="max-width:1500px; margin:0 auto; background:rgba(42,32,23,0.96); border:1px solid rgba(212,175,55,0.65); border-left:6px solid #d4af37; border-radius:10px; padding:12px 14px; color:#f4e6bd; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; box-shadow:0 0 14px rgba(0,0,0,0.45);">
+      <div>
+        <strong>Trade with ${otherPlayer}</strong>
+        <span style="color:#ddd; margin-left:8px;">${actionText}</span>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button onclick="showView('allianceTrading')">Open Trade</button>
+        ${trade.status === "proposed" && resourceProfile === trade.target ? `<button onclick="acceptTradeSession(); showView('allianceTrading')">Accept</button>` : ""}
+        <button onclick="cancelTradeSession('cancelled')">Cancel</button>
+      </div>
+    </div>
+  `;
+}
 function renderTradeWindow(proposer, target) {
   ensureTradeState();
   const trade = data.sharedTrades.active;
