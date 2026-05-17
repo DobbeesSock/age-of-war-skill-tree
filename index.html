@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>The Veiled Realm Companion</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 
 
 <style>
@@ -1174,6 +1176,19 @@ body.elves {
   color: #ffe08a;
 }
 
+.sync-panel {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(20, 20, 20, 0.72);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.sync-status {
+  color: #bbb;
+  font-size: 13px;
+}
+
 </style>
 </head>
 <body>
@@ -1191,6 +1206,17 @@ body.elves {
       <button onclick="createProfileFromLanding()">Create Profile</button>
       <button onclick="loadProfileFromLanding()">Load Profile</button>
       <button onclick="deleteProfileFromLanding()">Delete Profile</button>
+    </div>
+
+    <div class="sync-panel">
+      <h3 style="margin:0 0 8px 0; color:#ffe08a;">Live Campaign Sync</h3>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <input id="campaignCodeInput" placeholder="Campaign Code">
+        <button onclick="createLiveCampaign()">Create / Host Campaign</button>
+        <button onclick="joinLiveCampaign()">Join Campaign</button>
+        <button onclick="disconnectLiveCampaign()">Disconnect</button>
+      </div>
+      <p id="syncStatus" class="sync-status">Local only. Add Firebase config in the code to enable live campaign sync.</p>
     </div>
 
     <div class="hub-grid">
@@ -7757,6 +7783,23 @@ let currentHubFaction = null;
 let isHostMode = false;
 const hostPassword = "ageofwar";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyDJUItlauhQACMOedfTpj-rn7w0-dpPLPc",
+  authDomain: "veiled-realm-companion.firebaseapp.com",
+  projectId: "veiled-realm-companion",
+  storageBucket: "veiled-realm-companion.firebasestorage.app",
+  messagingSenderId: "932515134316",
+  appId: "1:932515134316:web:1f7b2ae9022e106a039149"
+};
+
+let liveSyncDb = null;
+let liveCampaignCode = "";
+let liveCampaignUnsubscribe = null;
+let isApplyingRemoteCampaign = false;
+let liveSaveTimer = null;
+const liveClientId = localStorage.getItem("veiledRealmClientId") || crypto.randomUUID();
+localStorage.setItem("veiledRealmClientId", liveClientId);
+
 const factionHubs = {
   men: {
     label: "Men",
@@ -7802,6 +7845,164 @@ function getHubKeyFromFaction(faction) {
 
 function getCurrentHub() {
   return factionHubs[currentHubFaction] || factionHubs[getHubKeyFromFaction(currentFaction)];
+}
+
+function setSyncStatus(message, color = "#bbb") {
+  const status = document.getElementById("syncStatus");
+  if (!status) return;
+
+  status.textContent = message;
+  status.style.color = color;
+}
+
+function isFirebaseConfigured() {
+  return Boolean(firebaseConfig.apiKey && firebaseConfig.projectId && window.firebase);
+}
+
+function initializeLiveSync() {
+  if (!isFirebaseConfigured()) {
+    setSyncStatus("Local only. Add Firebase config in the code to enable live campaign sync.");
+    return false;
+  }
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  liveSyncDb = firebase.firestore();
+  return true;
+}
+
+function normalizeCampaignCode(code) {
+  return String(code || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9-]/g, "");
+}
+
+function getCampaignDoc(code) {
+  return liveSyncDb.collection("campaigns").doc(code);
+}
+
+async function createLiveCampaign() {
+  if (!initializeLiveSync()) return;
+
+  const codeInput = document.getElementById("campaignCodeInput");
+  const code = normalizeCampaignCode(codeInput?.value);
+
+  if (!code) {
+    alert("Enter a campaign code first.");
+    return;
+  }
+
+  liveCampaignCode = code;
+  await getCampaignDoc(code).set({
+    data,
+    updatedAt: Date.now(),
+    updatedBy: liveClientId
+  }, { merge: true });
+
+  subscribeToLiveCampaign(code);
+  setSyncStatus(`Hosting live campaign ${code}.`, "#84c46a");
+}
+
+async function joinLiveCampaign() {
+  if (!initializeLiveSync()) return;
+
+  const codeInput = document.getElementById("campaignCodeInput");
+  const code = normalizeCampaignCode(codeInput?.value);
+
+  if (!code) {
+    alert("Enter a campaign code first.");
+    return;
+  }
+
+  const snapshot = await getCampaignDoc(code).get();
+  if (!snapshot.exists) {
+    alert("Campaign not found. Ask the GM to create it first.");
+    return;
+  }
+
+  liveCampaignCode = code;
+  subscribeToLiveCampaign(code);
+  setSyncStatus(`Joined live campaign ${code}.`, "#84c46a");
+}
+
+function disconnectLiveCampaign() {
+  if (liveCampaignUnsubscribe) {
+    liveCampaignUnsubscribe();
+  }
+
+  liveCampaignUnsubscribe = null;
+  liveCampaignCode = "";
+  setSyncStatus("Disconnected. Local changes will stay on this device.", "#f0c36a");
+}
+
+function subscribeToLiveCampaign(code) {
+  if (liveCampaignUnsubscribe) {
+    liveCampaignUnsubscribe();
+  }
+
+  liveCampaignUnsubscribe = getCampaignDoc(code).onSnapshot(snapshot => {
+    if (!snapshot.exists) return;
+
+    const remote = snapshot.data();
+    if (!remote || remote.updatedBy === liveClientId || !remote.data) return;
+
+    isApplyingRemoteCampaign = true;
+    data = remote.data;
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    refreshAfterRemoteCampaignUpdate();
+    isApplyingRemoteCampaign = false;
+    setSyncStatus(`Live campaign ${code} synced.`, "#84c46a");
+  }, error => {
+    setSyncStatus(`Live sync error: ${error.message}`, "#ff8a8a");
+  });
+}
+
+function queueLiveCampaignSave() {
+  if (isApplyingRemoteCampaign || !liveCampaignCode || !liveSyncDb) return;
+
+  clearTimeout(liveSaveTimer);
+  liveSaveTimer = setTimeout(() => {
+    getCampaignDoc(liveCampaignCode).set({
+      data,
+      updatedAt: Date.now(),
+      updatedBy: liveClientId
+    }, { merge: true }).catch(error => {
+      setSyncStatus(`Live save failed: ${error.message}`, "#ff8a8a");
+    });
+  }, 250);
+}
+
+function refreshAfterRemoteCampaignUpdate() {
+  refreshProfiles();
+  updateProfileList();
+  syncLandingProfileSelect();
+
+  if (resourceProfile && !data[resourceProfile]) {
+    resourceProfile = "";
+  }
+
+  if (resourceProfile) {
+    loadResourceProfile(resourceProfile);
+    ensurePotionState(resourceProfile);
+    ensureRelicState(resourceProfile);
+    ensureKeywordState(resourceProfile);
+    ensureShopState(resourceProfile);
+  }
+
+  applySkills();
+  updateSM();
+  updateFury();
+  renderHubHome();
+  renderResources();
+  renderBuildings();
+  renderInventory();
+  renderPotions();
+  renderRelics();
+  renderKeywords();
+  renderShop();
 }
 
 function syncLandingProfileSelect() {
@@ -8714,6 +8915,7 @@ function saveProfiles(){
 
     data[resourceProfile][currentFaction].sm = sm;
     localStorage.setItem("skillTreeData", JSON.stringify(data));
+    queueLiveCampaignSave();
 }
 
 
