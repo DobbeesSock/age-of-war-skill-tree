@@ -304,6 +304,29 @@ h1 {
   left: 50%;
   width: 2px;
   background: rgba(255,255,255,0.65);
+  z-index: 2;
+}
+
+.keyword-scale-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 0%;
+  background: rgba(255,224,138,0.42);
+  box-shadow: 0 0 12px rgba(255,224,138,0.35);
+  transform-origin: left center;
+  transition: left 0.25s ease, width 0.25s ease, background 0.25s ease;
+}
+
+.keyword-scale-fill.virtue {
+  background: rgba(99, 206, 142, 0.42);
+  box-shadow: 0 0 12px rgba(99, 206, 142, 0.35);
+}
+
+.keyword-scale-fill.corruption {
+  background: rgba(209, 78, 78, 0.46);
+  box-shadow: 0 0 12px rgba(209, 78, 78, 0.35);
 }
 
 .keyword-scale-marker {
@@ -316,6 +339,8 @@ h1 {
   border: 2px solid #1b140b;
   box-shadow: 0 0 10px rgba(255,224,138,0.75);
   transform: translate(-50%, -50%);
+  transition: left 0.25s ease;
+  z-index: 3;
 }
 
 .keyword-scale-labels,
@@ -13114,6 +13139,9 @@ function renderKeywordScale(selected) {
   const alignment = calculateKeywordAlignment(selected);
   const clampedScore = Math.max(-12, Math.min(12, alignment.score));
   const markerPosition = ((clampedScore + 12) / 24) * 100;
+  const fillClass = clampedScore > 0 ? "virtue" : clampedScore < 0 ? "corruption" : "";
+  const fillLeft = clampedScore < 0 ? markerPosition : 50;
+  const fillWidth = Math.abs(markerPosition - 50);
 
   return `
     <div class="keyword-scale-panel">
@@ -13123,6 +13151,7 @@ function renderKeywordScale(selected) {
       </div>
 
       <div class="keyword-scale-track">
+        <div class="keyword-scale-fill ${fillClass}" style="left:${fillLeft}%; width:${fillWidth}%;"></div>
         <div class="keyword-scale-center"></div>
         <div class="keyword-scale-marker" style="left:${markerPosition}%;"></div>
       </div>
