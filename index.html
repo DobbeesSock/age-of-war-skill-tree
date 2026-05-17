@@ -2911,6 +2911,172 @@ const blueprintBenefitCards = [
   }
 ];
 
+const chestBuildingCards = [
+  {
+    building: "Power Generator",
+    income: "+5 Energy",
+    limit: "max 2",
+    size: "2x2",
+    cost: "45 Gold",
+    hp: "6",
+    ability: "If adjacent to a Power Bank, increase collection of the Generator by +1.",
+    source: "Chest Card"
+  },
+  {
+    building: "Quarry",
+    income: "+5 Metal",
+    limit: "max 3",
+    size: "3x4",
+    cost: "45 Gold",
+    hp: "4",
+    ability: "If adjacent to a Mine, increase collection of the Quarry by +1.",
+    source: "Chest Card"
+  },
+  {
+    building: "Grain Silo",
+    income: "+9 Food",
+    limit: "max 2",
+    size: "2x2",
+    cost: "40 Gold",
+    hp: "6",
+    ability: "Can store up to 100 Food. If any event causes your faction to lose Food, a Silo prevents up to 50 Food from being lost per Silo.",
+    source: "Chest Card"
+  },
+  {
+    building: "Bank",
+    income: "+5 Dragon Coins",
+    limit: "max 1",
+    size: "2x4",
+    cost: "60 Gold",
+    hp: "7",
+    ability: "When your faction kills a Dragon of any kind, gain +5 Dragon Coins in addition to any other rewards.",
+    source: "Chest Card"
+  },
+  {
+    building: "Soul Furnace",
+    income: "",
+    limit: "max 1",
+    size: "3x3",
+    cost: "60 Gold",
+    hp: "10",
+    ability: "Spend Energy to brew potions: Common 8 Energy, Rare 12 Energy, Legendary 16 Energy, Mythic 20 Energy.",
+    source: "Chest Card"
+  },
+  {
+    building: "The Relicarium",
+    income: "",
+    limit: "max 1",
+    size: "2x2",
+    cost: "50 Gold",
+    hp: "8",
+    ability: "Spend Energy to brew relics: Timed +2 5 Energy, Timed +4 7 Energy, Permanent 10 Energy, Unique 12 Energy, Ultra Rare 14 Energy, Epic 15 Energy, Superior 16 Energy.",
+    source: "Chest Card"
+  },
+  {
+    building: "Siege Canon",
+    income: "",
+    limit: "max 1",
+    size: "Siege",
+    cost: "40 Gold",
+    hp: "13",
+    ability: "Movement 4. Range 2-12. RC 5-6. OD 5 + 8 Engagement Dice. +1 Roll Check against Ultimate Units and Walls.",
+    source: "Chest Card"
+  },
+  {
+    building: "Short Range Bolt Shooter",
+    income: "",
+    limit: "max 1",
+    size: "Siege",
+    cost: "30 Gold",
+    hp: "8",
+    ability: "Movement 4. Range 2-6. RC 3-6. OD 4 + 6 Engagement Dice. If attack hits, deal half damage rounded down to an adjacent unit of the target.",
+    source: "Chest Card"
+  },
+  {
+    building: "Long Range Bolt Shooter",
+    income: "",
+    limit: "max 1",
+    size: "Siege",
+    cost: "35 Gold",
+    hp: "11",
+    ability: "Movement 4. Range 2-10. RC 4-6. OD 4 + 6 Engagement Dice. +1 OD against Structures.",
+    source: "Chest Card"
+  },
+  {
+    building: "Storm Tower",
+    income: "",
+    limit: "max 1",
+    size: "2x2",
+    cost: "22 Gold",
+    hp: "12",
+    ability: "OD 5. RC D6 Pink 4-6. Range 1-12. Build anywhere within Range 6 of Province. Chain Lightning: after dealing damage to target, deal half damage rounded up to an adjacent enemy of target.",
+    source: "Chest Card"
+  },
+  {
+    building: "Sunflare Tower",
+    income: "",
+    limit: "max 1",
+    size: "2x2",
+    cost: "20 Gold",
+    hp: "10",
+    ability: "OD 4. RC D6 Pink 3-6. Range 1-9. Build anywhere within Range 6 of Province. Burning Effect: target is inflicted with Inferno causing 1 damage every round until target dies.",
+    source: "Chest Card"
+  },
+  {
+    building: "Battle Chariot",
+    income: "",
+    limit: "max 2",
+    size: "Unit",
+    cost: "30 Food",
+    hp: "12",
+    ability: "Movement 11. Adjacent RC 4-6. OD 4. Trampled units suffer Lesion and 2 damage. Heal 2 HP each kill. Adjacent Riders gain +1 Roll Check.",
+    source: "Chest Card"
+  },
+  {
+    building: "Steel Chest",
+    income: "",
+    limit: "max 3",
+    size: "2x2",
+    cost: "15 Food",
+    hp: "15",
+    ability: "Can store up to 100 Gold. If any event causes your faction to lose Gold, a Chest prevents up to 100 Gold from being lost per Chest. Bonus Ability: +4 Armour.",
+    source: "Chest Card"
+  },
+  {
+    building: "Ion Energy Bank",
+    income: "",
+    limit: "max 1",
+    size: "3x3",
+    cost: "40 Gold",
+    hp: "12",
+    ability: "May hold up to 22 Energy. If destroyed, all Energy is lost and causes 5 damage to adjacent units or structures.",
+    source: "Chest Card"
+  },
+  {
+    building: "Bursting Springs",
+    income: "",
+    limit: "max 1",
+    size: "1x4",
+    cost: "30 Gold",
+    hp: "-",
+    ability: "Heal friendly adjacent units 3 HP each round. Creates terrain that ends unit movement if they move through the water.",
+    source: "Chest Card"
+  }
+];
+
+const chestBenefitCards = [
+  {
+    name: "Secret Card T",
+    type: "Chest Card",
+    effect: "Gain your faction's new unique unit by opening the secret faction box. You permanently have access to this unit when setting up a mission. If it dies during a mission, it returns to your supply. Point Value: 15. Cost: 15 Energy."
+  },
+  {
+    name: "Battle Chariot Battle Table",
+    type: "Chest Card",
+    effect: "D12: 1-3 +0 and Move 3; 4-6 +1 and 1 Rider may move 6; 7 +2; 8-9 +1 and Double Strike; 10 +2 and Move 6; 11-12 +3."
+  }
+];
+
 function addResourceByName(name, amount) {
   const resource = resources.find(r => r.name === name);
   if (!resource) return;
@@ -2974,7 +3140,7 @@ function getBuildingTrackerRows() {
     ability: row.ability || ""
   }));
 
-  return factionRows.concat(blueprintBuildingCards);
+  return factionRows.concat(blueprintBuildingCards, chestBuildingCards);
 }
 
 const factionAbilityCharts = {
@@ -7336,7 +7502,7 @@ function renderBuildings() {
       </div>
 
       <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
-        <h3 style="margin-top:0; color:#ffe08a;">Non-Collection Blueprint Buildings</h3>
+        <h3 style="margin-top:0; color:#ffe08a;">Non-Collection Blueprint & Chest Buildings</h3>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
           ${nonCollectionRows.map(row => `
             <div style="background:rgba(55,55,55,0.9); border:1px solid rgba(255,255,255,0.12); border-left:5px solid #b9c0c7; border-radius:8px; padding:12px;">
@@ -7345,14 +7511,14 @@ function renderBuildings() {
               <p style="margin:0 0 6px 0; color:#ddd;"><strong>Cost:</strong> ${row.cost || "-"} | <strong>HP:</strong> ${row.hp || "-"} | <strong>Limit:</strong> ${row.limit}</p>
               <p style="margin:0; color:#ddd; line-height:1.4;">${row.ability || "No reminder text added."}</p>
             </div>
-          `).join("") || `<p style="margin:0; color:#bbb;">No non-collection blueprint buildings added.</p>`}
+          `).join("") || `<p style="margin:0; color:#bbb;">No non-collection buildings added.</p>`}
         </div>
       </div>
 
       <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
-        <h3 style="margin-top:0; color:#ffe08a;">Blueprint Benefits</h3>
+        <h3 style="margin-top:0; color:#ffe08a;">Blueprint & Chest Benefits</h3>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
-          ${blueprintBenefitCards.map(card => `
+          ${blueprintBenefitCards.concat(chestBenefitCards).map(card => `
             <div style="background:rgba(55,55,55,0.9); border:1px solid rgba(255,255,255,0.12); border-left:5px solid #72a5ff; border-radius:8px; padding:12px;">
               <small style="color:#9fc0ff; text-transform:uppercase;">${card.type}</small>
               <h4 style="margin:6px 0; color:#ffe08a;">${card.name}</h4>
