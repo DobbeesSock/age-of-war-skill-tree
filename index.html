@@ -11812,7 +11812,50 @@ campaignKeywordSet.forEach(keyword => {
   corruptionKeywordSet.delete(keyword);
 });
 
-const allKeywords = [...new Set(keywordSourceSections.flatMap(section => section.keywords))]
+const mythologicalCaveKeywordAdditions = {
+  virtue: [
+    "Faithful", "Informed", "Lawbound", "Measured", "Sea-Bound", "Starguided", "Steward"
+  ],
+  corruption: [
+    "Bloodmarked", "Divided", "Haunted", "Resentful", "Root-Claimant", "Suspected", "Tempted"
+  ],
+  campaign: [
+    "Ash Court Unsettled", "Ashen Accord", "Ash-Forged", "Balanced Crowns", "Borrowed Doom",
+    "Breadbound", "Choirbound Accord", "Crown-Debtor", "Crowned Witness", "Crownsworn",
+    "Deep Navigator", "Discordant Choir", "Fair Trade Below", "Feast-Broken", "Forge-Bearer",
+    "Forged in Unity", "Future Debt", "Garden Freed", "Hung Vote", "Judged", "Keepers of the Deep",
+    "Lantern-Bearer", "Many Hands", "Mirror-Cracked", "Mirror-Sworn", "Oathlit", "Oaths Remembered",
+    "Open Parliament", "Patron", "Root-Debtor", "Rootbound", "Shared Record", "Shared Victory",
+    "Star-Touched", "Starwatchers Below", "Stolen Mandate", "Sun-Seen", "The Door Was Listening",
+    "Three Roads, One Purpose", "Throne-Cursed", "Trust Broken", "Unclear History", "Unnamed Debt",
+    "Unsettled Accord", "Vault-Debtor", "Witnesses of the White Hour"
+  ]
+};
+
+mythologicalCaveKeywordAdditions.virtue.forEach(keyword => {
+  virtueKeywordSet.add(keyword);
+  corruptionKeywordSet.delete(keyword);
+  campaignKeywordSet.delete(keyword);
+});
+
+mythologicalCaveKeywordAdditions.corruption.forEach(keyword => {
+  corruptionKeywordSet.add(keyword);
+  virtueKeywordSet.delete(keyword);
+  campaignKeywordSet.delete(keyword);
+});
+
+mythologicalCaveKeywordAdditions.campaign.forEach(keyword => {
+  campaignKeywordSet.add(keyword);
+  virtueKeywordSet.delete(keyword);
+  corruptionKeywordSet.delete(keyword);
+});
+
+const allKeywords = [...new Set([
+  ...keywordSourceSections.flatMap(section => section.keywords),
+  ...mythologicalCaveKeywordAdditions.virtue,
+  ...mythologicalCaveKeywordAdditions.corruption,
+  ...mythologicalCaveKeywordAdditions.campaign
+])]
   .sort((a, b) => a.localeCompare(b));
 
 const keywordSections = [
