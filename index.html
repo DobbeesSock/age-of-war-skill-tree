@@ -8161,6 +8161,7 @@ function refreshAfterRemoteCampaignUpdate() {
   renderRelics();
   renderKeywords();
   renderAllianceTrading();
+  renderTradeNotification();
   renderShop();
 }
 
@@ -13504,75 +13505,91 @@ function startTradeSession(proposer, target) {
     return;
   }
 
-  data.sharedTrades.active = {
-    id: Date.now().toString(),
-    proposer,
-    target,
-    status: "proposed",
-    createdAt: new Date().toISOString(),
-    offers: {
-      [proposer]: { resources: {}, potions: [], relics: [], locked: false },
-      [target]: { resources: {}, potions: [], relics: [], locked: false }
-    }
-  };
+  const tradeId = Date.now().toString();
+  const createdAt = new Date().toISOString();
 
-  persistCampaignData();
-  renderAllianceTrading();
+  persistTradeMutation(() => {
+    ensureTradeState();
+    data.sharedTrades.active = {
+      id: tradeId,
+      proposer,
+      target,
+      status: "proposed",
+      createdAt,
+      offers: {
+        [proposer]: { resources: {}, potions: [], relics: [], locked: false },
+        [target]: { resources: {}, potions: [], relics: [], locked: false }
+      }
+    };
+  });
 }
 
 function acceptTradeSession() {
   ensureTradeState();
-  const trade = data.sharedTrades.active;
-  if (!trade) return;
+  const localTrade = data.sharedTrades.active;
+  if (!localTrade) return;
 
-  trade.status = "accepted";
-  persistCampaignData();
-  renderAllianceTrading();
+  persistTradeMutation(() => {
+    const trade = data.sharedTrades.active;
+    if (!trade) return;
+
+    trade.status = "accepted";
+    Object.values(trade.offers || {}).forEach(offer => {
+      offer.locked = false;
+    });
+  });
 }
 
 function cancelTradeSession(reason = "cancelled") {
   ensureTradeState();
-  const trade = data.sharedTrades.active;
-  if (!trade) return;
+  const localTrade = data.sharedTrades.active;
+  if (!localTrade) return;
 
-  trade.status = reason;
-  trade.closedAt = new Date().toISOString();
-  data.sharedTrades.history.unshift(trade);
-  data.sharedTrades.active = null;
+  persistTradeMutation(() => {
+    const trade = data.sharedTrades.active;
+    if (!trade) return;
 
-  persistCampaignData();
-  renderAllianceTrading();
+    trade.status = reason;
+    trade.closedAt = new Date().toISOString();
+    data.sharedTrades.history.unshift(trade);
+    data.sharedTrades.active = null;
+  });
 }
 
 function updateTradeResource(profileName, resourceName, rawValue) {
   ensureTradeState();
-  const trade = data.sharedTrades.active;
-  if (!trade || trade.status !== "accepted") return;
+  const localTrade = data.sharedTrades.active;
+  if (!localTrade || localTrade.status !== "accepted") return;
   if (profileName !== resourceProfile) return;
 
-  const offer = getTradeOffer(trade, profileName);
   const available = getProfileResourceValue(profileName, resourceName);
   const amount = Math.max(0, Math.min(available, parseInt(rawValue, 10) || 0));
 
-  if (amount > 0) {
-    offer.resources[resourceName] = amount;
-  } else {
-    delete offer.resources[resourceName];
-  }
+  persistTradeMutation(() => {
+    const trade = data.sharedTrades.active;
+    if (!trade || trade.status !== "accepted") return;
 
-  resetTradeLocks(trade);
-  persistCampaignData();
-  renderAllianceTrading();
+    const offer = getTradeOffer(trade, profileName);
+    if (offer.locked) return;
+
+    if (amount > 0) {
+      offer.resources[resourceName] = amount;
+    } else {
+      delete offer.resources[resourceName];
+    }
+
+    resetTradeLocks(trade);
+  });
 }
 
 function toggleTradeInventoryItem(profileName, type, index) {
   ensureTradeState();
-  const trade = data.sharedTrades.active;
-  if (!trade || trade.status !== "accepted") return;
+  const localTrade = data.sharedTrades.active;
+  if (!localTrade || localTrade.status !== "accepted") return;
   if (profileName !== resourceProfile) return;
 
-  const offer = getTradeOffer(trade, profileName);
-  const list = type === "potions" ? offer.potions : offer.relics;
+  const localOffer = getTradeOffer(localTrade, profileName);
+  const list = type === "potions" ? [...(localOffer.potions || [])] : [...(localOffer.relics || [])];
   const numericIndex = Number(index);
   const existingIndex = list.indexOf(numericIndex);
 
@@ -13583,11 +13600,23 @@ function toggleTradeInventoryItem(profileName, type, index) {
   }
 
   list.sort((a, b) => a - b);
-  resetTradeLocks(trade);
-  persistCampaignData();
-  renderAllianceTrading();
-}
 
+  persistTradeMutation(() => {
+    const trade = data.sharedTrades.active;
+    if (!trade || trade.status !== "accepted") return;
+
+    const offer = getTradeOffer(trade, profileName);
+    if (offer.locked) return;
+
+    if (type === "potions") {
+      offer.potions = list;
+    } else {
+      offer.relics = list;
+    }
+
+    resetTradeLocks(trade);
+  });
+}
 
 function captureTradeOfferInputs(profileName) {
   ensureTradeState();
@@ -13662,6 +13691,8 @@ function refreshAfterTradeMutation() {
 }
 
 function persistTradeMutation(mutator) {
+  clearTimeout(liveSaveTimer);
+
   if (liveCampaignCode && liveSyncDb && !isApplyingRemoteCampaign) {
     const ref = getCampaignDoc(liveCampaignCode);
 
@@ -13768,17 +13799,15 @@ function completeTradeSession() {
   const trade = data.sharedTrades.active;
   if (!trade || trade.status !== "accepted") return;
 
-  const proposerOffer = getTradeOffer(trade, trade.proposer);
-  const targetOffer = getTradeOffer(trade, trade.target);
-
-  if (!proposerOffer.locked || !targetOffer.locked) {
-    alert("Both players must lock their offers before the trade can complete.");
-    return;
-  }
-
   persistTradeMutation(() => {
     const currentTrade = data.sharedTrades.active;
     if (!currentTrade || currentTrade.status !== "accepted") return;
+
+    const proposerOffer = getTradeOffer(currentTrade, currentTrade.proposer);
+    const targetOffer = getTradeOffer(currentTrade, currentTrade.target);
+
+    if (!proposerOffer.locked || !targetOffer.locked) return;
+
     finishTradeOnCurrentData(currentTrade);
   });
 }
@@ -13847,7 +13876,7 @@ function summarizeTradeOffer(profileName, offer) {
 
 function renderTradeOfferPanel(profileName, trade) {
   const offer = getTradeOffer(trade, profileName);
-  const canEdit = resourceProfile === profileName && trade.status === "accepted";
+  const canEdit = resourceProfile === profileName && trade.status === "accepted" && !offer.locked;
   const lockText = offer.locked ? "Unlock Offer" : "Lock Offer";
 
   ensurePotionState(profileName);
@@ -13934,6 +13963,11 @@ function renderTradeWindow(proposer, target) {
   const targetOffer = getTradeOffer(trade, trade.target);
   const isParticipant = resourceProfile === trade.proposer || resourceProfile === trade.target;
   const bothLocked = proposerOffer.locked && targetOffer.locked;
+  const lockStatusText = `${trade.proposer}: ${proposerOffer.locked ? "Locked" : "Editing"} / ${trade.target}: ${targetOffer.locked ? "Locked" : "Editing"}`;
+
+  if (trade.status === "accepted" && bothLocked && isParticipant) {
+    setTimeout(() => completeTradeSession(), 0);
+  }
 
   return `
     <div style="background:rgba(30,30,30,0.95); border:1px solid rgba(255,255,255,0.14); border-radius:12px; padding:16px;">
@@ -13941,6 +13975,7 @@ function renderTradeWindow(proposer, target) {
         <div>
           <h3 style="margin:0; color:#ffe08a;">Active Trade Window</h3>
           <p style="margin:5px 0 0 0; color:#bbb;">${trade.proposer} trading with ${trade.target} - ${trade.status}</p>
+          <p style="margin:4px 0 0 0; color:#f0c36a;">${lockStatusText}</p>
         </div>
         <div>
           ${trade.status === "proposed" && resourceProfile === trade.target ? `<button onclick="acceptTradeSession()">Accept Trade</button>` : ""}
