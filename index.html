@@ -13367,6 +13367,12 @@ function renderAlignmentMiniCard(profileName, roleLabel) {
   `;
 }
 
+let tradeDebugMessage = "";
+
+function setTradeDebug(message) {
+  tradeDebugMessage = message;
+}
+
 function renderAllianceTrading() {
   const app = document.getElementById("allianceTradingApp");
   if (!app) return;
@@ -13394,9 +13400,13 @@ function renderAllianceTrading() {
   const baseCost = 20;
   const finalCost = Math.max(5, baseCost + proposerBand.modifier + targetBand.modifier + relationshipModifier.amount);
   const optionHtml = profileNames.map(name => `<option value="${name}">${name}</option>`).join("");
+  const tradeDebugHtml = tradeDebugMessage
+    ? `<div style="background:rgba(80,45,20,0.9); border:1px solid rgba(255,190,90,0.55); border-radius:8px; padding:10px; color:#ffe5b0;"><strong>Trade status:</strong> ${tradeDebugMessage}</div>`
+    : "";
 
   app.innerHTML = `
     <div style="display:grid; gap:18px;">
+      ${tradeDebugHtml}
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:end;">
         <label style="display:grid; gap:6px; color:#ddd;">
           Proposing Faction
@@ -13743,8 +13753,25 @@ function applyTradeOfferLock(trade, profileName, locked, offeredResources, offer
 function setTradeOfferLocked(profileName, locked) {
   ensureTradeState();
   const localTrade = data.sharedTrades.active;
-  if (!localTrade || localTrade.status !== "accepted") return;
-  if (profileName !== resourceProfile) return;
+  const action = locked ? "Lock" : "Unlock";
+
+  if (!localTrade) {
+    setTradeDebug(`${action} refused: no active trade found.`);
+    renderAllianceTrading();
+    return;
+  }
+
+  if (localTrade.status !== "accepted") {
+    setTradeDebug(`${action} refused: trade status is ${localTrade.status}, not accepted.`);
+    renderAllianceTrading();
+    return;
+  }
+
+  if (profileName !== resourceProfile) {
+    setTradeDebug(`${action} refused: this device is loaded as ${resourceProfile || "no profile"}, not ${profileName}.`);
+    renderAllianceTrading();
+    return;
+  }
 
   const offeredResources = getTradeResourceInputs(profileName);
   const localOffer = getTradeOffer(localTrade, profileName);
@@ -13752,10 +13779,12 @@ function setTradeOfferLocked(profileName, locked) {
   const offeredRelics = [...(localOffer.relics || [])];
 
   applyTradeOfferLock(localTrade, profileName, locked, offeredResources, offeredPotions, offeredRelics);
+  setTradeDebug(`${profileName} ${locked ? "locked" : "unlocked"} their offer locally. Syncing...`);
   refreshAfterTradeMutation();
 
   persistTradeMutation(() => {
     applyTradeOfferLock(data.sharedTrades.active, profileName, locked, offeredResources, offeredPotions, offeredRelics);
+    setTradeDebug(`${profileName} ${locked ? "locked" : "unlocked"} their offer.`);
   });
 }
 
@@ -13920,12 +13949,26 @@ function renderTradeOfferPanel(profileName, trade) {
       ${renderTradeCardChecklist(profileName, offer, "relics", canEdit)}
 
       <div style="margin-top:12px;">
-        ${resourceProfile === profileName && trade.status === "accepted" ? (offer.locked ? `<button onclick="unlockTradeOffer(${JSON.stringify(profileName)})">${lockText}</button>` : `<button onclick="lockTradeOffer(${JSON.stringify(profileName)})">${lockText}</button>`) : ""}
+        ${resourceProfile === profileName && trade.status === "accepted" ? `<button type="button" class="trade-lock-button" data-trade-profile="${profileName}" data-trade-lock="${offer.locked ? "false" : "true"}" onclick="setTradeOfferLocked(${JSON.stringify(profileName)}, ${offer.locked ? "false" : "true"})">${lockText}</button>` : ""}
       </div>
     </div>
   `;
 }
 
+
+
+
+document.addEventListener("click", event => {
+  const button = event.target.closest(".trade-lock-button");
+  if (!button) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const profileName = button.dataset.tradeProfile;
+  const locked = button.dataset.tradeLock === "true";
+  setTradeOfferLocked(profileName, locked);
+});
 
 function renderTradeNotification() {
   const bar = document.getElementById("tradeNotificationBar");
