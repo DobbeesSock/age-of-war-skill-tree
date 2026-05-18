@@ -1378,7 +1378,10 @@ body.elves {
       <h2 id="hubTitle">Faction Hub</h2>
       <div id="hubSubtitle" style="color:#bbb; margin-top:4px;"></div>
     </div>
-    <button onclick="returnToHubLanding()">Change Hub</button>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+      <button onclick="manualSaveProfile()">Save / Sync Profile</button>
+      <button onclick="returnToHubLanding()">Change Hub</button>
+    </div>
   </div>
 </div>
 
@@ -1391,6 +1394,7 @@ body.elves {
   <button onclick="showView('keywords')">Keywords</button>
   <button onclick="showView('allianceTrading')">Alliance & Trading</button>
   <button onclick="showView('shop')">Upgrade Shop</button>
+  <button onclick="manualSaveProfile()">Save / Sync Profile</button>
 
   
 
@@ -9080,6 +9084,30 @@ function changeSM(amount){
 
 
     
+function manualSaveProfile() {
+    if (!resourceProfile || !data[resourceProfile]) {
+        alert("Load a profile before saving.");
+        return;
+    }
+
+    if (data[resourceProfile].resources && Array.isArray(resources)) {
+        data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
+    }
+
+    if (data[resourceProfile][currentFaction]) {
+        data[resourceProfile][currentFaction].sm = sm;
+    }
+
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    queueLiveCampaignSave();
+    updateProfileList();
+    syncLandingProfileSelect();
+    setSyncStatus(
+        liveCampaignCode ? "Saved and syncing profile " + resourceProfile + "." : "Saved profile " + resourceProfile + " locally.",
+        liveCampaignCode ? "#84c46a" : "#f0c36a"
+    );
+}
+
 function saveProfiles(){
     if(!resourceProfile) return;
 
