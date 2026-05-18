@@ -13385,10 +13385,17 @@ function renderAllianceTrading() {
 
   ensureTradeState();
   const activeTrade = data.sharedTrades.active;
-  const proposerSelect = document.getElementById("allianceProposerSelect");
   const targetSelect = document.getElementById("allianceTargetSelect");
-  const proposer = activeTrade?.proposer || proposerSelect?.value || resourceProfile || profileNames[0];
-  const target = activeTrade?.target || targetSelect?.value || profileNames.find(name => name !== proposer) || proposer;
+  const proposer = activeTrade?.proposer || resourceProfile;
+
+  if (!proposer || !data[proposer]) {
+    app.innerHTML = `<p style="color:#bbb;">Load your player profile before opening alliance and trading tools.</p>`;
+    return;
+  }
+
+  const availableTargets = profileNames.filter(name => name !== proposer);
+  const selectedTarget = targetSelect?.value;
+  const target = activeTrade?.target || (availableTargets.includes(selectedTarget) ? selectedTarget : availableTargets[0]) || proposer;
 
   const proposerAlignment = getProfileAlignment(proposer);
   const targetAlignment = getProfileAlignment(target);
@@ -13399,7 +13406,7 @@ function renderAllianceTrading() {
     : getAllianceRelationshipModifier(proposerBand, targetBand);
   const baseCost = 20;
   const finalCost = Math.max(5, baseCost + proposerBand.modifier + targetBand.modifier + relationshipModifier.amount);
-  const optionHtml = profileNames.map(name => `<option value="${name}">${name}</option>`).join("");
+  const optionHtml = availableTargets.map(name => `<option value="${name}">${name}</option>`).join("");
   const tradeDebugHtml = tradeDebugMessage
     ? `<div style="background:rgba(80,45,20,0.9); border:1px solid rgba(255,190,90,0.55); border-radius:8px; padding:10px; color:#ffe5b0;"><strong>Trade status:</strong> ${tradeDebugMessage}</div>`
     : "";
@@ -13408,12 +13415,12 @@ function renderAllianceTrading() {
     <div style="display:grid; gap:18px;">
       ${tradeDebugHtml}
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:end;">
-        <label style="display:grid; gap:6px; color:#ddd;">
-          Proposing Faction
-          <select id="allianceProposerSelect" onchange="renderAllianceTrading()" style="min-width:220px; padding:8px; background:#2a2017; color:#e6d3a3; border:1px solid gold; border-radius:4px;">
-            ${optionHtml}
-          </select>
-        </label>
+        <div style="display:grid; gap:6px; color:#ddd; min-width:220px;">
+          Offering Faction
+          <div style="padding:9px 10px; background:#2a2017; color:#ffe08a; border:1px solid gold; border-radius:4px; font-weight:bold;">
+            ${proposer}
+          </div>
+        </div>
         <label style="display:grid; gap:6px; color:#ddd;">
           Target Faction
           <select id="allianceTargetSelect" onchange="renderAllianceTrading()" style="min-width:220px; padding:8px; background:#2a2017; color:#e6d3a3; border:1px solid gold; border-radius:4px;">
@@ -13453,8 +13460,8 @@ function renderAllianceTrading() {
 
   app.innerHTML += renderTradeWindow(proposer, target);
 
-  document.getElementById("allianceProposerSelect").value = proposer;
-  document.getElementById("allianceTargetSelect").value = target;
+  const targetDropdown = document.getElementById("allianceTargetSelect");
+  if (targetDropdown) targetDropdown.value = target;
 }
 
 function persistCampaignData() {
@@ -14015,7 +14022,7 @@ function renderTradeWindow(proposer, target) {
       <div style="background:rgba(30,30,30,0.95); border:1px solid rgba(255,255,255,0.14); border-radius:12px; padding:16px;">
         <h3 style="margin:0 0 8px 0; color:#ffe08a;">Trade Window</h3>
         <p style="margin:0 0 12px 0; color:#bbb;">Open a trade request. The target player must accept before either side can add resources, potions, or relics.</p>
-        <button onclick="startTradeSession(document.getElementById('allianceProposerSelect').value, document.getElementById('allianceTargetSelect').value)">Open Trade Window</button>
+        <button type="button" onclick="startTradeSession(resourceProfile, document.getElementById('allianceTargetSelect').value)">Open Trade Window</button>
       </div>
     `;
   }
