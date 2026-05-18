@@ -13719,7 +13719,28 @@ function persistTradeMutation(mutator) {
   persistCampaignData();
   refreshAfterTradeMutation();
 }
-function lockTradeOffer(profileName) {
+function applyTradeOfferLock(trade, profileName, locked, offeredResources, offeredPotions, offeredRelics) {
+  if (!trade || trade.status !== "accepted") return;
+
+  const offer = getTradeOffer(trade, profileName);
+
+  if (locked) {
+    offer.resources = offeredResources;
+    offer.potions = offeredPotions;
+    offer.relics = offeredRelics;
+  }
+
+  offer.locked = locked;
+
+  const proposerOffer = getTradeOffer(trade, trade.proposer);
+  const targetOffer = getTradeOffer(trade, trade.target);
+
+  if (proposerOffer.locked && targetOffer.locked) {
+    finishTradeOnCurrentData(trade);
+  }
+}
+
+function setTradeOfferLocked(profileName, locked) {
   ensureTradeState();
   const localTrade = data.sharedTrades.active;
   if (!localTrade || localTrade.status !== "accepted") return;
@@ -13730,23 +13751,20 @@ function lockTradeOffer(profileName) {
   const offeredPotions = [...(localOffer.potions || [])];
   const offeredRelics = [...(localOffer.relics || [])];
 
+  applyTradeOfferLock(localTrade, profileName, locked, offeredResources, offeredPotions, offeredRelics);
+  refreshAfterTradeMutation();
+
   persistTradeMutation(() => {
-    const trade = data.sharedTrades.active;
-    if (!trade || trade.status !== "accepted") return;
-
-    const offer = getTradeOffer(trade, profileName);
-    offer.resources = offeredResources;
-    offer.potions = offeredPotions;
-    offer.relics = offeredRelics;
-    offer.locked = !offer.locked;
-
-    const proposerOffer = getTradeOffer(trade, trade.proposer);
-    const targetOffer = getTradeOffer(trade, trade.target);
-
-    if (proposerOffer.locked && targetOffer.locked) {
-      finishTradeOnCurrentData(trade);
-    }
+    applyTradeOfferLock(data.sharedTrades.active, profileName, locked, offeredResources, offeredPotions, offeredRelics);
   });
+}
+
+function lockTradeOffer(profileName) {
+  setTradeOfferLocked(profileName, true);
+}
+
+function unlockTradeOffer(profileName) {
+  setTradeOfferLocked(profileName, false);
 }
 
 function transferTradeResources(fromProfile, toProfile, resourcesOffered) {
@@ -13902,7 +13920,7 @@ function renderTradeOfferPanel(profileName, trade) {
       ${renderTradeCardChecklist(profileName, offer, "relics", canEdit)}
 
       <div style="margin-top:12px;">
-        ${resourceProfile === profileName && trade.status === "accepted" ? `<button onclick="lockTradeOffer(${JSON.stringify(profileName)})">${lockText}</button>` : ""}
+        ${resourceProfile === profileName && trade.status === "accepted" ? (offer.locked ? `<button onclick="unlockTradeOffer(${JSON.stringify(profileName)})">${lockText}</button>` : `<button onclick="lockTradeOffer(${JSON.stringify(profileName)})">${lockText}</button>`) : ""}
       </div>
     </div>
   `;
