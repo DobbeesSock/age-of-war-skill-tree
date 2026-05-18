@@ -13373,6 +13373,217 @@ function setTradeDebug(message) {
   tradeDebugMessage = message;
 }
 
+function getAlliancePairKey(profileA, profileB) {
+  return [profileA, profileB].sort((a, b) => a.localeCompare(b)).join("__");
+}
+
+function ensureAllianceState() {
+  if (!data.sharedAlliances) {
+    data.sharedAlliances = { active: {}, brokenThisMission: {}, history: [] };
+  }
+
+  data.sharedAlliances.active = data.sharedAlliances.active || {};
+  data.sharedAlliances.brokenThisMission = data.sharedAlliances.brokenThisMission || {};
+  data.sharedAlliances.history = Array.isArray(data.sharedAlliances.history) ? data.sharedAlliances.history : [];
+}
+
+function getAllianceCost(proposer, target) {
+  const proposerBand = getAllianceBand(getProfileAlignment(proposer).score);
+  const targetBand = getAllianceBand(getProfileAlignment(target).score);
+  const relationshipModifier = proposer === target
+    ? { amount: 0, label: "Choose two different profiles for a real alliance." }
+    : getAllianceRelationshipModifier(proposerBand, targetBand);
+
+  return {
+    base: 20,
+    total: Math.max(5, 20 + proposerBand.modifier + targetBand.modifier + relationshipModifier.amount),
+    proposerBand,
+    targetBand,
+    relationshipModifier
+  };
+}
+
+function getDefaultAllianceTerms(proposer, target) {
+  const cost = getAllianceCost(proposer, target);
+  return {
+    formsAlliance: true,
+    commitmentAmount: 1,
+    commitmentUnit: "Mission",
+    allianceCost: cost.total,
+    createdBy: proposer
+  };
+}
+
+function getTradeTerms(trade) {
+  if (!trade.terms) {
+    trade.terms = getDefaultAllianceTerms(trade.proposer, trade.target);
+  }
+
+  trade.terms.formsAlliance = trade.terms.formsAlliance !== false;
+  trade.terms.commitmentAmount = Math.max(1, Number(trade.terms.commitmentAmount || 1));
+  trade.terms.commitmentUnit = trade.terms.commitmentUnit || "Mission";
+  trade.terms.allianceCost = Number(trade.terms.allianceCost || getAllianceCost(trade.proposer, trade.target).total);
+
+  return trade.terms;
+}
+
+function updateTradeTerms(field, value) {
+  ensureTradeState();
+  const localTrade = data.sharedTrades.active;
+  if (!localTrade || !resourceProfile || (resourceProfile !== localTrade.proposer && resourceProfile !== localTrade.target)) return;
+
+  const applyTerms = trade => {
+    if (!trade) return;
+    const terms = getTradeTerms(trade);
+
+    if (field === "formsAlliance") {
+      terms.formsAlliance = Boolean(value);
+    } else if (field === "commitmentAmount") {
+      terms.commitmentAmount = Math.max(1, parseInt(value, 10) || 1);
+    } else if (field === "commitmentUnit") {
+      terms.commitmentUnit = value;
+    }
+
+    resetTradeLocks(trade);
+  };
+
+  applyTerms(localTrade);
+  refreshAfterTradeMutation();
+
+  persistTradeMutation(() => {
+    applyTerms(data.sharedTrades.active);
+  });
+}
+
+function renderAllianceTermsPanel(trade) {
+  const terms = getTradeTerms(trade);
+  const cost = getAllianceCost(trade.proposer, trade.target);
+  const pairKey = getAlliancePairKey(trade.proposer, trade.target);
+  ensureAllianceState();
+  const blocked = Boolean(data.sharedAlliances.brokenThisMission[pairKey]);
+  const canEditTerms = trade.status !== "completed" && (resourceProfile === trade.proposer || resourceProfile === trade.target);
+
+  return `
+    <div style="background:rgba(42,35,24,0.94); border:1px solid rgba(212,175,55,0.35); border-left:6px solid #d4af37; border-radius:10px; padding:14px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:start;">
+        <div>
+          <h3 style="margin:0 0 6px 0; color:#ffe08a;">Allegiance Terms</h3>
+          <p style="margin:0; color:#ddd; line-height:1.45;">Alliance cost: <strong>${cost.total} Gold</strong> (${cost.proposerBand.label} proposer, ${cost.targetBand.label} target; ${cost.relationshipModifier.label})</p>
+          ${blocked ? `<p style="margin:8px 0 0 0; color:#ff9b9b;"><strong>Broken this mission:</strong> these factions cannot ally again until mission blocks are cleared.</p>` : ""}
+        </div>
+        <label style="display:flex; gap:8px; align-items:center; color:#ddd;">
+          <input type="checkbox" ${terms.formsAlliance && !blocked ? "checked" : ""} ${canEditTerms && !blocked ? "" : "disabled"} onchange="updateTradeTerms('formsAlliance', this.checked)">
+          This trade creates an alliance
+        </label>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin-top:12px;">
+        <label style="display:grid; gap:5px; color:#ddd;">
+          Commitment
+          <input type="number" min="1" value="${terms.commitmentAmount}" ${canEditTerms && terms.formsAlliance && !blocked ? "" : "disabled"} onchange="updateTradeTerms('commitmentAmount', this.value)" style="width:110px; padding:7px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
+        </label>
+        <label style="display:grid; gap:5px; color:#ddd;">
+          Length Type
+          <select ${canEditTerms && terms.formsAlliance && !blocked ? "" : "disabled"} onchange="updateTradeTerms('commitmentUnit', this.value)" style="min-width:130px; padding:7px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
+            ${["Phase", "Round", "Mission"].map(unit => `<option value="${unit}" ${terms.commitmentUnit === unit ? "selected" : ""}>${unit}${terms.commitmentAmount === 1 ? "" : "s"}</option>`).join("")}
+          </select>
+        </label>
+        <p style="margin:0; color:#bbb; line-height:1.45;">Editing allegiance terms unlocks both offers. Both sides must lock again before the trade completes.</p>
+      </div>
+    </div>
+  `;
+}
+
+function finalizeAllianceFromTrade(trade) {
+  ensureAllianceState();
+  const terms = getTradeTerms(trade);
+  if (!terms.formsAlliance) return;
+
+  const pairKey = getAlliancePairKey(trade.proposer, trade.target);
+  if (data.sharedAlliances.brokenThisMission[pairKey]) return;
+
+  data.sharedAlliances.active[pairKey] = {
+    id: trade.id,
+    factions: [trade.proposer, trade.target],
+    commitmentAmount: terms.commitmentAmount,
+    commitmentUnit: terms.commitmentUnit,
+    allianceCost: terms.allianceCost || getAllianceCost(trade.proposer, trade.target).total,
+    formedAt: new Date().toISOString()
+  };
+}
+
+function addKeywordToProfile(profileName, keyword) {
+  if (!profileName || !data[profileName]) return;
+  ensureKeywordState(profileName);
+  data[profileName].keywords.selected[keyword] = true;
+}
+
+function dissolveAlliance(pairKey, breaker) {
+  ensureAllianceState();
+  const alliance = data.sharedAlliances.active[pairKey];
+  if (!alliance) return;
+
+  if (!confirm("Dissolve this alliance? These factions cannot ally again during the current mission.")) return;
+
+  persistTradeMutation(() => {
+    ensureAllianceState();
+    const current = data.sharedAlliances.active[pairKey];
+    if (!current) return;
+
+    const breakingFaction = breaker || resourceProfile || current.factions[0];
+    const otherFaction = current.factions.find(name => name !== breakingFaction) || current.factions[1];
+
+    current.status = "dissolved";
+    current.brokenBy = breakingFaction;
+    current.closedAt = new Date().toISOString();
+    data.sharedAlliances.history.unshift(current);
+    delete data.sharedAlliances.active[pairKey];
+    data.sharedAlliances.brokenThisMission[pairKey] = {
+      factions: current.factions,
+      brokenBy: breakingFaction,
+      brokenAt: current.closedAt
+    };
+
+    addKeywordToProfile(breakingFaction, "Breaker of Oath");
+    addKeywordToProfile(breakingFaction, "Abandoned");
+    addKeywordToProfile(otherFaction, "Fractured Trust");
+  });
+}
+
+function clearMissionAllianceBlocks() {
+  if (!confirm("Clear broken-alliance blocks for a new mission?")) return;
+
+  persistTradeMutation(() => {
+    ensureAllianceState();
+    data.sharedAlliances.brokenThisMission = {};
+  });
+}
+
+function renderActiveAlliances() {
+  ensureAllianceState();
+  const activeEntries = Object.entries(data.sharedAlliances.active);
+  const brokenEntries = Object.entries(data.sharedAlliances.brokenThisMission);
+
+  return `
+    <div style="background:rgba(35,35,35,0.95); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:16px;">
+      <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
+        <h3 style="margin:0; color:#ffe08a;">Active Alliances</h3>
+        <button type="button" onclick="clearMissionAllianceBlocks()" ${brokenEntries.length ? "" : "disabled"}>New Mission: Clear Broken Blocks</button>
+      </div>
+      ${activeEntries.length ? activeEntries.map(([pairKey, alliance]) => `
+        <div style="border-top:1px solid rgba(255,255,255,0.1); padding:10px 0; color:#ddd; overflow:auto;">
+          <strong style="color:#ffe08a;">${alliance.factions.join(" + ")}</strong>
+          <span style="color:#bbb;"> - ${alliance.commitmentAmount} ${alliance.commitmentUnit}${alliance.commitmentAmount === 1 ? "" : "s"}, ${alliance.allianceCost} Gold alliance cost</span>
+          <button type="button" onclick="dissolveAlliance('${pairKey}', resourceProfile)" style="float:right;">Dissolve Alliance</button>
+        </div>
+      `).join("") : `<p style="margin:0; color:#bbb;">No active alliances yet. Complete a trade with allegiance terms enabled to form one.</p>`}
+      ${brokenEntries.length ? `
+        <h4 style="margin:14px 0 8px 0; color:#ffb08a;">Broken This Mission</h4>
+        ${brokenEntries.map(([, block]) => `<p style="margin:4px 0; color:#bbb;">${block.factions.join(" + ")} cannot ally again this mission. Broken by ${block.brokenBy}.</p>`).join("")}
+      ` : ""}
+    </div>
+  `;
+}
 function renderAllianceTrading() {
   const app = document.getElementById("allianceTradingApp");
   if (!app) return;
@@ -13401,11 +13612,10 @@ function renderAllianceTrading() {
   const targetAlignment = getProfileAlignment(target);
   const proposerBand = getAllianceBand(proposerAlignment.score);
   const targetBand = getAllianceBand(targetAlignment.score);
-  const relationshipModifier = proposer === target
-    ? { amount: 0, label: "Choose two different profiles for a real alliance." }
-    : getAllianceRelationshipModifier(proposerBand, targetBand);
-  const baseCost = 20;
-  const finalCost = Math.max(5, baseCost + proposerBand.modifier + targetBand.modifier + relationshipModifier.amount);
+  const allianceCost = getAllianceCost(proposer, target);
+  const relationshipModifier = allianceCost.relationshipModifier;
+  const baseCost = allianceCost.base;
+  const finalCost = allianceCost.total;
   const optionHtml = availableTargets.map(name => `<option value="${name}">${name}</option>`).join("");
   const tradeDebugHtml = tradeDebugMessage
     ? `<div style="background:rgba(80,45,20,0.9); border:1px solid rgba(255,190,90,0.55); border-radius:8px; padding:10px; color:#ffe5b0;"><strong>Trade status:</strong> ${tradeDebugMessage}</div>`
@@ -13458,6 +13668,7 @@ function renderAllianceTrading() {
     </div>
   `;
 
+  app.innerHTML += renderActiveAlliances();
   app.innerHTML += renderTradeWindow(proposer, target);
 
   const targetDropdown = document.getElementById("allianceTargetSelect");
@@ -13517,6 +13728,7 @@ function startTradeSession(proposer, target) {
   }
 
   ensureTradeState();
+  ensureAllianceState();
 
   if (data.sharedTrades.active && !confirm("A trade is already active. Cancel it and open a new one?")) {
     return;
@@ -13533,6 +13745,7 @@ function startTradeSession(proposer, target) {
       target,
       status: "proposed",
       createdAt,
+      terms: getDefaultAllianceTerms(proposer, target),
       offers: {
         [proposer]: { resources: {}, potions: [], relics: [], locked: false },
         [target]: { resources: {}, potions: [], relics: [], locked: false }
@@ -13689,6 +13902,8 @@ function finishTradeOnCurrentData(trade) {
   transferTradeCards(trade.proposer, trade.target, "relics", proposerOffer.relics);
   transferTradeCards(trade.target, trade.proposer, "relics", targetOffer.relics);
 
+  finalizeAllianceFromTrade(trade);
+
   trade.status = "completed";
   trade.closedAt = new Date().toISOString();
   data.sharedTrades.history.unshift(trade);
@@ -13705,6 +13920,7 @@ function refreshAfterTradeMutation() {
   renderTradeNotification();
   renderResources();
   renderInventory();
+  renderKeywords();
 }
 
 function persistTradeMutation(mutator) {
@@ -14052,6 +14268,8 @@ function renderTradeWindow(proposer, target) {
           ${isParticipant ? `<button onclick="cancelTradeSession('cancelled')">Cancel Trade</button>` : ""}
         </div>
       </div>
+
+      ${renderAllianceTermsPanel(trade)}
 
       ${trade.status === "proposed" ? `
         <div style="background:rgba(60,45,20,0.55); border:1px solid rgba(212,175,55,0.35); border-radius:10px; padding:12px; color:#ddd;">
