@@ -1456,7 +1456,7 @@ body.elves {
   <button onclick="showView('hubHome')">Hub</button>
   <button onclick="showView('skill')">Skill Trees</button>
   <button onclick="showView('resources')">Resources</button>
-  <button onclick="showView('buildings')">Buildings</button>
+  <button onclick="showView('buildings')">Income</button>
   <button onclick="showView('inventory')">Inventory</button>
   <button onclick="showView('keywords')">Keywords</button>
   <button onclick="showView('allianceTrading')">Alliance & Trading</button>
@@ -2699,7 +2699,7 @@ body.elves {
 
 <div id="buildingsView" style="display:none; margin:20px; color:white;">
   <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
-    <h2 style="margin-top:0; color:gold;">Building Tracker</h2>
+    <h2 style="margin-top:0; color:gold;">Income</h2>
     <div id="buildingsApp"></div>
   </div>
 </div>
@@ -7757,19 +7757,6 @@ function renderBuildings() {
           </tbody>
         </table>
       </div>
-
-      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
-        <h3 style="margin-top:0; color:#ffe08a;">Blueprint & Chest Benefits</h3>
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
-          ${blueprintBenefitCards.concat(chestBenefitCards).map(card => `
-            <div style="background:rgba(55,55,55,0.9); border:1px solid rgba(255,255,255,0.12); border-left:5px solid #72a5ff; border-radius:8px; padding:12px;">
-              <small style="color:#9fc0ff; text-transform:uppercase;">${card.type}</small>
-              <h4 style="margin:6px 0; color:#ffe08a;">${card.name}</h4>
-              <p style="margin:0; color:#ddd; line-height:1.4;">${card.effect}</p>
-            </div>
-          `).join("")}
-        </div>
-      </div>
     </div>
   `;
 }
@@ -8341,7 +8328,7 @@ function renderHubHome() {
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
       <button onclick="showView('skill')" class="hub-choice"><strong>Skill Trees</strong><br>${hub.trees.length} faction paths on one page.</button>
       <button onclick="showView('resources')" class="hub-choice"><strong>Resources</strong><br>Resource counters, faction abilities, and purchased reminders.</button>
-      <button onclick="showView('buildings')" class="hub-choice"><strong>Buildings</strong><br>Income buildings and collection controls.</button>
+      <button onclick="showView('buildings')" class="hub-choice"><strong>Income</strong><br>Income buildings and collection controls.</button>
       <button onclick="showView('inventory')" class="hub-choice"><strong>Inventory</strong><br>Potions and relics assigned by the GM.</button>
     </div>
   `;
