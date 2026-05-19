@@ -8179,6 +8179,146 @@ const factionInfoContent = {
       }
     ]
   },
+  Dwarves: {
+    title: "Dwarves of the Golden Age",
+    subtitle: "Mountain Hold and Deep Forge",
+    art: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/dwarves.jpg",
+    playStyle: "Dwarves of the Golden Age are a terrain-engineering and siege faction. They reshape the map with tunnels, mountains, and mountain passes, then use safe movement routes and sturdy fortifications to grind out value over time.",
+    sections: [
+      {
+        title: "Tunnelling",
+        entries: [
+          { label: "Limit", text: "May create up to 2 Tunnels per Game Phase." },
+          { label: "Short Tunnel", text: "Costs 3 Energy. Stable, with no bonuses." },
+          { label: "Long Tunnel", text: "Costs 6 Energy. High risk, but grants bonus movement." },
+          { label: "Long Tunnel Movement", text: "May move up to 4 units within Range 3 of a Tunnel entrance as 1 movement action. Units moving through a Long Tunnel gain +4 move speed. Perform a cave-in check as normal." }
+        ]
+      },
+      {
+        title: "Mountain Pass Construction",
+        entries: [
+          { label: "Cost", text: "5 Energy and 5 Metal." },
+          { label: "Size", text: "3x3." },
+          { label: "Placement", text: "A mountain erected or placed at the start of the game must be within Range 8 of Province or within 3 of a Dwarf unit. It cannot be placed in an enemy Province and must have room to be drawn." }
+        ]
+      },
+      {
+        title: "Faction Rules",
+        entries: [
+          { label: "Rewards", text: "+1 Metal when a friendly Wall is destroyed and +1 Dragon Coin when a Gate is destroyed." },
+          { label: "Allegiance", text: "May sell services to any player." },
+          { label: "Passive", text: "Units in a Mountain cannot be targeted and cannot perform attacks. Units gain +3 movement when moving through or out of a Mountain." },
+          { label: "Skill Marks", text: "Refer to your faction SM reference card for how you collect SM and spend these marks on your Skill Trees." }
+        ]
+      },
+      {
+        title: "Faction Upgrades",
+        entries: [
+          { label: "Upgrade I", text: "Gain 1 Mountain for free." },
+          { label: "Upgrade II", text: "Unlock Setup 2 and gain +2 Dragon Coins." },
+          { label: "Upgrade III", text: "Fire Creature gains +1 Roll Check and you gain +1 Dragon Coin." }
+        ]
+      },
+      {
+        title: "Universal Economy",
+        bullets: [
+          "Destroying enemy Structures or POIs: +2 Metal.",
+          "Destroying an enemy Home Base: +7 Dragon Coins.",
+          "Killing a World Boss: +4 Dragon Coins and +7 Metal."
+        ]
+      },
+      {
+        title: "Warfare & Siege",
+        entries: [
+          { label: "Siege Targeting", text: "Only Elites, Special, and Ultimate units may attack Walls and Gates at +1 Roll Check." },
+          { label: "Guards", text: "May dig under enemy Walls. Cave-in check: 3-6 digging is successful; 1-2 the unit dies to cave-in. Only 1 Guard can use each short dug tunnel under Walls. Every Guard who performs this dig action must roll their own cave-in check." }
+        ]
+      },
+      {
+        title: "Unit Restrictions & Deployment",
+        entries: [
+          { label: "Without Constructed Building", text: "Max 2 units of the same type. Elites and Commanders are limited to 1." },
+          { label: "With Constructed Building", text: "No unit limit from that building, up to maximum faction point value." },
+          { label: "Spawn Rule", text: "Spawn adjacent to the producing building unless specified otherwise." }
+        ]
+      },
+      {
+        title: "Gates & Walls",
+        table: {
+          headers: ["Name", "Cost", "HP", "Size"],
+          rows: [
+            ["Gate", "12 Gold", "12", "1x2"],
+            ["Wall", "8 Gold", "8", "1x1"]
+          ]
+        }
+      }
+    ]
+  },
+  Orcs: {
+    title: "Shadow Orcs",
+    subtitle: "Bloodied Path and War Path",
+    art: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/orcs.jpg",
+    playStyle: "Shadow Orcs are an aggressive raid-and-pressure faction. They convert food into war money, profit from destroyed structures, and use battlefield anchors like War Totems and Volcanoes to keep pressure units alive while spawning threats forward.",
+    sections: [
+      {
+        title: "Faction Rules",
+        entries: [
+          { label: "Plunder", text: "+3 Gold when destroying an enemy Structure." },
+          { label: "Conversion", text: "May convert Food to Gold at 3:1." },
+          { label: "Allegiance", text: "May openly trade with any faction except Men and Elves." },
+          { label: "Volcano", text: "When spawned, gain 1 free Abomination. Spawn it adjacent to the Volcano. Also gain +3 Dragon Coins." }
+        ]
+      },
+      {
+        title: "War Totem",
+        entries: [
+          { label: "Cost", text: "5 Gold." },
+          { label: "Placement", text: "Place within 10 inside or outside Province Border." },
+          { label: "Effect", text: "Friendly adjacent units heal 1 HP per round." }
+        ]
+      },
+      {
+        title: "Faction Upgrades",
+        entries: [
+          { label: "Upgrade I", text: "1 Commander may move for free each Phase." },
+          { label: "Upgrade II", text: "Unlock Setup 2 and gain +2 Dragon Coins." },
+          { label: "Upgrade III", text: "Units may spawn within 2 of Province. Elder Dragon may spawn anywhere on the map when brought in, but cannot spawn in a Province." }
+        ]
+      },
+      {
+        title: "Universal Economy",
+        bullets: [
+          "Destroying enemy Structures or POIs: +2 Metal.",
+          "Destroying an enemy Home Base: +7 Dragon Coins.",
+          "Killing a World Boss: +4 Dragon Coins and +7 Metal."
+        ]
+      },
+      {
+        title: "Targeting",
+        bullets: [
+          "Only Elites, Special, and Ultimate units may target Walls and Gates; they gain +2 OD."
+        ]
+      },
+      {
+        title: "Unit Restrictions & Deployment",
+        entries: [
+          { label: "Without Constructed Building", text: "Max 2 units of the same type. Elites and Commanders are limited to 1." },
+          { label: "With Constructed Building", text: "No unit limit from that building, up to maximum faction point value." },
+          { label: "Spawn Rule", text: "Spawn adjacent to the producing building unless specified otherwise." }
+        ]
+      },
+      {
+        title: "Gates & Walls",
+        table: {
+          headers: ["Name", "Cost", "HP", "Size"],
+          rows: [
+            ["Gate", "-", "14", "1x2"],
+            ["Wall", "-", "8", "1x1"]
+          ]
+        }
+      }
+    ]
+  },
   "The Order": {
     title: "The Order",
     subtitle: "Divine Mandate and Silent Judgment",
@@ -16060,6 +16200,8 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
 
 
 
