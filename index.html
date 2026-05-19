@@ -8507,6 +8507,40 @@ function returnToHubLanding() {
   showView("landing");
 }
 
+function getFactionInfoShopFaction(hub) {
+  if (!hub) return "";
+  return hub.family === "The Order" ? "Assassins" : hub.family;
+}
+
+function getPurchasedGateWallHealthBonus(structureName, hub) {
+  if (!resourceProfile || !data[resourceProfile]?.shop?.purchases) return 0;
+  if (typeof shopItems === "undefined") return 0;
+
+  const shopFaction = getFactionInfoShopFaction(hub);
+  const item = shopItems.find(shopItem =>
+    shopItem.section === "Gate & Wall Health Upgrade" &&
+    shopItem.faction === shopFaction &&
+    shopItem.name === `${structureName} Health Upgrade`
+  );
+
+  if (!item || !data[resourceProfile].shop.purchases[item.id]) return 0;
+
+  const match = String(item.effect || "").match(/\+(\d+)\s*HP/i);
+  return match ? Number(match[1]) : 0;
+}
+
+function renderFactionInfoTableCell(section, row, cell, cellIndex, hub) {
+  const header = section.table?.headers?.[cellIndex];
+  if (section.title !== "Gates & Walls" || header !== "HP") {
+    return cell;
+  }
+
+  const baseHp = Number(cell);
+  const bonusHp = getPurchasedGateWallHealthBonus(row[0], hub);
+  if (!bonusHp || Number.isNaN(baseHp)) return cell;
+
+  return `${baseHp + bonusHp} <span style="color:#9ee6a8; font-size:12px;">(${baseHp} + ${bonusHp})</span>`;
+}
 function renderFactionInfo() {
   const app = document.getElementById("factionInfoApp");
   if (!app) return;
@@ -8542,7 +8576,7 @@ function renderFactionInfo() {
       ? `
         <table class="faction-info-table">
           <thead><tr>${section.table.headers.map(header => `<th>${header}</th>`).join("")}</tr></thead>
-          <tbody>${section.table.rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("")}</tbody>
+          <tbody>${section.table.rows.map(row => `<tr>${row.map((cell, cellIndex) => `<td>${renderFactionInfoTableCell(section, row, cell, cellIndex, hub)}</td>`).join("")}</tr>`).join("")}</tbody>
         </table>
       `
       : "";
@@ -13455,6 +13489,7 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
 
     saveResourceProfile();
     refreshResourceViewIfReady();
+    renderFactionInfo();
     renderShop();
     return;
   }
@@ -13487,6 +13522,7 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
 
   saveResourceProfile();
   refreshResourceViewIfReady();
+  renderFactionInfo();
   renderShop();
 }
 
@@ -15948,6 +15984,8 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
 
 
 
