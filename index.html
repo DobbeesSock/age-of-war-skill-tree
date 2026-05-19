@@ -2892,9 +2892,27 @@ const defaultResources = [
   { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "âš¡" },
   { name: "Metal", value: 0, color: "#9E9E9E", icon: "â›“ï¸" },
   { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "ðŸ‰" },
-  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "ðŸ’€" }
+  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "ðŸ’€" },
+  { name: "Unlock Tokens", value: 0, color: "#14B8A6", icon: "UT" }
 ];
 
+function normalizeResourceList(resourceList) {
+  const existingResources = Array.isArray(resourceList) ? resourceList : [];
+  const normalizedResources = defaultResources.map(defaultResource => {
+    const existingResource = existingResources.find(resource => resource.name === defaultResource.name);
+    return existingResource
+      ? { ...defaultResource, ...existingResource, value: Number(existingResource.value || 0) }
+      : { ...defaultResource };
+  });
+
+  existingResources.forEach(resource => {
+    if (!normalizedResources.some(normalized => normalized.name === resource.name)) {
+      normalizedResources.push(resource);
+    }
+  });
+
+  return normalizedResources;
+}
 let resources = [];
 let selectedCollectionFaction = "auto";
 
@@ -7891,7 +7909,7 @@ function change(index, amount) {
 }
 
 function resetResources() {
-    resources = JSON.parse(JSON.stringify(defaultResources));
+    resources = normalizeResourceList(JSON.parse(JSON.stringify(defaultResources)));
     saveResourceProfile();
     renderResources();
     renderFactionAbilities();
@@ -7908,10 +7926,11 @@ function loadResourceProfile(profileName = resourceProfile) {
     if (!profileName || !data[profileName]) return;
 
     if (!data[profileName].resources) {
-        data[profileName].resources = JSON.parse(JSON.stringify(defaultResources));
+        data[profileName].resources = normalizeResourceList(JSON.parse(JSON.stringify(defaultResources)));
     }
 
-    resources = JSON.parse(JSON.stringify(data[profileName].resources));
+    resources = normalizeResourceList(JSON.parse(JSON.stringify(data[profileName].resources)));
+    data[profileName].resources = JSON.parse(JSON.stringify(resources));
 
     const select = document.getElementById("resourceProfileSelect");
     if (select) {
@@ -12975,6 +12994,8 @@ function renderShop() {
   const metalValue = metal ? metal.value : 0;
   const dragonCoins = getResourceByName("Dragon Coins");
   const dragonCoinValue = dragonCoins ? dragonCoins.value : 0;
+  const unlockTokens = getResourceByName("Unlock Tokens");
+  const unlockTokenValue = unlockTokens ? unlockTokens.value : 0;
 
   const shopFaction = getShopFaction();
   const visibleItems = shopItems.filter(item =>
@@ -13083,6 +13104,7 @@ function renderShop() {
       <strong>Gold:</strong> ${goldValue}
       <span style="margin-left:14px;"><strong>Metal:</strong> ${metalValue}</span>
       <span style="margin-left:14px;"><strong>Dragon Coins:</strong> ${dragonCoinValue}</span>
+      <span style="margin-left:14px;"><strong>Unlock Tokens:</strong> ${unlockTokenValue}</span>
     </div>
 
     ${sectionOrder
@@ -13111,7 +13133,7 @@ function renderShop() {
               const costOptions = getShopItemCostOptions(item);
               const prereqMet = !item.prereq || purchases[item.prereq];
               const cardAccent = purchased ? "#66cc88" : meta.accent;
-              const costText = item.free ? "Free" : costOptions.map(cost => `${cost.amount} ${cost.resourceName}`).join(" or ");
+              const costText = item.free ? "Free" : `${costOptions.map(cost => `${cost.amount} ${cost.resourceName}`).join(" or ")} or 1 Unlock Token`;
               const purchaseControls = purchased
                 ? `
                   <button onclick="purchaseShopItem('${item.id}')">
@@ -13130,7 +13152,14 @@ function renderShop() {
                       ${!prereqMet ? "Requires Previous Purchase" : cost.free ? "Mark Purchased" : canAfford ? `Pay ${cost.amount} ${cost.resourceName}` : `Not Enough ${cost.resourceName}`}
                     </button>
                   `;
-                }).join("");
+                }).join("") + (item.free ? "" : `
+                  <button
+                    onclick="purchaseShopItem('${item.id}', 'unlockToken')"
+                    ${(!prereqMet || unlockTokenValue < 1) ? "disabled" : ""}
+                  >
+                    ${!prereqMet ? "Requires Previous Purchase" : unlockTokenValue >= 1 ? "Use 1 Unlock Token" : "No Unlock Tokens"}
+                  </button>
+                `);
 
               return `
                 <div style="background:rgba(45,45,45,0.95); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${cardAccent}; border-radius:10px; padding:14px;">
@@ -13171,7 +13200,10 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
   if (!item) return;
 
   const purchases = data[resourceProfile].shop.purchases;
-  const cost = getShopItemCostOptions(item)[costOptionIndex] || getShopItemCost(item);
+  const usingUnlockToken = costOptionIndex === "unlockToken";
+  const cost = usingUnlockToken
+    ? { amount: 1, resourceName: "Unlock Tokens", resource: getResourceByName("Unlock Tokens") }
+    : getShopItemCostOptions(item)[costOptionIndex] || getShopItemCost(item);
   if (!cost.free && !cost.resource) return;
 
   // Refund if already purchased
@@ -13848,8 +13880,9 @@ function ensureTradeState() {
 function getProfileResources(profileName) {
   if (!data[profileName]) return [];
   if (!data[profileName].resources) {
-    data[profileName].resources = JSON.parse(JSON.stringify(defaultResources));
+    data[profileName].resources = normalizeResourceList(JSON.parse(JSON.stringify(defaultResources)));
   }
+  data[profileName].resources = normalizeResourceList(data[profileName].resources);
   return data[profileName].resources;
 }
 
@@ -15687,6 +15720,13 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
