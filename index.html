@@ -1456,6 +1456,7 @@ body.elves {
   <button onclick="showView('hubHome')">Hub</button>
   <button onclick="showView('skill')">Skill Trees</button>
   <button onclick="showView('resources')">Resources</button>
+  <button onclick="showView('factionAbilities')">Faction Abilities</button>
   <button onclick="showView('buildings')">Income</button>
   <button onclick="showView('inventory')">Inventory</button>
   <button onclick="showView('keywords')">Keywords</button>
@@ -2714,31 +2715,33 @@ body.elves {
 
 
 <div id="resourceView" style="display:none;">
-  <div style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+  <div style="margin-bottom:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
     <select id="resourceProfileSelect" onchange="syncProfileFromResourceSelect()"></select>
-
-    <select id="collectionFactionSelect" onchange="changeCollectionFaction(this.value)">
-      <option value="auto">Auto (Current Faction)</option>
-      <option value="Dwarves">Dwarves</option>
-      <option value="Elves">Elves</option>
-      <option value="Men">Men</option>
-      <option value="Barbarians">Barbarians</option>
-      <option value="Orcs">Orcs</option>
-      <option value="The Order">The Order</option>
-    </select>
-
     <button onclick="newProfile()">New Profile</button>
     <button onclick="saveResourceProfile()">Save</button>
     <button onclick="resetResources()">Reset</button>
   </div>
 
-
-
-
-
   <div id="app"></div>
 </div>
 
+<div id="factionAbilitiesView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+      <h2 style="margin:0; color:gold;">Faction Abilities</h2>
+      <select id="collectionFactionSelect" onchange="changeCollectionFaction(this.value)">
+        <option value="auto">Auto (Current Faction)</option>
+        <option value="Dwarves">Dwarves</option>
+        <option value="Elves">Elves</option>
+        <option value="Men">Men</option>
+        <option value="Barbarians">Barbarians</option>
+        <option value="Orcs">Orcs</option>
+        <option value="The Order">The Order</option>
+      </select>
+    </div>
+    <div id="factionAbilitiesApp"></div>
+  </div>
+</div>
 <div id="shopView" style="display:none; margin:20px; color:white;">
   <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
     <h2 style="margin-top:0; color:gold;">Upgrade Shop</h2>
@@ -2915,7 +2918,7 @@ function getFactionFamily(faction) {
 }
 function changeCollectionFaction(value) {
   selectedCollectionFaction = value;
-  renderResources();
+  renderFactionAbilities();
 }
 
 const collectionTables = {
@@ -7415,6 +7418,7 @@ function useFactionAbility(cost) {
   energy.value -= cost;
   saveResourceProfile();
   renderResources();
+  renderFactionAbilities();
 }
 
 function renderFactionAbilityChart() {
@@ -7789,66 +7793,86 @@ function renderInventory() {
 
 function renderResources() {
   const app = document.getElementById("app");
+  if (!app) return;
+
   app.innerHTML = `
-  <div style="display:grid; grid-template-columns: 420px minmax(320px, 1fr) 430px; gap:28px; align-items:start;">
-    <div id="abilityChartPanel"></div>
-    <div id="collectionAndResourcesPanel"></div>
-    <div id="abilityDescriptionsPanel"></div>
-  </div>
-`;
+    <div style="max-width:980px; margin:0 auto; display:grid; gap:16px;">
+      <h2 style="margin:0 10px; color:gold;">Resources</h2>
+      <div id="resourceCounterPanel" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;"></div>
+    </div>
+  `;
 
-
-
-  document.getElementById("abilityChartPanel").innerHTML =
-    renderFactionAbilityChart() + renderPurchasedShopReminders();
-
-  const centerPanel = document.getElementById("collectionAndResourcesPanel");
-  centerPanel.innerHTML = "";
+  const counterPanel = document.getElementById("resourceCounterPanel");
+  if (!counterPanel) return;
 
   resources.forEach((res, i) => {
     const row = document.createElement("div");
-    row.style.margin = "10px";
-    row.style.padding = "10px";
-    row.style.border = "1px solid #ccc";
-    row.style.borderLeft = `6px solid ${res.color}`;
-    row.style.display = "flex";
-    row.style.justifyContent = "space-between";
-    row.style.alignItems = "center";
-    row.style.flexWrap = "wrap";
-    row.style.gap = "10px";
-    row.style.borderRadius = "8px";
-    row.style.background = "rgba(50, 50, 50, 0.85)";
-    row.style.boxShadow = "0 0 8px rgba(0,0,0,0.5)";
+    row.style.padding = "18px";
+    row.style.border = "1px solid rgba(255,255,255,0.18)";
+    row.style.borderLeft = `8px solid ${res.color}`;
+    row.style.display = "grid";
+    row.style.gridTemplateColumns = "1fr";
+    row.style.gap = "14px";
+    row.style.borderRadius = "10px";
+    row.style.background = "rgba(45, 45, 45, 0.9)";
+    row.style.boxShadow = "0 8px 18px rgba(0,0,0,0.45)";
 
     const displayValue = res.max !== undefined
       ? `${res.value} / ${res.max}`
       : res.value;
 
     row.innerHTML = `
-      <div style="min-width:180px; font-size:18px;">
-        <strong>${res.icon} ${res.name}</strong>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <strong style="font-size:21px; color:#fff;">${res.icon} ${res.name}</strong>
+        <div style="font-size:36px; font-weight:bold; color:#fff; line-height:1; text-align:right;">${displayValue}</div>
       </div>
-      <div style="font-size:28px; font-weight:bold; min-width:120px; text-align:center;">
-        ${displayValue}
+      <div style="display:grid; grid-template-columns:repeat(4, minmax(58px, 1fr)); gap:8px;">
+        <button style="font-size:16px; min-height:44px;" onclick="change(${i}, 1)">+1</button>
+        <button style="font-size:16px; min-height:44px;" onclick="change(${i}, 5)">+5</button>
+        <button style="font-size:16px; min-height:44px;" onclick="change(${i}, -1)">-1</button>
+        <button style="font-size:16px; min-height:44px;" onclick="change(${i}, -5)">-5</button>
       </div>
-      <button onclick="change(${i}, 1)">+1</button>
-      <button onclick="change(${i}, 5)">+5</button>
-      <button onclick="change(${i}, -1)">-1</button>
-      <button onclick="change(${i}, -5)">-5</button>
       ${res.name === "Energy" ? `
-        <button onclick="increaseMaxEnergy(1)">Max +1</button>
-        <button onclick="increaseMaxEnergy(5)">Max +5</button>
-        <button onclick="increaseMaxEnergy(-1)">Max -1</button>
+        <div style="display:grid; grid-template-columns:repeat(3, minmax(72px, 1fr)); gap:8px;">
+          <button style="font-size:15px; min-height:42px;" onclick="increaseMaxEnergy(1)">Max +1</button>
+          <button style="font-size:15px; min-height:42px;" onclick="increaseMaxEnergy(5)">Max +5</button>
+          <button style="font-size:15px; min-height:42px;" onclick="increaseMaxEnergy(-1)">Max -1</button>
+        </div>
       ` : ""}
     `;
 
-    centerPanel.appendChild(row);
+    counterPanel.appendChild(row);
   });
-
-  document.getElementById("abilityDescriptionsPanel").innerHTML = renderFactionAbilityDescriptions();
 }
 
+function renderFactionAbilities() {
+  const app = document.getElementById("factionAbilitiesApp");
+  if (!app) return;
 
+  const selector = document.getElementById("collectionFactionSelect");
+  if (selector) {
+    selector.value = selectedCollectionFaction;
+  }
+
+  const energy = resources.find(r => r.name === "Energy");
+  const energyDisplay = energy ? `${energy.value} / ${energy.max}` : "-";
+
+  app.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:20px; align-items:start;">
+      <div style="display:grid; gap:16px;">
+        <div style="padding:14px 16px; border-radius:10px; background:rgba(25,25,25,0.9); border:1px solid rgba(255,255,255,0.12); border-left:6px solid #2196F3;">
+          <strong style="font-size:18px;">Energy Available</strong>
+          <div style="font-size:32px; font-weight:bold; margin-top:4px;">${energyDisplay}</div>
+        </div>
+        ${renderFactionAbilityChart()}
+        ${renderPurchasedShopReminders()}
+      </div>
+      <div>
+        ${renderFactionAbilityDescriptions()}
+      </div>
+    </div>
+  `;
+}
 function change(index, amount) {
   const res = resources[index];
   res.value += amount;
@@ -7863,12 +7887,14 @@ function change(index, amount) {
 
   saveResourceProfile();
   renderResources();
+  renderFactionAbilities();
 }
 
 function resetResources() {
     resources = JSON.parse(JSON.stringify(defaultResources));
     saveResourceProfile();
     renderResources();
+    renderFactionAbilities();
 }
 
 function saveResourceProfile() {
@@ -7898,6 +7924,7 @@ function loadResourceProfile(profileName = resourceProfile) {
     }
 
     renderResources();
+    renderFactionAbilities();
 }
 
 
@@ -7956,6 +7983,7 @@ function increaseMaxEnergy(amount) {
 
   saveResourceProfile();
   renderResources();
+  renderFactionAbilities();
 }
 
 updateProfileList();
@@ -8327,7 +8355,8 @@ function renderHubHome() {
   app.innerHTML = `
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
       <button onclick="showView('skill')" class="hub-choice"><strong>Skill Trees</strong><br>${hub.trees.length} faction paths on one page.</button>
-      <button onclick="showView('resources')" class="hub-choice"><strong>Resources</strong><br>Resource counters, faction abilities, and purchased reminders.</button>
+      <button onclick="showView('resources')" class="hub-choice"><strong>Resources</strong><br>Large resource counters for quick phone use.</button>
+      <button onclick="showView('factionAbilities')" class="hub-choice"><strong>Faction Abilities</strong><br>Clickable ability costs and faction rules.</button>
       <button onclick="showView('buildings')" class="hub-choice"><strong>Income</strong><br>Income buildings and collection controls.</button>
       <button onclick="showView('inventory')" class="hub-choice"><strong>Inventory</strong><br>Potions and relics assigned by the GM.</button>
     </div>
@@ -8464,6 +8493,11 @@ function showView(view) {
   document.getElementById("resourceView").style.display =
     view === "resources" ? "block" : "none";
 
+  const factionAbilitiesView = document.getElementById("factionAbilitiesView");
+  if (factionAbilitiesView) {
+    factionAbilitiesView.style.display = view === "factionAbilities" ? "block" : "none";
+  }
+
   const buildingsView = document.getElementById("buildingsView");
   if (buildingsView) {
     buildingsView.style.display = view === "buildings" ? "block" : "none";
@@ -8519,6 +8553,10 @@ function showView(view) {
 
   if (view === "skill") {
     showHubSkillTrees();
+  }
+
+  if (view === "factionAbilities") {
+    renderFactionAbilities();
   }
 
   if (view === "buildings") {
