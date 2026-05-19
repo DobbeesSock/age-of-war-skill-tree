@@ -1530,7 +1530,6 @@ body.elves {
 </div>
 
 <div id="mainNav" style="margin-bottom:15px; display:none; gap:10px; flex-wrap:wrap; align-items:center;">
-  <button onclick="showView('hubHome')">Hub</button>
   <button onclick="showView('factionInfo')">Faction Info</button>
   <button onclick="showView('skill')">Skill Trees</button>
   <button onclick="showView('resources')">Resources</button>
@@ -8574,7 +8573,7 @@ function openFactionHub(hubKey) {
 
   setFaction(currentFaction);
   renderHubHome();
-  showView("hubHome");
+  showView("factionInfo");
 }
 
 function returnToHubLanding() {
@@ -16061,6 +16060,8 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
 
 
 
