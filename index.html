@@ -1292,15 +1292,82 @@ body.elves {
 
 .hub-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin-top: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+  margin-top: 18px;
 }
 
 .hub-choice {
-  min-height: 92px;
+  position: relative;
+  min-height: 190px;
   text-align: left;
-  border-left: 6px solid #d4af37;
+  border: 1px solid rgba(255, 224, 138, 0.35);
+  border-left: 7px solid #d4af37;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #171717;
+  background-image: linear-gradient(90deg, rgba(9, 7, 4, 0.9), rgba(9, 7, 4, 0.56) 46%, rgba(9, 7, 4, 0.18)), var(--hub-art);
+  background-size: cover;
+  background-position: center;
+  padding: 18px;
+  display: flex;
+  align-items: flex-end;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 10px 22px rgba(0,0,0,0.35);
+}
+
+.hub-choice::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.58));
+  pointer-events: none;
+}
+
+.hub-choice:hover {
+  background-image: linear-gradient(90deg, rgba(9, 7, 4, 0.82), rgba(9, 7, 4, 0.44) 46%, rgba(9, 7, 4, 0.12)), var(--hub-art);
+  border-color: rgba(255, 224, 138, 0.75);
+  box-shadow: 0 0 14px rgba(212,175,55,0.45), inset 0 0 0 1px rgba(255,255,255,0.1);
+  transform: translateY(-2px);
+}
+
+.hub-choice-content {
+  position: relative;
+  z-index: 1;
+  max-width: 240px;
+}
+
+.hub-choice strong {
+  display: block;
+  color: #ffe08a;
+  font-size: 25px;
+  line-height: 1;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 5px #000;
+}
+
+.hub-choice span {
+  display: block;
+  color: #f2ead2;
+  font-size: 14px;
+  line-height: 1.28;
+  text-shadow: 0 2px 4px #000;
+}
+
+.hub-choice.men { --hub-art: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/men.jpg"); }
+.hub-choice.dwarves { --hub-art: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/dwarves.jpg"); }
+.hub-choice.elves { --hub-art: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/elves.jpg"); }
+.hub-choice.orcs { --hub-art: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/orcs.jpg"); }
+.hub-choice.order { --hub-art: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/order.jpg"); }
+.hub-choice.barbarians { --hub-art: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/barbarians.jpg"); }
+
+@media (max-width: 720px) {
+  .hub-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hub-choice {
+    min-height: 150px;
+  }
 }
 
 .hub-header {
@@ -1362,12 +1429,12 @@ body.elves {
     </div>
 
     <div class="hub-grid">
-      <button class="hub-choice" onclick="chooseFactionHub('men')"><strong>Men</strong><br><span>Industry and War Council</span></button>
-      <button class="hub-choice" onclick="chooseFactionHub('dwarves')"><strong>Dwarves</strong><br><span>Mountain Hold and Deep Forge</span></button>
-      <button class="hub-choice" onclick="chooseFactionHub('elves')"><strong>Elves</strong><br><span>Twin Canopies and Veiled Horizon</span></button>
-      <button class="hub-choice" onclick="chooseFactionHub('orcs')"><strong>Orcs</strong><br><span>Bloodied Path and War Path</span></button>
-      <button class="hub-choice" onclick="chooseFactionHub('order')"><strong>Order</strong><br><span>Divine Mandate and Silent Judgment</span></button>
-      <button class="hub-choice" onclick="chooseFactionHub('barbarians')"><strong>Barbarians</strong><br><span>Long War and Raging Host</span></button>
+      <button class="hub-choice men" onclick="chooseFactionHub('men')"><span class="hub-choice-content"><strong>Men</strong><span>Industry and War Council</span></span></button>
+      <button class="hub-choice dwarves" onclick="chooseFactionHub('dwarves')"><span class="hub-choice-content"><strong>Dwarves</strong><span>Mountain Hold and Deep Forge</span></span></button>
+      <button class="hub-choice elves" onclick="chooseFactionHub('elves')"><span class="hub-choice-content"><strong>Elves</strong><span>Twin Canopies and Veiled Horizon</span></span></button>
+      <button class="hub-choice orcs" onclick="chooseFactionHub('orcs')"><span class="hub-choice-content"><strong>Orcs</strong><span>Bloodied Path and War Path</span></span></button>
+      <button class="hub-choice order" onclick="chooseFactionHub('order')"><span class="hub-choice-content"><strong>Order</strong><span>Divine Mandate and Silent Judgment</span></span></button>
+      <button class="hub-choice barbarians" onclick="chooseFactionHub('barbarians')"><span class="hub-choice-content"><strong>Barbarians</strong><span>Long War and Raging Host</span></span></button>
     </div>
   </div>
 </div>
