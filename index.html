@@ -876,7 +876,7 @@ body.men {
 
 
 .branch-title::before {
-    content: "⚔";
+    content: "âš”";
     margin-right: 6px;
 }
 
@@ -1212,7 +1212,7 @@ body.elves {
 }
 
 .potion-zone:first-child .potion-card::after {
-    content: "🂠";
+    content: "ðŸ‚ ";
     position: absolute;
     top: 10px;
     right: 12px;
@@ -1542,10 +1542,10 @@ body.elves {
         <option value="men2">Men - War Council</option>
         <option value="barbarians">Barbarians - Fury</option>
         <option value="barbarians2">Barbarians - Ragin Host</option>
-        <option value="orcs">Orcs – Bloodied Path</option>
-        <option value="orcsWar">Orcs – War Path</option>
-        <option value="order">Order – Core</option>
-        <option value="order2">Order – Assassins</option>
+        <option value="orcs">Orcs â€“ Bloodied Path</option>
+        <option value="orcsWar">Orcs â€“ War Path</option>
+        <option value="order">Order â€“ Core</option>
+        <option value="order2">Order â€“ Assassins</option>
         <option value="redacted1" disabled>??? (Locked)</option>
         <option value="redacted2" disabled>??? (Locked)</option>
         <option value="redacted3" disabled>??? (Locked)</option>
@@ -1596,7 +1596,7 @@ body.elves {
 
             <div class="node locked" data-id="m3" data-cost="2">
                 <h3>Mounted Assault</h3>
-                <p>+1 OD if moved ≤6</p>
+                <p>+1 OD if moved â‰¤6</p>
             </div>
 
             <div class="node locked" data-id="m4" data-cost="3" data-prereq="m3">
@@ -1637,7 +1637,7 @@ body.elves {
 
     </div>
 
-    <!-- ✅ CAPSTONE GOES HERE -->
+    <!-- âœ… CAPSTONE GOES HERE -->
     <div class="capstone locked" id="capstone-dwarves" data-id="cap_dwarves" data-cost="9">
         <h2>The Mountain Endures</h2>
         <p><b>Cost: 9 SM</b></p>
@@ -2887,12 +2887,12 @@ let data = JSON.parse(localStorage.getItem("skillTreeData")) || {};
 
 
 const defaultResources = [
-  { name: "Food", value: 0, color: "#4CAF50", icon: "🍖" },
-  { name: "Gold", value: 0, color: "#D4AF37", icon: "🪙" },
-  { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "⚡" },
-  { name: "Metal", value: 0, color: "#9E9E9E", icon: "⛓️" },
-  { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "🐉" },
-  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "💀" }
+  { name: "Food", value: 0, color: "#4CAF50", icon: "ðŸ–" },
+  { name: "Gold", value: 0, color: "#D4AF37", icon: "ðŸª™" },
+  { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "âš¡" },
+  { name: "Metal", value: 0, color: "#9E9E9E", icon: "â›“ï¸" },
+  { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "ðŸ‰" },
+  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "ðŸ’€" }
 ];
 
 let resources = [];
@@ -9039,7 +9039,7 @@ function updateAvailability(){
         let id = n.dataset.id;
         let prereq = n.dataset.prereq;
 
-        // ✅ Doctrine always available
+        // âœ… Doctrine always available
         const rootMap = {
             dwarves: "dwarves_root",
             dwarves2: "dwarves2_root",
@@ -9058,14 +9058,14 @@ function updateAvailability(){
 
         const rootId = rootMap[currentFaction];
 
-        // ✅ Doctrine always available
+        // âœ… Doctrine always available
         if(id === rootId){
             n.classList.add("available");
             n.classList.remove("locked");
             return;
         }
 
-        // 🚨 Lock behind doctrine
+        // ðŸš¨ Lock behind doctrine
         if(
             (currentFaction === "dwarves" && !skills["dwarves_root"]) ||
             (currentFaction === "dwarves2" && !skills["dwarves2_root"]) ||
@@ -9083,7 +9083,7 @@ function updateAvailability(){
             return;
         }
 
-        // ✅ normal prereq
+        // âœ… normal prereq
         if(!prereq || skills[prereq]){
             n.classList.add("available");
             n.classList.remove("locked");
@@ -9215,7 +9215,7 @@ function resetProfile(){
 }
 
 
-// 👇 ADD IT HERE
+// ðŸ‘‡ ADD IT HERE
 function deleteProfile() {
     let select = document.getElementById("skillProfileSelect");
     let name = select.value;
@@ -13546,7 +13546,7 @@ function getAllianceCost(proposer, target) {
 function getDefaultAllianceTerms(proposer, target) {
   const cost = getAllianceCost(proposer, target);
   return {
-    formsAlliance: true,
+    formsAlliance: false,
     commitmentAmount: 1,
     commitmentUnit: "Mission",
     allianceCost: cost.total,
@@ -13559,7 +13559,7 @@ function getTradeTerms(trade) {
     trade.terms = getDefaultAllianceTerms(trade.proposer, trade.target);
   }
 
-  trade.terms.formsAlliance = trade.terms.formsAlliance !== false;
+  trade.terms.formsAlliance = Boolean(trade.terms.formsAlliance);
   trade.terms.commitmentAmount = Math.max(1, Number(trade.terms.commitmentAmount || 1));
   trade.terms.commitmentUnit = trade.terms.commitmentUnit || "Mission";
   trade.terms.allianceCost = Number(trade.terms.allianceCost || getAllianceCost(trade.proposer, trade.target).total);
@@ -13634,10 +13634,26 @@ function renderAllianceTermsPanel(trade) {
   `;
 }
 
+function getAcceptedAllianceTermsFromTrade(trade) {
+  const proposerOffer = getTradeOffer(trade, trade.proposer);
+  const targetOffer = getTradeOffer(trade, trade.target);
+  const offeredTerms = [proposerOffer.alliance, targetOffer.alliance].find(terms => terms && terms.formsAlliance);
+
+  if (!offeredTerms) return null;
+
+  return {
+    formsAlliance: true,
+    commitmentAmount: Math.max(1, Number(offeredTerms.commitmentAmount || 1)),
+    commitmentUnit: offeredTerms.commitmentUnit || "Mission",
+    allianceCost: Number(offeredTerms.allianceCost || getAllianceCost(trade.proposer, trade.target).total),
+    createdBy: offeredTerms.createdBy || trade.proposer
+  };
+}
+
 function finalizeAllianceFromTrade(trade) {
   ensureAllianceState();
-  const terms = getTradeTerms(trade);
-  if (!terms.formsAlliance) return;
+  const terms = getAcceptedAllianceTermsFromTrade(trade);
+  if (!terms || !terms.formsAlliance) return;
 
   const pairKey = getAlliancePairKey(trade.proposer, trade.target);
   if (data.sharedAlliances.brokenThisMission[pairKey]) return;
@@ -13842,15 +13858,35 @@ function getProfileResourceValue(profileName, resourceName) {
   return resource ? Number(resource.value || 0) : 0;
 }
 
+function getDefaultTradeAllianceOffer(trade, profileName) {
+  const cost = getAllianceCost(trade.proposer, trade.target);
+  return {
+    formsAlliance: false,
+    commitmentAmount: 1,
+    commitmentUnit: "Mission",
+    allianceCost: cost.total,
+    createdBy: profileName
+  };
+}
+
 function getTradeOffer(trade, profileName) {
   if (!trade.offers[profileName]) {
-    trade.offers[profileName] = { resources: {}, potions: [], relics: [], locked: false };
+    trade.offers[profileName] = { resources: {}, potions: [], relics: [], locked: false, alliance: getDefaultTradeAllianceOffer(trade, profileName) };
   }
 
   trade.offers[profileName].resources = trade.offers[profileName].resources || {};
   trade.offers[profileName].potions = trade.offers[profileName].potions || [];
   trade.offers[profileName].relics = trade.offers[profileName].relics || [];
   trade.offers[profileName].locked = Boolean(trade.offers[profileName].locked);
+  trade.offers[profileName].alliance = {
+    ...getDefaultTradeAllianceOffer(trade, profileName),
+    ...(trade.offers[profileName].alliance || {})
+  };
+  trade.offers[profileName].alliance.formsAlliance = Boolean(trade.offers[profileName].alliance.formsAlliance);
+  trade.offers[profileName].alliance.commitmentAmount = Math.max(1, Number(trade.offers[profileName].alliance.commitmentAmount || 1));
+  trade.offers[profileName].alliance.commitmentUnit = trade.offers[profileName].alliance.commitmentUnit || "Mission";
+  trade.offers[profileName].alliance.allianceCost = Number(trade.offers[profileName].alliance.allianceCost || getAllianceCost(trade.proposer, trade.target).total);
+  trade.offers[profileName].alliance.createdBy = trade.offers[profileName].alliance.createdBy || profileName;
 
   return trade.offers[profileName];
 }
@@ -13887,8 +13923,8 @@ function startTradeSession(proposer, target) {
       createdAt,
       terms: getDefaultAllianceTerms(proposer, target),
       offers: {
-        [proposer]: { resources: {}, potions: [], relics: [], locked: false },
-        [target]: { resources: {}, potions: [], relics: [], locked: false }
+        [proposer]: { resources: {}, potions: [], relics: [], locked: false, alliance: getDefaultTradeAllianceOffer({ proposer, target }, proposer) },
+        [target]: { resources: {}, potions: [], relics: [], locked: false, alliance: getDefaultTradeAllianceOffer({ proposer, target }, target) }
       }
     };
   });
@@ -14092,7 +14128,7 @@ function persistTradeMutation(mutator) {
   persistCampaignData();
   refreshAfterTradeMutation();
 }
-function applyTradeOfferLock(trade, profileName, locked, offeredResources, offeredPotions, offeredRelics) {
+function applyTradeOfferLock(trade, profileName, locked, offeredResources, offeredPotions, offeredRelics, offeredAlliance) {
   if (!trade || trade.status !== "accepted") return;
 
   const offer = getTradeOffer(trade, profileName);
@@ -14101,6 +14137,7 @@ function applyTradeOfferLock(trade, profileName, locked, offeredResources, offer
     offer.resources = offeredResources;
     offer.potions = offeredPotions;
     offer.relics = offeredRelics;
+    offer.alliance = offeredAlliance || offer.alliance || getDefaultTradeAllianceOffer(trade, profileName);
   }
 
   offer.locked = locked;
@@ -14140,13 +14177,14 @@ function setTradeOfferLocked(profileName, locked) {
   const localOffer = getTradeOffer(localTrade, profileName);
   const offeredPotions = [...(localOffer.potions || [])];
   const offeredRelics = [...(localOffer.relics || [])];
+  const offeredAlliance = getTradeAllianceInputs(profileName, localTrade);
 
-  applyTradeOfferLock(localTrade, profileName, locked, offeredResources, offeredPotions, offeredRelics);
+  applyTradeOfferLock(localTrade, profileName, locked, offeredResources, offeredPotions, offeredRelics, offeredAlliance);
   setTradeDebug(`${profileName} ${locked ? "locked" : "unlocked"} their offer locally. Syncing...`);
   refreshAfterTradeMutation();
 
   persistTradeMutation(() => {
-    applyTradeOfferLock(data.sharedTrades.active, profileName, locked, offeredResources, offeredPotions, offeredRelics);
+    applyTradeOfferLock(data.sharedTrades.active, profileName, locked, offeredResources, offeredPotions, offeredRelics, offeredAlliance);
     setTradeDebug(`${profileName} ${locked ? "locked" : "unlocked"} their offer.`);
   });
 }
@@ -14246,6 +14284,113 @@ function renderTradeResourceControls(profileName, offer, canEdit) {
   }).join("");
 }
 
+function getTradeAllianceInput(profileName, attributeName) {
+  return Array.from(document.querySelectorAll(`[${attributeName}][data-trade-profile]`))
+    .find(input => input.dataset.tradeProfile === profileName) || null;
+}
+
+function getTradeAllianceInputs(profileName, trade) {
+  const currentOffer = getTradeOffer(trade, profileName);
+  const checkbox = getTradeAllianceInput(profileName, "data-trade-alliance-enabled");
+  const amountInput = getTradeAllianceInput(profileName, "data-trade-alliance-amount");
+  const unitInput = getTradeAllianceInput(profileName, "data-trade-alliance-unit");
+  const defaultOffer = currentOffer.alliance || getDefaultTradeAllianceOffer(trade, profileName);
+
+  return {
+    formsAlliance: checkbox ? checkbox.checked : Boolean(defaultOffer.formsAlliance),
+    commitmentAmount: amountInput ? Math.max(1, parseInt(amountInput.value, 10) || 1) : Math.max(1, Number(defaultOffer.commitmentAmount || 1)),
+    commitmentUnit: unitInput ? unitInput.value : (defaultOffer.commitmentUnit || "Mission"),
+    allianceCost: getAllianceCost(trade.proposer, trade.target).total,
+    createdBy: profileName
+  };
+}
+
+function updateTradeAllianceOffer(profileName, field, value) {
+  ensureTradeState();
+  const localTrade = data.sharedTrades.active;
+  if (!localTrade || localTrade.status !== "accepted") return;
+  if (profileName !== resourceProfile) return;
+
+  persistTradeMutation(() => {
+    const trade = data.sharedTrades.active;
+    if (!trade || trade.status !== "accepted") return;
+
+    const offer = getTradeOffer(trade, profileName);
+    if (offer.locked) return;
+
+    offer.alliance = offer.alliance || getDefaultTradeAllianceOffer(trade, profileName);
+
+    if (field === "formsAlliance") {
+      offer.alliance.formsAlliance = Boolean(value);
+    } else if (field === "commitmentAmount") {
+      offer.alliance.commitmentAmount = Math.max(1, parseInt(value, 10) || 1);
+    } else if (field === "commitmentUnit") {
+      offer.alliance.commitmentUnit = value;
+    }
+
+    offer.alliance.allianceCost = getAllianceCost(trade.proposer, trade.target).total;
+    offer.alliance.createdBy = profileName;
+    resetTradeLocks(trade);
+  });
+}
+
+function renderTradeAllianceControls(profileName, trade, offer, canEdit) {
+  ensureAllianceState();
+  const terms = offer.alliance || getDefaultTradeAllianceOffer(trade, profileName);
+  const cost = getAllianceCost(trade.proposer, trade.target);
+  const pairKey = getAlliancePairKey(trade.proposer, trade.target);
+  const blocked = Boolean(data.sharedAlliances.brokenThisMission[pairKey]);
+  const allianceEnabled = Boolean(terms.formsAlliance) && !blocked;
+  const disabled = canEdit && !blocked ? "" : "disabled";
+  const durationDisabled = canEdit && allianceEnabled && !blocked ? "" : "disabled";
+
+  return `
+    <div style="background:rgba(42,35,24,0.82); border:1px solid rgba(212,175,55,0.28); border-radius:8px; padding:12px; margin-top:14px;">
+      <label style="display:flex; gap:8px; align-items:center; color:#f4e6bd; font-weight:bold;">
+        <input
+          type="checkbox"
+          ${allianceEnabled ? "checked" : ""}
+          ${disabled}
+          data-trade-profile="${profileName}"
+          data-trade-alliance-enabled="true"
+          onchange="updateTradeAllianceOffer(${JSON.stringify(profileName)}, 'formsAlliance', this.checked)"
+        >
+        Offer Alliance
+      </label>
+      <p style="margin:8px 0 10px 0; color:#bbb; line-height:1.4;">
+        Recommended alliance cost: <strong>${cost.total} Gold</strong>. Put the Gold and any extra payment in Resources above. A normal trade will not form an alliance unless this is checked.
+      </p>
+      ${blocked ? `<p style="margin:0 0 10px 0; color:#ff9b9b;"><strong>Broken this mission:</strong> these factions cannot ally again until mission blocks are cleared.</p>` : ""}
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+        <label style="display:grid; gap:5px; color:#ddd;">
+          Alliance Duration
+          <input
+            type="number"
+            min="1"
+            value="${terms.commitmentAmount || 1}"
+            ${durationDisabled}
+            data-trade-profile="${profileName}"
+            data-trade-alliance-amount="true"
+            onchange="updateTradeAllianceOffer(${JSON.stringify(profileName)}, 'commitmentAmount', this.value)"
+            style="width:110px; padding:7px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;"
+          >
+        </label>
+        <label style="display:grid; gap:5px; color:#ddd;">
+          Duration Type
+          <select
+            ${durationDisabled}
+            data-trade-profile="${profileName}"
+            data-trade-alliance-unit="true"
+            onchange="updateTradeAllianceOffer(${JSON.stringify(profileName)}, 'commitmentUnit', this.value)"
+            style="min-width:130px; padding:7px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;"
+          >
+            ${["Phase", "Round", "Mission"].map(unit => `<option value="${unit}" ${terms.commitmentUnit === unit ? "selected" : ""}>${unit}${Number(terms.commitmentAmount || 1) === 1 ? "" : "s"}</option>`).join("")}
+          </select>
+        </label>
+      </div>
+    </div>
+  `;
+}
 function renderTradeCardChecklist(profileName, offer, type, canEdit) {
   const container = type === "potions" ? data[profileName]?.potions : data[profileName]?.relics;
   const inventory = container?.inventory || [];
@@ -14279,6 +14424,9 @@ function summarizeTradeOffer(profileName, offer) {
 
   if (potionCount) cardLines.push(`${potionCount} potion${potionCount === 1 ? "" : "s"}`);
   if (relicCount) cardLines.push(`${relicCount} relic${relicCount === 1 ? "" : "s"}`);
+  if (offer.alliance && offer.alliance.formsAlliance) {
+    cardLines.push(`Alliance for ${offer.alliance.commitmentAmount || 1} ${offer.alliance.commitmentUnit || "Mission"}${Number(offer.alliance.commitmentAmount || 1) === 1 ? "" : "s"}`);
+  }
 
   const lines = resourceLines.concat(cardLines);
   return lines.length ? lines.join(", ") : `${profileName} has not offered anything yet.`;
@@ -14304,6 +14452,9 @@ function renderTradeOfferPanel(profileName, trade) {
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px;">
         ${renderTradeResourceControls(profileName, offer, canEdit)}
       </div>
+
+      <h4 style="margin:14px 0 8px 0; color:#f3d777;">Alliance</h4>
+      ${renderTradeAllianceControls(profileName, trade, offer, canEdit)}
 
       <h4 style="margin:14px 0 8px 0; color:#f3d777;">Potions</h4>
       ${renderTradeCardChecklist(profileName, offer, "potions", canEdit)}
@@ -14408,8 +14559,6 @@ function renderTradeWindow(proposer, target) {
           ${isParticipant ? `<button onclick="cancelTradeSession('cancelled')">Cancel Trade</button>` : ""}
         </div>
       </div>
-
-      ${renderAllianceTermsPanel(trade)}
 
       ${trade.status === "proposed" ? `
         <div style="background:rgba(60,45,20,0.55); border:1px solid rgba(212,175,55,0.35); border-radius:10px; padding:12px; color:#ddd;">
@@ -15538,3 +15687,9 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
+
+
+
