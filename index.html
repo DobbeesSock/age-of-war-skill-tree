@@ -7759,29 +7759,6 @@ function renderBuildings() {
       </div>
 
       <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
-        <h3 style="margin-top:0; color:#ffe08a;">Constructed In Base</h3>
-        ${rows.map(row => {
-          const count = constructed[row.building] || 0;
-          const buildingArg = JSON.stringify(row.building).replace(/"/g, "&quot;");
-          const limit = getBuildingLimit(row);
-          const atLimit = limit !== null && count >= limit;
-          return `
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
-              <div>
-                <strong>${row.building}</strong>
-                <div style="color:#aaa; font-size:13px;">Limit ${row.limit} | ${row.size}</div>
-              </div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <button onclick="changeConstructedBuilding(${buildingArg}, -1)">-</button>
-                <strong style="min-width:28px; text-align:center;">${count}</strong>
-                <button onclick="changeConstructedBuilding(${buildingArg}, 1)" ${atLimit ? "disabled" : ""}>+</button>
-              </div>
-            </div>
-          `;
-        }).join("")}
-      </div>
-
-      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
         <h3 style="margin-top:0; color:#ffe08a;">Blueprint & Chest Benefits</h3>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
           ${blueprintBenefitCards.concat(chestBenefitCards).map(card => `
@@ -8364,7 +8341,7 @@ function renderHubHome() {
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
       <button onclick="showView('skill')" class="hub-choice"><strong>Skill Trees</strong><br>${hub.trees.length} faction paths on one page.</button>
       <button onclick="showView('resources')" class="hub-choice"><strong>Resources</strong><br>Resource counters, faction abilities, and purchased reminders.</button>
-      <button onclick="showView('buildings')" class="hub-choice"><strong>Buildings</strong><br>Collection table and constructed building tracker.</button>
+      <button onclick="showView('buildings')" class="hub-choice"><strong>Buildings</strong><br>Income buildings and collection controls.</button>
       <button onclick="showView('inventory')" class="hub-choice"><strong>Inventory</strong><br>Potions and relics assigned by the GM.</button>
     </div>
   `;
