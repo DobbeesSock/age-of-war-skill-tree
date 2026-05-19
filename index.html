@@ -1276,7 +1276,8 @@ body.elves {
 }
 
 #hubLanding,
-#hubHomeView {
+#hubHomeView,
+#factionInfoView {
   margin: 20px;
   color: white;
 }
@@ -1359,6 +1360,82 @@ body.elves {
 .hub-choice.orcs { --hub-art: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/orcs.jpg"); }
 .hub-choice.order { --hub-art: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/order.jpg"); }
 .hub-choice.barbarians { --hub-art: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/barbarians.jpg"); }
+
+.faction-info-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 16px;
+}
+
+.faction-info-card,
+.faction-info-hero {
+  background: rgba(24, 24, 24, 0.92);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 5px solid #d4af37;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.32);
+}
+
+.faction-info-hero {
+  min-height: 210px;
+  display: flex;
+  align-items: flex-end;
+  background-image: linear-gradient(90deg, rgba(9, 7, 4, 0.88), rgba(9, 7, 4, 0.5)), var(--faction-info-art);
+  background-size: cover;
+  background-position: center;
+}
+
+.faction-info-card h3,
+.faction-info-hero h2 {
+  color: #ffe08a;
+  margin: 0 0 8px 0;
+}
+
+.faction-info-entry {
+  margin: 10px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.faction-info-entry:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.faction-info-entry strong {
+  color: #ffd86b;
+}
+
+.faction-info-card ul {
+  margin: 8px 0 0 18px;
+  padding: 0;
+  line-height: 1.45;
+}
+
+.faction-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.faction-info-table th,
+.faction-info-table td {
+  border: 1px solid rgba(255,255,255,0.18);
+  padding: 8px;
+  text-align: left;
+}
+
+.faction-info-table th {
+  color: #ffe08a;
+  background: rgba(212,175,55,0.12);
+}
+
+@media (max-width: 900px) {
+  .faction-info-layout {
+    grid-template-columns: 1fr;
+  }
+}
 
 @media (max-width: 720px) {
   .hub-grid {
@@ -1454,6 +1531,7 @@ body.elves {
 
 <div id="mainNav" style="margin-bottom:15px; display:none; gap:10px; flex-wrap:wrap; align-items:center;">
   <button onclick="showView('hubHome')">Hub</button>
+  <button onclick="showView('factionInfo')">Faction Info</button>
   <button onclick="showView('skill')">Skill Trees</button>
   <button onclick="showView('resources')">Resources</button>
   <button onclick="showView('factionAbilities')">Faction Abilities</button>
@@ -1497,8 +1575,11 @@ body.elves {
   </div>
 </div>
 
-
-
+<div id="factionInfoView" style="display:none;">
+  <div class="hub-panel">
+    <div id="factionInfoApp"></div>
+  </div>
+</div>
 
 <div id="skillTreeView">
 
@@ -8040,6 +8121,66 @@ let liveSaveTimer = null;
 const liveClientId = localStorage.getItem("veiledRealmClientId") || crypto.randomUUID();
 localStorage.setItem("veiledRealmClientId", liveClientId);
 
+const factionInfoContent = {
+  Elves: {
+    title: "Elves",
+    subtitle: "Twin Canopies and Veiled Horizon",
+    art: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/elves.jpg",
+    playStyle: "Elves are a positioning and terrain-control faction. They want to fight around Streams, Forests, and Lost Forests, protect their archers, and turn archer kills into Food while their royal units create high-value tempo turns.",
+    sections: [
+      {
+        title: "Faction Rules",
+        entries: [
+          { label: "Elven Magic", text: "Friendly units adjacent to a Stream or Forest gain +2 Armour." },
+          { label: "Rootbound Legacy", text: "When a Rootwalker dies, replace its space with a Lost Forest 2x2. Archers occupying a Lost Forest gain Stealth Check 3-6." },
+          { label: "Allegiance", text: "If Orcs or Dwarves are in the game, gain +1 Roll Check with Heroes of the Storm when targeting these factions." },
+          { label: "Reward", text: "Archers gain +1 Food per killed enemy." }
+        ]
+      },
+      {
+        title: "Faction Upgrades",
+        entries: [
+          { label: "Upgrade I", text: "+2 Metal and Guards become immune to Trample." },
+          { label: "Upgrade II", text: "Unlock Setup 2 and gain +2 Dragon Coins." },
+          { label: "Upgrade III", text: "+2 Campaign Points. Elven Royals count as 1 movement and 1 attack action each time they perform one of those actions while adjacent to one another." }
+        ]
+      },
+      {
+        title: "Universal Economy",
+        bullets: [
+          "Destroying enemy Structures or POIs: +2 Metal.",
+          "Destroying an enemy Home Base: +7 Dragon Coins.",
+          "Killing a World Boss: +4 Dragon Coins and +7 Metal."
+        ]
+      },
+      {
+        title: "Targeting & Movement",
+        bullets: [
+          "Only Elites, Commanders, Special, and Ultimate units can target Gates and Walls at +1 OD.",
+          "Archers can scale walls."
+        ]
+      },
+      {
+        title: "Unit Restrictions & Deployment",
+        entries: [
+          { label: "Without Constructed Building", text: "Max 2 units of the same type. Elites and Commanders are limited to 1." },
+          { label: "With Constructed Building", text: "No unit limit from that building, up to maximum faction point value." },
+          { label: "Spawn Rule", text: "Spawn adjacent to the producing building unless specified otherwise." }
+        ]
+      },
+      {
+        title: "Gates & Walls",
+        table: {
+          headers: ["Name", "Cost", "HP", "Size"],
+          rows: [
+            ["Gate", "8 Gold", "8", "1x3"],
+            ["Wall", "5 Gold", "6", "1x1"]
+          ]
+        }
+      }
+    ]
+  }
+};
 const factionHubs = {
   men: {
     label: "Men",
@@ -8366,6 +8507,67 @@ function returnToHubLanding() {
   showView("landing");
 }
 
+function renderFactionInfo() {
+  const app = document.getElementById("factionInfoApp");
+  if (!app) return;
+
+  const hub = getCurrentHub();
+  const info = factionInfoContent[hub.family];
+
+  if (!info) {
+    app.innerHTML = `
+      <div class="faction-info-card">
+        <h3>${hub.label} Faction Info</h3>
+        <p style="color:#ddd; margin-bottom:0;">Faction info for this hub is coming soon.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const renderSection = section => {
+    const entries = section.entries
+      ? section.entries.map(entry => `
+          <div class="faction-info-entry">
+            <strong>${entry.label}</strong>
+            <div style="color:#e8e8e8; margin-top:4px; line-height:1.45;">${entry.text}</div>
+          </div>
+        `).join("")
+      : "";
+
+    const bullets = section.bullets
+      ? `<ul>${section.bullets.map(item => `<li>${item}</li>`).join("")}</ul>`
+      : "";
+
+    const table = section.table
+      ? `
+        <table class="faction-info-table">
+          <thead><tr>${section.table.headers.map(header => `<th>${header}</th>`).join("")}</tr></thead>
+          <tbody>${section.table.rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table>
+      `
+      : "";
+
+    return `
+      <div class="faction-info-card">
+        <h3>${section.title}</h3>
+        ${entries}${bullets}${table}
+      </div>
+    `;
+  };
+
+  app.innerHTML = `
+    <div class="faction-info-hero" style="--faction-info-art:url('${info.art}')">
+      <div>
+        <h2>${info.title}</h2>
+        <div style="color:#f2ead2; font-weight:bold; margin-bottom:8px;">${info.subtitle}</div>
+        <p style="max-width:760px; color:#eee; line-height:1.5; margin:0;">${info.playStyle}</p>
+      </div>
+    </div>
+    <div class="faction-info-layout" style="margin-top:16px;">
+      ${info.sections.map(renderSection).join("")}
+    </div>
+  `;
+}
 function renderHubHome() {
   const app = document.getElementById("hubHomeApp");
   if (!app) return;
@@ -8373,6 +8575,7 @@ function renderHubHome() {
   const hub = getCurrentHub();
   app.innerHTML = `
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+      <button onclick="showView('factionInfo')" class="hub-choice"><strong>Faction Info</strong><br>Play style, faction reminders, and booklet rules.</button>
       <button onclick="showView('skill')" class="hub-choice"><strong>Skill Trees</strong><br>${hub.trees.length} faction paths on one page.</button>
       <button onclick="showView('resources')" class="hub-choice"><strong>Resources</strong><br>Large resource counters for quick phone use.</button>
       <button onclick="showView('factionAbilities')" class="hub-choice"><strong>Faction Abilities</strong><br>Clickable ability costs and faction rules.</button>
@@ -8506,6 +8709,11 @@ function showView(view) {
     hubHomeView.style.display = view === "hubHome" ? "block" : "none";
   }
 
+  const factionInfoView = document.getElementById("factionInfoView");
+  if (factionInfoView) {
+    factionInfoView.style.display = view === "factionInfo" ? "block" : "none";
+  }
+
   document.getElementById("skillTreeView").style.display =
     view === "skill" ? "block" : "none";
 
@@ -8568,6 +8776,10 @@ function showView(view) {
 
   if (view === "hubHome") {
     renderHubHome();
+  }
+
+  if (view === "factionInfo") {
+    renderFactionInfo();
   }
 
   if (view === "skill") {
@@ -15736,6 +15948,10 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
+
 
 
 
