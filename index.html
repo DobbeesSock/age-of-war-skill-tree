@@ -8179,6 +8179,83 @@ const factionInfoContent = {
         }
       }
     ]
+  },
+  "The Order": {
+    title: "The Order",
+    subtitle: "Divine Mandate and Silent Judgment",
+    art: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/order.jpg",
+    playStyle: "The Order blends assassin precision, spell control, and paid service diplomacy. They pressure armor with Piercing Blades, shape the battlefield with Divine Light and Mythical Forest, and use mobility to make terrain and walls part of their attack routes.",
+    sections: [
+      {
+        title: "Faction Rules",
+        entries: [
+          { label: "Piercing Blades", text: "Assassins ignore 1 Armour when attacking." },
+          { label: "Goat Warrior", text: "When this unit is created, it can be brought into future games without using Transformation again unless the unit dies and you want to bring it back in the mission." },
+          { label: "Bird Beast", text: "Once this unit is created by the spell, it can be brought into future games without using the spell again unless the unit dies and you want to bring it back in the mission." },
+          { label: "Reward", text: "Gain +1 Dragon Coin when 4 active spells are on the map." },
+          { label: "Allegiance", text: "May sell services to any player." },
+          { label: "Skill Marks", text: "Refer to your faction SM reference card for how you collect SM and spend these marks on your Skill Trees." }
+        ]
+      },
+      {
+        title: "Divine Light",
+        entries: [
+          { label: "Cost", text: "5 Energy." },
+          { label: "Placement", text: "Place a 2x2 zone anywhere not inside a player Province." },
+          { label: "Friendly Units", text: "Friendly units inside gain +1 HP per round." },
+          { label: "Enemy Units", text: "Enemy units inside lose 1 HP per round." }
+        ]
+      },
+      {
+        title: "Mobility & Terrain",
+        bullets: [
+          "Knights and Archers can climb Terrain and Structures.",
+          "Archers atop Terrain or Structures gain +3 Range and cannot end movement in Trees.",
+          "Mythical Forest: units occupying it gain Stealth Check. Melee: 3-6. Range: 5-6."
+        ]
+      },
+      {
+        title: "Faction Upgrades",
+        entries: [
+          { label: "Upgrade I", text: "+10 Province Border." },
+          { label: "Upgrade II", text: "Unlock Setup 2 and gain +2 Dragon Coins." },
+          { label: "Upgrade III", text: "+2 Dragon Coins and Riders gain +3 Movement Upgrade." }
+        ]
+      },
+      {
+        title: "Universal Economy",
+        bullets: [
+          "Destroying enemy Structures or POIs: +2 Metal.",
+          "Destroying an enemy Home Base: +7 Dragon Coins.",
+          "Killing a World Boss: +4 Dragon Coins and +7 Metal."
+        ]
+      },
+      {
+        title: "Targeting & Movement",
+        bullets: [
+          "Only Elites, Special, and Ultimate units may target Walls and Gates; they gain +2 OD.",
+          "Soldiers, Archers, and Assassins can scale Walls."
+        ]
+      },
+      {
+        title: "Unit Restrictions & Deployment",
+        entries: [
+          { label: "Without Constructed Building", text: "Max 2 units of the same type. Elites and Commanders are limited to 1." },
+          { label: "With Constructed Building", text: "No unit limit from that building, up to maximum faction point value." },
+          { label: "Spawn Rule", text: "Spawn adjacent to the producing building unless specified otherwise." }
+        ]
+      },
+      {
+        title: "Gates & Walls",
+        table: {
+          headers: ["Name", "Cost", "HP", "Size"],
+          rows: [
+            ["Gate", "8 Gold", "8", "1x2"],
+            ["Wall", "6 Gold", "5", "1x1"]
+          ]
+        }
+      }
+    ]
   }
 };
 const factionHubs = {
@@ -15984,6 +16061,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
