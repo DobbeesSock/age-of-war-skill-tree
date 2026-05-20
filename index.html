@@ -16131,26 +16131,45 @@ function renderObjectiveDeckPile(tier, sharedObjectiveState) {
 }
 function dealObjectiveCards(tier) {
     const targetProfile = getGmTargetProfile("gmObjectiveTargetSelect");
-    if (!targetProfile) return;
+    if (!targetProfile || !data[targetProfile]) {
+        alert("Choose a player profile before dealing objective cards.");
+        return;
+    }
 
     const slug = getObjectiveTierSlug(tier);
     const input = document.getElementById(`objectiveDealCount_${slug}`);
     const requestedCount = Math.max(1, Number(input?.value || 1));
+    let dealtCount = 0;
 
     persistObjectiveMutation(() => {
         ensureObjectiveState(targetProfile);
         if (!data[targetProfile]?.objectives) return;
 
         const sharedObjectiveState = data.sharedObjectives;
-        const playerObjectiveState = data[targetProfile].objectives;
+        if (!sharedObjectiveState.decks) sharedObjectiveState.decks = makeObjectiveDecks();
+        if (!Array.isArray(sharedObjectiveState.decks[tier])) {
+            sharedObjectiveState.decks[tier] = defaultObjectiveCards
+                .filter(card => card.tier === tier)
+                .map(card => ({ ...card }));
+        }
 
+        const playerObjectiveState = data[targetProfile].objectives;
+        if (!Array.isArray(playerObjectiveState.inventory)) {
+            playerObjectiveState.inventory = [];
+        }
+
+        const deck = sharedObjectiveState.decks[tier];
         for (let dealt = 0; dealt < requestedCount; dealt++) {
-            const deck = sharedObjectiveState.decks[tier] || [];
             if (deck.length === 0) break;
 
             const randomIndex = Math.floor(Math.random() * deck.length);
             const card = deck.splice(randomIndex, 1)[0];
-            playerObjectiveState.inventory.push(card);
+            playerObjectiveState.inventory.push({ ...card });
+            dealtCount++;
+        }
+    })?.then?.(() => {
+        if (dealtCount === 0) {
+            alert(`${tier} has no objective cards left to deal. Shuffle the discard pile back in or reset objective decks.`);
         }
     });
 }
@@ -16718,6 +16737,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
