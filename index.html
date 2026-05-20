@@ -11844,8 +11844,8 @@ const defaultPotionCards = [
   ...mythicPotionCards
 ];
 
-const objectiveTiers = ["Tier 1", "Tier 2 Good", "Tier 2 Neutral", "Tier 2 Evil", "Tier 3 The Order", "Tier 3"];
-const objectiveDeckVersion = "tier1-52-tier2-all-alignments-tier3-order-art-v1";
+const objectiveTiers = ["Tier 1", "Tier 2 Good", "Tier 2 Neutral", "Tier 2 Evil", "Tier 3 The Order", "Tier 3 The Elves", "Tier 3 Tribes of Men", "Tier 3 Barbarians", "Tier 3 Shadow Orcs", "Tier 3 Dwarves", "Tier 3"];
+const objectiveDeckVersion = "tier1-52-tier2-all-alignments-tier3-order-elves-men-barbarians-orcs-dwarves-art-v1";
 const objectiveCardBackImage = "objective-cards/Background.png";
 const objectiveBackImages = {
   "Tier 1": objectiveCardBackImage,
@@ -11853,6 +11853,11 @@ const objectiveBackImages = {
   "Tier 2 Neutral": "objective-cards/tier-2-neutral/back.png",
   "Tier 2 Evil": "objective-cards/tier-2-evil/back.png",
   "Tier 3 The Order": "objective-cards/tier-3-order/back.png",
+  "Tier 3 The Elves": "objective-cards/tier-3-elves/back.png",
+  "Tier 3 Tribes of Men": "objective-cards/tier-3-men/back.png",
+  "Tier 3 Barbarians": "objective-cards/tier-3-barbarians/back.png",
+  "Tier 3 Shadow Orcs": "objective-cards/tier-3-shadow-orcs/back.png",
+  "Tier 3 Dwarves": "objective-cards/tier-3-dwarves/back.png",
   "Tier 3": objectiveCardBackImage
 };
 
@@ -11928,12 +11933,77 @@ const tierThreeOrderObjectiveCards = tierThreeOrderObjectiveFiles.map((fileName,
   frontImage: `objective-cards/tier-3-order/${fileName}`,
   backImage: objectiveBackImages["Tier 3 The Order"]
 }));
+
+const tierThreeElvesObjectiveFiles = ["elves-01.png", "elves-02.png", "elves-03.png"];
+
+const tierThreeElvesObjectiveCards = tierThreeElvesObjectiveFiles.map((fileName, index) => ({
+  id: `tier_3_elves_objective_${index + 1}`,
+  tier: "Tier 3 The Elves",
+  name: `Tier 3 The Elves Objective ${index + 1}`,
+  text: "See card image.",
+  reward: "See card image.",
+  frontImage: `objective-cards/tier-3-elves/${fileName}`,
+  backImage: objectiveBackImages["Tier 3 The Elves"]
+}));
+
+const tierThreeMenObjectiveFiles = ["men-01.png", "men-02.png", "men-03.png"];
+
+const tierThreeMenObjectiveCards = tierThreeMenObjectiveFiles.map((fileName, index) => ({
+  id: `tier_3_men_objective_${index + 1}`,
+  tier: "Tier 3 Tribes of Men",
+  name: `Tier 3 Tribes of Men Objective ${index + 1}`,
+  text: "See card image.",
+  reward: "See card image.",
+  frontImage: `objective-cards/tier-3-men/${fileName}`,
+  backImage: objectiveBackImages["Tier 3 Tribes of Men"]
+}));
+
+const tierThreeBarbariansObjectiveFiles = ["barbarians-01.png", "barbarians-02.png", "barbarians-03.png"];
+
+const tierThreeBarbariansObjectiveCards = tierThreeBarbariansObjectiveFiles.map((fileName, index) => ({
+  id: `tier_3_barbarians_objective_${index + 1}`,
+  tier: "Tier 3 Barbarians",
+  name: `Tier 3 Barbarians Objective ${index + 1}`,
+  text: "See card image.",
+  reward: "See card image.",
+  frontImage: `objective-cards/tier-3-barbarians/${fileName}`,
+  backImage: objectiveBackImages["Tier 3 Barbarians"]
+}));
+
+const tierThreeShadowOrcsObjectiveFiles = ["shadow-orcs-01.png", "shadow-orcs-02.png", "shadow-orcs-03.png"];
+
+const tierThreeShadowOrcsObjectiveCards = tierThreeShadowOrcsObjectiveFiles.map((fileName, index) => ({
+  id: `tier_3_shadow_orcs_objective_${index + 1}`,
+  tier: "Tier 3 Shadow Orcs",
+  name: `Tier 3 Shadow Orcs Objective ${index + 1}`,
+  text: "See card image.",
+  reward: "See card image.",
+  frontImage: `objective-cards/tier-3-shadow-orcs/${fileName}`,
+  backImage: objectiveBackImages["Tier 3 Shadow Orcs"]
+}));
+
+const tierThreeDwarvesObjectiveFiles = ["dwarves-01.png", "dwarves-02.png", "dwarves-03.png"];
+
+const tierThreeDwarvesObjectiveCards = tierThreeDwarvesObjectiveFiles.map((fileName, index) => ({
+  id: `tier_3_dwarves_objective_${index + 1}`,
+  tier: "Tier 3 Dwarves",
+  name: `Tier 3 Dwarves Objective ${index + 1}`,
+  text: "See card image.",
+  reward: "See card image.",
+  frontImage: `objective-cards/tier-3-dwarves/${fileName}`,
+  backImage: objectiveBackImages["Tier 3 Dwarves"]
+}));
 const defaultObjectiveCards = [
   ...tierOneObjectiveCards,
   ...tierTwoGoodObjectiveCards,
   ...tierTwoNeutralObjectiveCards,
   ...tierTwoEvilObjectiveCards,
   ...tierThreeOrderObjectiveCards,
+  ...tierThreeElvesObjectiveCards,
+  ...tierThreeMenObjectiveCards,
+  ...tierThreeBarbariansObjectiveCards,
+  ...tierThreeShadowOrcsObjectiveCards,
+  ...tierThreeDwarvesObjectiveCards,
   ...Array.from({ length: 12 }, (_, index) => ({
     id: `tier_3_objective_${index + 1}`,
     tier: "Tier 3",
@@ -16750,6 +16820,11 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
+
+
 
 
 
