@@ -876,7 +876,7 @@ body.men {
 
 
 .branch-title::before {
-    content: "⚔";
+    content: "âš”";
     margin-right: 6px;
 }
 
@@ -1212,7 +1212,7 @@ body.elves {
 }
 
 .potion-zone:first-child .potion-card::after {
-    content: "🂠";
+    content: "ðŸ‚ ";
     position: absolute;
     top: 10px;
     right: 12px;
@@ -1623,10 +1623,10 @@ body.elves {
         <option value="men2">Men - War Council</option>
         <option value="barbarians">Barbarians - Fury</option>
         <option value="barbarians2">Barbarians - Ragin Host</option>
-        <option value="orcs">Orcs – Bloodied Path</option>
-        <option value="orcsWar">Orcs – War Path</option>
-        <option value="order">Order – Core</option>
-        <option value="order2">Order – Assassins</option>
+        <option value="orcs">Orcs â€“ Bloodied Path</option>
+        <option value="orcsWar">Orcs â€“ War Path</option>
+        <option value="order">Order â€“ Core</option>
+        <option value="order2">Order â€“ Assassins</option>
         <option value="redacted1" disabled>??? (Locked)</option>
         <option value="redacted2" disabled>??? (Locked)</option>
         <option value="redacted3" disabled>??? (Locked)</option>
@@ -1677,7 +1677,7 @@ body.elves {
 
             <div class="node locked" data-id="m3" data-cost="2">
                 <h3>Mounted Assault</h3>
-                <p>+1 OD if moved ≤6</p>
+                <p>+1 OD if moved â‰¤6</p>
             </div>
 
             <div class="node locked" data-id="m4" data-cost="3" data-prereq="m3">
@@ -1718,7 +1718,7 @@ body.elves {
 
     </div>
 
-    <!-- ✅ CAPSTONE GOES HERE -->
+    <!-- âœ… CAPSTONE GOES HERE -->
     <div class="capstone locked" id="capstone-dwarves" data-id="cap_dwarves" data-cost="9">
         <h2>The Mountain Endures</h2>
         <p><b>Cost: 9 SM</b></p>
@@ -2975,12 +2975,12 @@ let data = JSON.parse(localStorage.getItem("skillTreeData")) || {};
 
 
 const defaultResources = [
-  { name: "Food", value: 0, color: "#4CAF50", icon: "🍖" },
-  { name: "Gold", value: 0, color: "#D4AF37", icon: "🪙" },
-  { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "⚡" },
-  { name: "Metal", value: 0, color: "#9E9E9E", icon: "⛓️" },
-  { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "🐉" },
-  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "💀" },
+  { name: "Food", value: 0, color: "#4CAF50", icon: "ðŸ–" },
+  { name: "Gold", value: 0, color: "#D4AF37", icon: "ðŸª™" },
+  { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "âš¡" },
+  { name: "Metal", value: 0, color: "#9E9E9E", icon: "â›“ï¸" },
+  { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "ðŸ‰" },
+  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "ðŸ’€" },
   { name: "Unlock Tokens", value: 0, color: "#14B8A6", icon: "UT" }
 ];
 
@@ -9681,7 +9681,7 @@ function updateAvailability(){
         let id = n.dataset.id;
         let prereq = n.dataset.prereq;
 
-        // ✅ Doctrine always available
+        // âœ… Doctrine always available
         const rootMap = {
             dwarves: "dwarves_root",
             dwarves2: "dwarves2_root",
@@ -9700,14 +9700,14 @@ function updateAvailability(){
 
         const rootId = rootMap[currentFaction];
 
-        // ✅ Doctrine always available
+        // âœ… Doctrine always available
         if(id === rootId){
             n.classList.add("available");
             n.classList.remove("locked");
             return;
         }
 
-        // 🚨 Lock behind doctrine
+        // ðŸš¨ Lock behind doctrine
         if(
             (currentFaction === "dwarves" && !skills["dwarves_root"]) ||
             (currentFaction === "dwarves2" && !skills["dwarves2_root"]) ||
@@ -9725,7 +9725,7 @@ function updateAvailability(){
             return;
         }
 
-        // ✅ normal prereq
+        // âœ… normal prereq
         if(!prereq || skills[prereq]){
             n.classList.add("available");
             n.classList.remove("locked");
@@ -9857,7 +9857,7 @@ function resetProfile(){
 }
 
 
-// 👇 ADD IT HERE
+// ðŸ‘‡ ADD IT HERE
 function deleteProfile() {
     let select = document.getElementById("skillProfileSelect");
     let name = select.value;
@@ -11840,9 +11840,16 @@ const defaultPotionCards = [
   ...mythicPotionCards
 ];
 
-const objectiveTiers = ["Tier 1", "Tier 2", "Tier 3"];
-const objectiveDeckVersion = "tier1-art-v1";
+const objectiveTiers = ["Tier 1", "Tier 2 Good", "Tier 2 Neutral", "Tier 2 Evil", "Tier 3"];
+const objectiveDeckVersion = "tier2-all-alignments-art-v1";
 const objectiveCardBackImage = "objective-cards/Background.png";
+const objectiveBackImages = {
+  "Tier 1": objectiveCardBackImage,
+  "Tier 2 Good": "objective-cards/tier-2-good/back.png",
+  "Tier 2 Neutral": "objective-cards/tier-2-neutral/back.png",
+  "Tier 2 Evil": "objective-cards/tier-2-evil/back.png",
+  "Tier 3": objectiveCardBackImage
+};
 
 const tierOneObjectiveFiles = [
   "1.png", "2.png", "3.png", "4.png", "5.png", "6.png", "7.png", "8.png", "9.png", "10.png",
@@ -11860,22 +11867,72 @@ const tierOneObjectiveCards = tierOneObjectiveFiles.map(fileName => {
     text: "See card image.",
     reward: "See card image.",
     frontImage: `objective-cards/${fileName}`,
-    backImage: objectiveCardBackImage
+    backImage: objectiveBackImages["Tier 1"]
   };
 });
 
+const tierTwoGoodObjectiveFiles = [
+  "good-01.png", "good-02.png", "good-03.png", "good-04.png", "good-05.png", "good-06.png",
+  "good-07.png", "good-08.png", "good-09.png", "good-10.png", "good-11.png", "good-12.png"
+];
+
+const tierTwoGoodObjectiveCards = tierTwoGoodObjectiveFiles.map((fileName, index) => ({
+  id: `tier_2_good_objective_${index + 1}`,
+  tier: "Tier 2 Good",
+  name: `Tier 2 Good Objective ${index + 1}`,
+  text: "See card image.",
+  reward: "See card image.",
+  frontImage: `objective-cards/tier-2-good/${fileName}`,
+  backImage: objectiveBackImages["Tier 2 Good"]
+}));
+
+const tierTwoNeutralObjectiveFiles = [
+  "neutral-01.png", "neutral-02.png", "neutral-03.png", "neutral-04.png", "neutral-05.png", "neutral-06.png",
+  "neutral-07.png", "neutral-08.png", "neutral-09.png", "neutral-10.png", "neutral-11.png", "neutral-12.png"
+];
+
+const tierTwoNeutralObjectiveCards = tierTwoNeutralObjectiveFiles.map((fileName, index) => ({
+  id: `tier_2_neutral_objective_${index + 1}`,
+  tier: "Tier 2 Neutral",
+  name: `Tier 2 Neutral Objective ${index + 1}`,
+  text: "See card image.",
+  reward: "See card image.",
+  frontImage: `objective-cards/tier-2-neutral/${fileName}`,
+  backImage: objectiveBackImages["Tier 2 Neutral"]
+}));
+
+const tierTwoEvilObjectiveFiles = [
+  "evil-01.png", "evil-02.png", "evil-03.png", "evil-04.png", "evil-05.png", "evil-06.png",
+  "evil-07.png", "evil-08.png", "evil-09.png", "evil-10.png", "evil-11.png", "evil-12.png"
+];
+
+const tierTwoEvilObjectiveCards = tierTwoEvilObjectiveFiles.map((fileName, index) => ({
+  id: `tier_2_evil_objective_${index + 1}`,
+  tier: "Tier 2 Evil",
+  name: `Tier 2 Evil Objective ${index + 1}`,
+  text: "See card image.",
+  reward: "See card image.",
+  frontImage: `objective-cards/tier-2-evil/${fileName}`,
+  backImage: objectiveBackImages["Tier 2 Evil"]
+}));
+
 const defaultObjectiveCards = [
   ...tierOneObjectiveCards,
-  ...["Tier 2", "Tier 3"].flatMap(tier =>
-    Array.from({ length: 12 }, (_, index) => ({
-      id: `${tier.toLowerCase().replace(/\s+/g, "_")}_objective_${index + 1}`,
-      tier,
-      name: `${tier} Objective ${index + 1}`,
-      text: "Objective text coming soon.",
-      reward: "Reward text coming soon."
-    }))
-  )
+  ...tierTwoGoodObjectiveCards,
+  ...tierTwoNeutralObjectiveCards,
+  ...tierTwoEvilObjectiveCards,
+  ...Array.from({ length: 12 }, (_, index) => ({
+    id: `tier_3_objective_${index + 1}`,
+    tier: "Tier 3",
+    name: `Tier 3 Objective ${index + 1}`,
+    text: "Objective text coming soon.",
+    reward: "Reward text coming soon."
+  }))
 ];
+
+function getObjectiveBackImage(tier) {
+  return objectiveBackImages[tier] || objectiveCardBackImage;
+}
 
 function makeObjectiveDecks() {
   const decks = {};
@@ -16048,7 +16105,7 @@ function renderObjectiveDeckPile(tier, sharedObjectiveState) {
             <div class="relic-card deck">
                 <small>Objective Deck</small>
                 <h3>${tier} Deck</h3>
-                <img src="${objectiveCardBackImage}" alt="Objective Deck Back" style="width:100%; border-radius:8px; margin:8px 0; opacity:0.95;">
+                <img src="${getObjectiveBackImage(tier)}" alt="Objective Deck Back" style="width:100%; border-radius:8px; margin:8px 0; opacity:0.95;">
                 <p>${deckCards.length} card${deckCards.length === 1 ? "" : "s"} remaining</p>
                 <div class="potion-actions" style="align-items:center;">
                     <label style="color:#ddd;">Deal
@@ -16661,6 +16718,9 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
 
 
 
