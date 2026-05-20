@@ -876,7 +876,7 @@ body.men {
 
 
 .branch-title::before {
-    content: "âš”";
+    content: "⚔";
     margin-right: 6px;
 }
 
@@ -1212,7 +1212,7 @@ body.elves {
 }
 
 .potion-zone:first-child .potion-card::after {
-    content: "ðŸ‚ ";
+    content: "🂠";
     position: absolute;
     top: 10px;
     right: 12px;
@@ -1623,10 +1623,10 @@ body.elves {
         <option value="men2">Men - War Council</option>
         <option value="barbarians">Barbarians - Fury</option>
         <option value="barbarians2">Barbarians - Ragin Host</option>
-        <option value="orcs">Orcs â€“ Bloodied Path</option>
-        <option value="orcsWar">Orcs â€“ War Path</option>
-        <option value="order">Order â€“ Core</option>
-        <option value="order2">Order â€“ Assassins</option>
+        <option value="orcs">Orcs – Bloodied Path</option>
+        <option value="orcsWar">Orcs – War Path</option>
+        <option value="order">Order – Core</option>
+        <option value="order2">Order – Assassins</option>
         <option value="redacted1" disabled>??? (Locked)</option>
         <option value="redacted2" disabled>??? (Locked)</option>
         <option value="redacted3" disabled>??? (Locked)</option>
@@ -1677,7 +1677,7 @@ body.elves {
 
             <div class="node locked" data-id="m3" data-cost="2">
                 <h3>Mounted Assault</h3>
-                <p>+1 OD if moved â‰¤6</p>
+                <p>+1 OD if moved ≤6</p>
             </div>
 
             <div class="node locked" data-id="m4" data-cost="3" data-prereq="m3">
@@ -1718,7 +1718,7 @@ body.elves {
 
     </div>
 
-    <!-- âœ… CAPSTONE GOES HERE -->
+    <!-- ✅ CAPSTONE GOES HERE -->
     <div class="capstone locked" id="capstone-dwarves" data-id="cap_dwarves" data-cost="9">
         <h2>The Mountain Endures</h2>
         <p><b>Cost: 9 SM</b></p>
@@ -2975,12 +2975,12 @@ let data = JSON.parse(localStorage.getItem("skillTreeData")) || {};
 
 
 const defaultResources = [
-  { name: "Food", value: 0, color: "#4CAF50", icon: "ðŸ–" },
-  { name: "Gold", value: 0, color: "#D4AF37", icon: "ðŸª™" },
-  { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "âš¡" },
-  { name: "Metal", value: 0, color: "#9E9E9E", icon: "â›“ï¸" },
-  { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "ðŸ‰" },
-  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "ðŸ’€" },
+  { name: "Food", value: 0, color: "#4CAF50", icon: "🍖" },
+  { name: "Gold", value: 0, color: "#D4AF37", icon: "🪙" },
+  { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "⚡" },
+  { name: "Metal", value: 0, color: "#9E9E9E", icon: "⛓️" },
+  { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "🐉" },
+  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "💀" },
   { name: "Unlock Tokens", value: 0, color: "#14B8A6", icon: "UT" }
 ];
 
@@ -9681,7 +9681,7 @@ function updateAvailability(){
         let id = n.dataset.id;
         let prereq = n.dataset.prereq;
 
-        // âœ… Doctrine always available
+        // ✅ Doctrine always available
         const rootMap = {
             dwarves: "dwarves_root",
             dwarves2: "dwarves2_root",
@@ -9700,14 +9700,14 @@ function updateAvailability(){
 
         const rootId = rootMap[currentFaction];
 
-        // âœ… Doctrine always available
+        // ✅ Doctrine always available
         if(id === rootId){
             n.classList.add("available");
             n.classList.remove("locked");
             return;
         }
 
-        // ðŸš¨ Lock behind doctrine
+        // 🚨 Lock behind doctrine
         if(
             (currentFaction === "dwarves" && !skills["dwarves_root"]) ||
             (currentFaction === "dwarves2" && !skills["dwarves2_root"]) ||
@@ -9725,7 +9725,7 @@ function updateAvailability(){
             return;
         }
 
-        // âœ… normal prereq
+        // ✅ normal prereq
         if(!prereq || skills[prereq]){
             n.classList.add("available");
             n.classList.remove("locked");
@@ -9857,7 +9857,7 @@ function resetProfile(){
 }
 
 
-// ðŸ‘‡ ADD IT HERE
+// 👇 ADD IT HERE
 function deleteProfile() {
     let select = document.getElementById("skillProfileSelect");
     let name = select.value;
@@ -16001,6 +16001,41 @@ function renderObjectives() {
     `;
 }
 
+function refreshAfterObjectiveMutation() {
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    renderObjectives();
+    renderInventory();
+}
+
+function persistObjectiveMutation(mutator) {
+    clearTimeout(liveSaveTimer);
+
+    if (liveCampaignCode && liveSyncDb && !isApplyingRemoteCampaign) {
+        const ref = getCampaignDoc(liveCampaignCode);
+
+        return liveSyncDb.runTransaction(transaction => {
+            return transaction.get(ref).then(snapshot => {
+                const remote = snapshot.exists && snapshot.data()?.data ? snapshot.data().data : data;
+                data = remote;
+                mutator();
+                transaction.set(ref, {
+                    data,
+                    updatedAt: Date.now(),
+                    updatedBy: liveClientId
+                }, { merge: true });
+            });
+        }).then(() => {
+            refreshAfterObjectiveMutation();
+        }).catch(error => {
+            alert(`Objective sync failed: ${error.message}`);
+        });
+    }
+
+    mutator();
+    persistCampaignData();
+    refreshAfterObjectiveMutation();
+}
+
 function renderObjectiveDeckPile(tier, sharedObjectiveState) {
     const deckCards = sharedObjectiveState.decks[tier] || [];
     const discardCards = sharedObjectiveState.discards[tier] || [];
@@ -16041,42 +16076,43 @@ function dealObjectiveCards(tier) {
     const targetProfile = getGmTargetProfile("gmObjectiveTargetSelect");
     if (!targetProfile) return;
 
-    ensureObjectiveState(targetProfile);
     const slug = getObjectiveTierSlug(tier);
     const input = document.getElementById(`objectiveDealCount_${slug}`);
     const requestedCount = Math.max(1, Number(input?.value || 1));
-    const sharedObjectiveState = data.sharedObjectives;
-    const playerObjectiveState = data[targetProfile].objectives;
 
-    for (let dealt = 0; dealt < requestedCount; dealt++) {
-        const deck = sharedObjectiveState.decks[tier] || [];
-        if (deck.length === 0) break;
+    persistObjectiveMutation(() => {
+        ensureObjectiveState(targetProfile);
+        if (!data[targetProfile]?.objectives) return;
 
-        const randomIndex = Math.floor(Math.random() * deck.length);
-        const card = deck.splice(randomIndex, 1)[0];
-        playerObjectiveState.inventory.push(card);
-    }
+        const sharedObjectiveState = data.sharedObjectives;
+        const playerObjectiveState = data[targetProfile].objectives;
 
-    saveProfiles();
-    renderObjectives();
-    renderInventory();
+        for (let dealt = 0; dealt < requestedCount; dealt++) {
+            const deck = sharedObjectiveState.decks[tier] || [];
+            if (deck.length === 0) break;
+
+            const randomIndex = Math.floor(Math.random() * deck.length);
+            const card = deck.splice(randomIndex, 1)[0];
+            playerObjectiveState.inventory.push(card);
+        }
+    });
 }
 
 function shuffleObjectiveDeck(tier) {
-    ensureObjectiveState(resourceProfile);
-    shuffleArray(data.sharedObjectives.decks[tier]);
-    saveProfiles();
-    renderObjectives();
+    persistObjectiveMutation(() => {
+        ensureObjectiveState(resourceProfile);
+        shuffleArray(data.sharedObjectives.decks[tier]);
+    });
 }
 
 function shuffleObjectiveDiscardIntoDeck(tier) {
-    ensureObjectiveState(resourceProfile);
-    const sharedObjectiveState = data.sharedObjectives;
-    sharedObjectiveState.decks[tier] = (sharedObjectiveState.decks[tier] || []).concat(sharedObjectiveState.discards[tier] || []);
-    sharedObjectiveState.discards[tier] = [];
-    shuffleArray(sharedObjectiveState.decks[tier]);
-    saveProfiles();
-    renderObjectives();
+    persistObjectiveMutation(() => {
+        ensureObjectiveState(resourceProfile);
+        const sharedObjectiveState = data.sharedObjectives;
+        sharedObjectiveState.decks[tier] = (sharedObjectiveState.decks[tier] || []).concat(sharedObjectiveState.discards[tier] || []);
+        sharedObjectiveState.discards[tier] = [];
+        shuffleArray(sharedObjectiveState.decks[tier]);
+    });
 }
 
 function renderObjectiveCard(card, zone, index) {
@@ -16105,53 +16141,50 @@ function renderObjectiveCard(card, zone, index) {
 }
 function discardObjective(index) {
     if (!resourceProfile) return;
-    ensureObjectiveState(resourceProfile);
 
-    const playerObjectiveState = data[resourceProfile].objectives;
-    const card = playerObjectiveState.inventory.splice(index, 1)[0];
-    if (!card) return;
+    persistObjectiveMutation(() => {
+        ensureObjectiveState(resourceProfile);
 
-    const tier = card.tier || "Tier 1";
-    if (!data.sharedObjectives.discards[tier]) data.sharedObjectives.discards[tier] = [];
-    data.sharedObjectives.discards[tier].push(card);
+        const playerObjectiveState = data[resourceProfile].objectives;
+        const card = playerObjectiveState.inventory.splice(index, 1)[0];
+        if (!card) return;
 
-    saveProfiles();
-    renderObjectives();
-    renderInventory();
+        const tier = card.tier || "Tier 1";
+        if (!data.sharedObjectives.discards[tier]) data.sharedObjectives.discards[tier] = [];
+        data.sharedObjectives.discards[tier].push(card);
+    });
 }
 
 function returnObjectiveToDeck(index) {
     if (!resourceProfile) return;
-    ensureObjectiveState(resourceProfile);
 
-    const playerObjectiveState = data[resourceProfile].objectives;
-    const card = playerObjectiveState.inventory.splice(index, 1)[0];
-    if (!card) return;
+    persistObjectiveMutation(() => {
+        ensureObjectiveState(resourceProfile);
 
-    const tier = card.tier || "Tier 1";
-    if (!data.sharedObjectives.decks[tier]) data.sharedObjectives.decks[tier] = [];
-    data.sharedObjectives.decks[tier].push(card);
+        const playerObjectiveState = data[resourceProfile].objectives;
+        const card = playerObjectiveState.inventory.splice(index, 1)[0];
+        if (!card) return;
 
-    saveProfiles();
-    renderObjectives();
-    renderInventory();
+        const tier = card.tier || "Tier 1";
+        if (!data.sharedObjectives.decks[tier]) data.sharedObjectives.decks[tier] = [];
+        data.sharedObjectives.decks[tier].push(card);
+    });
 }
 
 function resetObjectives() {
-    data.sharedObjectives = {
-        decks: makeObjectiveDecks(),
-        discards: makeObjectiveDiscards()
-    };
+    persistObjectiveMutation(() => {
+        data.sharedObjectives = {
+            version: objectiveDeckVersion,
+            decks: makeObjectiveDecks(),
+            discards: makeObjectiveDiscards()
+        };
 
-    Object.keys(data).forEach(key => {
-        if (data[key] && data[key].objectives && data[key].objectives.inventory) {
-            data[key].objectives.inventory = [];
-        }
+        Object.keys(data).forEach(key => {
+            if (data[key] && data[key].objectives && data[key].objectives.inventory) {
+                data[key].objectives.inventory = [];
+            }
+        });
     });
-
-    saveProfiles();
-    renderObjectives();
-    renderInventory();
 }
 
 function renderRelicDeck(deckCards) {
@@ -16628,6 +16661,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
