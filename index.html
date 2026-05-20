@@ -8121,6 +8121,64 @@ const liveClientId = localStorage.getItem("veiledRealmClientId") || crypto.rando
 localStorage.setItem("veiledRealmClientId", liveClientId);
 
 const factionInfoContent = {
+  Men: {
+    title: "Tribes of Men",
+    subtitle: "Industry and War Council",
+    art: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/men.jpg",
+    playStyle: "The Tribes of Men are a disciplined kingdom faction built around defensive staying power, graveyard economy, and strong province control. They prefer fortified positions, Castle healing, and steady resource gains from fighting evil factions and returning units from the Graveyard.",
+    sections: [
+      {
+        title: "Faction Rules",
+        entries: [
+          { label: "Castle", text: "Adjacent units heal 2 HP per round." },
+          { label: "Core Abilities", text: "When a unit is bought from the Graveyard, gain +3 Gold." },
+          { label: "Allegiance", text: "May never ally with Evil factions. When Evil factions are present in a game, gain +1 Gold per unit killed from those factions." },
+          { label: "Reward", text: "Gain +1 Dragon Coin per unit spawned from the Graveyard." }
+        ]
+      },
+      {
+        title: "Faction Upgrades",
+        entries: [
+          { label: "Upgrade I", text: "Gain +8 Province Border." },
+          { label: "Upgrade II", text: "Unlock Setup 2 and gain +2 Dragon Coins." },
+          { label: "Upgrade III", text: "All Structures, Walls, and Gates gain +2 Armour. Archangel costs 30 Dragon Coins." }
+        ]
+      },
+      {
+        title: "Universal Economy",
+        bullets: [
+          "Destroying enemy Structures or POIs: +2 Metal.",
+          "Destroying an enemy Home Base: +7 Dragon Coins.",
+          "Killing a World Boss: +4 Dragon Coins and +7 Metal."
+        ]
+      },
+      {
+        title: "Warfare & Siege",
+        bullets: [
+          "Only Elites and Ultimate units can target Gates and Walls at +1 Roll Check.",
+          "Swordsmen can scale Walls."
+        ]
+      },
+      {
+        title: "Unit Restrictions & Deployment",
+        entries: [
+          { label: "Without Constructed Building", text: "Max 2 units of the same type. Elites and Commanders are limited to 1." },
+          { label: "With Constructed Building", text: "No unit limit from that building, up to maximum faction point value." },
+          { label: "Spawn Rule", text: "Spawn adjacent to the producing building unless specified otherwise." }
+        ]
+      },
+      {
+        title: "Gates & Walls",
+        table: {
+          headers: ["Name", "Cost", "HP", "Size"],
+          rows: [
+            ["Gate", "9 Gold", "8", "1x3"],
+            ["Wall", "6 Gold", "5", "1x1"]
+          ]
+        }
+      }
+    ]
+  },
   Elves: {
     title: "Elves",
     subtitle: "Twin Canopies and Veiled Horizon",
@@ -8174,6 +8232,82 @@ const factionInfoContent = {
           rows: [
             ["Gate", "8 Gold", "8", "1x3"],
             ["Wall", "5 Gold", "6", "1x1"]
+          ]
+        }
+      }
+    ]
+  },
+  Barbarians: {
+    title: "The Barbarians",
+    subtitle: "Long War and Raging Host",
+    art: "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/barbarians.jpg",
+    playStyle: "The Barbarians are a momentum faction built around kill economy, Fury spending, and aggressive pressure. They turn combat into resources, use priests and druids to keep the warband moving, and become especially dangerous when the table politics give them an enemy to exploit.",
+    sections: [
+      {
+        title: "Faction Rules",
+        entries: [
+          { label: "Faction Bonus", text: "Increase Gold per kill by +1." },
+          { label: "Passive", text: "Gain +3 Gold when destroying a Structure." },
+          { label: "Priest", text: "Movement does not count as an action. May move twice per Action Round." },
+          { label: "Druids", text: "Heal 1 HP at the start of every Phase." },
+          { label: "Skill Marks", text: "Refer to your faction SM reference card for how you collect SM and spend these marks on your Skill Trees." }
+        ]
+      },
+      {
+        title: "Allegiance: Opportunistic Warband",
+        bullets: [
+          "If two Good teams are playing, Barbarians are considered Evil.",
+          "Gain +2 Gold per enemy killed instead of Passive."
+        ]
+      },
+      {
+        title: "Faction Upgrades",
+        entries: [
+          { label: "Upgrade I", text: "Passage of the Gods no longer requires units in Graveyard and all units cost -2 Food." },
+          { label: "Upgrade II", text: "Unlock Setup 2 and gain +2 Dragon Coins." },
+          { label: "Upgrade III", text: "+2 Campaign Points. Thor boosts all adjacent Elites, giving them +1 Roll Check and Heal 1 per round while adjacent." }
+        ]
+      },
+      {
+        title: "Universal Economy",
+        bullets: [
+          "Destroying enemy Structures or POIs: +2 Metal.",
+          "Destroying an enemy Home Base: +7 Dragon Coins.",
+          "Killing a World Boss: +4 Dragon Coins and +7 Metal."
+        ]
+      },
+      {
+        title: "Warfare & Siege",
+        bullets: [
+          "Only Elites, Special, and Ultimate units may target Walls and Gates; they gain +1 Roll Check.",
+          "Housecarls can scale Walls."
+        ]
+      },
+      {
+        title: "Unit Restrictions & Deployment",
+        entries: [
+          { label: "Without Constructed Building", text: "Max 2 units of the same type. Elites and Commanders are limited to 1." },
+          { label: "With Constructed Building", text: "No unit limit from that building, up to maximum faction point value." },
+          { label: "Spawn Rule", text: "Spawn adjacent to the producing building unless specified otherwise." }
+        ]
+      },
+      {
+        title: "Fury Tokens",
+        entries: [
+          { label: "5 Fury", text: "+1 Attack Action." },
+          { label: "6 Fury", text: "+1 Roll Check." },
+          { label: "4 Fury", text: "+15 Gold." },
+          { label: "3 Fury", text: "+10 Food." },
+          { label: "7 Fury", text: "+3 Energy." }
+        ]
+      },
+      {
+        title: "Gates & Walls",
+        table: {
+          headers: ["Name", "Cost", "HP", "Size"],
+          rows: [
+            ["Gate", "9 Gold", "9", "1x3"],
+            ["Wall", "6 Gold", "6", "1x1"]
           ]
         }
       }
@@ -16200,6 +16334,9 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
 
 
 
