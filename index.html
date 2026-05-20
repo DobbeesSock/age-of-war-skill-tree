@@ -1559,6 +1559,7 @@ body.elves {
   <button onclick="showView('mythologicalCaves')">Mythological Caves</button>
   <button onclick="showView('potions')">Potion Deck</button>
   <button onclick="showView('relics')">Relic Deck</button>
+  <button onclick="showView('objectives')">Objective Deck</button>
 
 
   
@@ -2851,6 +2852,13 @@ body.elves {
   <div id="relicsApp"></div>
 </div>
 
+<div id="objectivesView" style="display:none;">
+  <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <label style="color:white;">Give to: <select id="gmObjectiveTargetSelect"></select></label>
+    <button onclick="resetObjectives()">Reset Objective Decks</button>
+  </div>
+  <div id="objectivesApp"></div>
+</div>
 <div id="keywordsView" style="display:none;">
   <div style="margin:20px; color:white;">
     <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
@@ -7869,12 +7877,14 @@ function renderInventory() {
 
   ensurePotionState(resourceProfile);
   ensureRelicState(resourceProfile);
+  ensureObjectiveState(resourceProfile);
 
   const potions = data[resourceProfile].potions.inventory;
   const relics = data[resourceProfile].relics.inventory;
+  const objectives = data[resourceProfile].objectives.inventory;
 
   app.innerHTML = `
-    <div style="display:grid; grid-template-columns:repeat(2, minmax(300px, 1fr)); gap:20px; align-items:start;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; align-items:start;">
       <div class="potion-zone">
         <h2>Potions (${potions.length})</h2>
         ${potions.map((card, index) => renderPotionCard(card, "inventory", index)).join("") || "<p>No potions in inventory.</p>"}
@@ -7883,6 +7893,11 @@ function renderInventory() {
       <div class="relic-zone">
         <h2>Relics (${relics.length})</h2>
         ${relics.map((card, index) => renderRelicCard(card, "inventory", index)).join("") || "<p>No relics in inventory.</p>"}
+      </div>
+
+      <div class="relic-zone">
+        <h2>Objectives (${objectives.length})</h2>
+        ${objectives.map((card, index) => renderObjectiveCard(card, "inventory", index)).join("") || "<p>No objectives in inventory.</p>"}
       </div>
     </div>
   `;
@@ -8060,7 +8075,7 @@ function updateProfileList() {
     select.innerHTML = "";
 
     for (let name in data) {
-        if (name === "sharedPotions" || name === "sharedRelics") continue;
+        if (name === "sharedPotions" || name === "sharedRelics" || name === "sharedObjectives") continue;
 
 
         const option = document.createElement("option");
@@ -8719,7 +8734,8 @@ function refreshAfterRemoteCampaignUpdate() {
     loadResourceProfile(resourceProfile);
     ensurePotionState(resourceProfile);
     ensureRelicState(resourceProfile);
-    ensureKeywordState(resourceProfile);
+    ensureObjectiveState(resourceProfile);
+ensureKeywordState(resourceProfile);
     ensureShopState(resourceProfile);
   }
 
@@ -8732,7 +8748,8 @@ function refreshAfterRemoteCampaignUpdate() {
   renderInventory();
   renderPotions();
   renderRelics();
-  renderKeywords();
+  renderObjectives();
+renderKeywords();
   renderAllianceTrading();
   renderTradeNotification();
   renderShop();
@@ -8745,7 +8762,7 @@ function syncLandingProfileSelect() {
   select.innerHTML = "";
 
   Object.keys(data).forEach(name => {
-    if (name === "sharedPotions" || name === "sharedRelics") return;
+    if (name === "sharedPotions" || name === "sharedRelics" || name === "sharedObjectives") return;
 
     const option = document.createElement("option");
     option.value = name;
@@ -8964,7 +8981,7 @@ function renderHubHome() {
       <button onclick="showView('resources')" class="hub-choice"><strong>Resources</strong><br>Large resource counters for quick phone use.</button>
       <button onclick="showView('factionAbilities')" class="hub-choice"><strong>Faction Abilities</strong><br>Clickable ability costs and faction rules.</button>
       <button onclick="showView('buildings')" class="hub-choice"><strong>Income</strong><br>Income buildings and collection controls.</button>
-      <button onclick="showView('inventory')" class="hub-choice"><strong>Inventory</strong><br>Potions and relics assigned by the GM.</button>
+      <button onclick="showView('inventory')" class="hub-choice"><strong>Inventory</strong><br>Potions, relics, and objectives assigned by the GM.</button>
     </div>
   `;
 }
@@ -8981,6 +8998,7 @@ function createProfile() {
         resources: JSON.parse(JSON.stringify(defaultResources)),
         potions: { inventory: [] },
         relics: { inventory: [] },
+        objectives: { inventory: [] },
         keywords: { selected: {} },
         buildings: { constructed: {} },
         shop: { purchases: {} },
@@ -9035,8 +9053,7 @@ function createProfile() {
     loadProfile();
     renderPotions();
     renderRelics();
-    
-
+  renderObjectives();
 }
 
 
@@ -9046,7 +9063,7 @@ function loadProfile() {
     let select = document.getElementById("skillProfileSelect");
     let name = select.value;
 
-    if (!name || name === "sharedPotions" || name === "sharedRelics" || !data[name] || !data[name][currentFaction]) return;
+    if (!name || name === "sharedPotions" || name === "sharedRelics" || name === "sharedObjectives" || !data[name] || !data[name][currentFaction]) return;
 
 
     resourceProfile = name;
@@ -9072,9 +9089,10 @@ function loadProfile() {
     renderPotions();
 
     ensureRelicState(resourceProfile);
-    renderRelics();
-
-    ensureKeywordState(resourceProfile);
+    ensureObjectiveState(resourceProfile);
+renderRelics();
+  renderObjectives();
+ensureKeywordState(resourceProfile);
     renderKeywords();
 
     ensureShopState(resourceProfile);
@@ -9124,6 +9142,11 @@ function showView(view) {
 
   document.getElementById("relicsView").style.display =
     view === "relics" && isHostMode ? "block" : "none";
+
+  const objectivesView = document.getElementById("objectivesView");
+  if (objectivesView) {
+    objectivesView.style.display = view === "objectives" && isHostMode ? "block" : "none";
+  }
   
   document.getElementById("keywordsView").style.display =
     view === "keywords" ? "block" : "none";
@@ -9180,6 +9203,10 @@ function showView(view) {
 
   if (view === "inventory") {
     renderInventory();
+  }
+
+  if (view === "objectives" && isHostMode) {
+    renderObjectives();
   }
 
 
@@ -9807,7 +9834,7 @@ function refreshProfiles() {
     select.innerHTML = "";
 
     for (let name in data) {
-        if (name === "sharedPotions" || name === "sharedRelics") continue;
+        if (name === "sharedPotions" || name === "sharedRelics" || name === "sharedObjectives") continue;
 
 
         let opt = document.createElement("option");
@@ -11813,6 +11840,35 @@ const defaultPotionCards = [
   ...mythicPotionCards
 ];
 
+const objectiveTiers = ["Tier 1", "Tier 2", "Tier 3"];
+
+const defaultObjectiveCards = objectiveTiers.flatMap(tier =>
+  Array.from({ length: 12 }, (_, index) => ({
+    id: `${tier.toLowerCase().replace(/\s+/g, "_")}_objective_${index + 1}`,
+    tier,
+    name: `${tier} Objective ${index + 1}`,
+    text: "Objective text coming soon.",
+    reward: "Reward text coming soon."
+  }))
+);
+
+function makeObjectiveDecks() {
+  const decks = {};
+  objectiveTiers.forEach(tier => {
+    decks[tier] = defaultObjectiveCards
+      .filter(card => card.tier === tier)
+      .map(card => ({ ...card }));
+  });
+  return decks;
+}
+
+function makeObjectiveDiscards() {
+  const discards = {};
+  objectiveTiers.forEach(tier => {
+    discards[tier] = [];
+  });
+  return discards;
+}
 const relicCards = [
   {
     id: "timed_guard_1",
@@ -15249,7 +15305,7 @@ function renderGmTargetOptions(selectId) {
     select.innerHTML = "";
 
     Object.keys(data).forEach(name => {
-        if (name === "sharedPotions" || name === "sharedRelics") return;
+        if (name === "sharedPotions" || name === "sharedRelics" || name === "sharedObjectives") return;
         if (!data[name] || !data[name].resources) return;
 
         const option = document.createElement("option");
@@ -15596,8 +15652,8 @@ function renderRelics() {
 
     renderGmTargetOptions("gmRelicTargetSelect");
     ensureRelicState(resourceProfile);
-
-    const sharedRelicState = data.sharedRelics;
+    ensureObjectiveState(resourceProfile);
+const sharedRelicState = data.sharedRelics;
     const playerRelicState = data[resourceProfile].relics;
 
     const lockedRelics = relicCards.filter(card => !sharedRelicState.unlocked.includes(card.id));
@@ -15715,8 +15771,8 @@ function renderLockedRelicPile(type, cards) {
 function unlockRelicType(type) {
     if (!resourceProfile) return;
     ensureRelicState(resourceProfile);
-
-    const sharedRelicState = data.sharedRelics;
+    ensureObjectiveState(resourceProfile);
+const sharedRelicState = data.sharedRelics;
 
     const cardsToUnlock = relicCards.filter(card =>
         card.type === type && !sharedRelicState.unlocked.includes(card.id)
@@ -15731,6 +15787,7 @@ function unlockRelicType(type) {
 
     saveProfiles();
     renderRelics();
+  renderObjectives();
 }
 
 
@@ -15740,8 +15797,8 @@ function unlockRelicType(type) {
 function useRelic(index) {
     if (!resourceProfile) return;
     ensureRelicState(resourceProfile);
-
-    const playerRelicState = data[resourceProfile].relics;
+    ensureObjectiveState(resourceProfile);
+const playerRelicState = data[resourceProfile].relics;
     const sharedRelicState = data.sharedRelics;
 
     const card = playerRelicState.inventory.splice(index, 1)[0];
@@ -15751,7 +15808,8 @@ function useRelic(index) {
 
     saveProfiles();
     renderRelics();
-    renderInventory();
+  renderObjectives();
+renderInventory();
 }
 
 function gainRandomRelic(targetProfile = getGmTargetProfile("gmRelicTargetSelect")) {
@@ -15770,7 +15828,8 @@ function gainRandomRelic(targetProfile = getGmTargetProfile("gmRelicTargetSelect
 
     saveProfiles();
     renderRelics();
-    renderInventory();
+  renderObjectives();
+renderInventory();
 }
 
 function gainRandomRelicByType(type, targetProfile = getGmTargetProfile("gmRelicTargetSelect")) {
@@ -15792,25 +15851,27 @@ function gainRandomRelicByType(type, targetProfile = getGmTargetProfile("gmRelic
 
     saveProfiles();
     renderRelics();
-    renderInventory();
+  renderObjectives();
+renderInventory();
 }
 
 function shuffleRelicDeck() {
     if (!resourceProfile) return;
     ensureRelicState(resourceProfile);
-
-    shuffleArray(data.sharedRelics.deck);
+    ensureObjectiveState(resourceProfile);
+shuffleArray(data.sharedRelics.deck);
 
     saveProfiles();
     renderRelics();
+  renderObjectives();
 }
 
 
 function returnRelicToDeck(index) {
     if (!resourceProfile) return;
     ensureRelicState(resourceProfile);
-
-    const playerRelicState = data[resourceProfile].relics;
+    ensureObjectiveState(resourceProfile);
+const playerRelicState = data[resourceProfile].relics;
     const sharedRelicState = data.sharedRelics;
 
     const card = playerRelicState.inventory.splice(index, 1)[0];
@@ -15820,7 +15881,8 @@ function returnRelicToDeck(index) {
 
     saveProfiles();
     renderRelics();
-    renderInventory();
+  renderObjectives();
+renderInventory();
 }
 
 
@@ -15828,8 +15890,8 @@ function returnRelicToDeck(index) {
 function shuffleRelicDiscardIntoDeck() {
     if (!resourceProfile) return;
     ensureRelicState(resourceProfile);
-
-    const sharedRelicState = data.sharedRelics;
+    ensureObjectiveState(resourceProfile);
+const sharedRelicState = data.sharedRelics;
 
     sharedRelicState.deck = sharedRelicState.deck.concat(sharedRelicState.discard);
     sharedRelicState.discard = [];
@@ -15837,6 +15899,7 @@ function shuffleRelicDiscardIntoDeck() {
 
     saveProfiles();
     renderRelics();
+  renderObjectives();
 }
 
 function resetRelics() {
@@ -15856,9 +15919,212 @@ function resetRelics() {
 
     saveProfiles();
     renderRelics();
+  renderObjectives();
 }
 
 
+
+function ensureObjectiveState(profileName) {
+    if (!data.sharedObjectives) {
+        data.sharedObjectives = {
+            decks: makeObjectiveDecks(),
+            discards: makeObjectiveDiscards()
+        };
+    }
+
+    if (!data.sharedObjectives.decks) data.sharedObjectives.decks = makeObjectiveDecks();
+    if (!data.sharedObjectives.discards) data.sharedObjectives.discards = makeObjectiveDiscards();
+
+    objectiveTiers.forEach(tier => {
+        if (!Array.isArray(data.sharedObjectives.decks[tier])) {
+            data.sharedObjectives.decks[tier] = defaultObjectiveCards
+                .filter(card => card.tier === tier)
+                .map(card => ({ ...card }));
+        }
+        if (!Array.isArray(data.sharedObjectives.discards[tier])) {
+            data.sharedObjectives.discards[tier] = [];
+        }
+    });
+
+    if (!profileName || !data[profileName]) return;
+
+    if (!data[profileName].objectives) {
+        data[profileName].objectives = { inventory: [] };
+    } else {
+        data[profileName].objectives = {
+            inventory: data[profileName].objectives.inventory || []
+        };
+    }
+}
+
+function getObjectiveTierSlug(tier) {
+    return String(tier).toLowerCase().replace(/[^a-z0-9]+/g, "_");
+}
+
+function renderObjectives() {
+    const app = document.getElementById("objectivesApp");
+    if (!app) return;
+
+    renderGmTargetOptions("gmObjectiveTargetSelect");
+    ensureObjectiveState(resourceProfile);
+
+    const sharedObjectiveState = data.sharedObjectives;
+
+    app.innerHTML = `
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:20px;">${objectiveTiers.map(tier => renderObjectiveDeckPile(tier, sharedObjectiveState)).join("")}</div>
+    `;
+}
+
+function renderObjectiveDeckPile(tier, sharedObjectiveState) {
+    const deckCards = sharedObjectiveState.decks[tier] || [];
+    const discardCards = sharedObjectiveState.discards[tier] || [];
+    const slug = getObjectiveTierSlug(tier);
+    const previewCard = discardCards[discardCards.length - 1];
+
+    return `
+        <div class="relic-zone">
+            <h2>${tier} Objectives</h2>
+            <div class="relic-card deck">
+                <small>Objective Deck</small>
+                <h3>${tier} Deck</h3>
+                <p>${deckCards.length} card${deckCards.length === 1 ? "" : "s"} remaining</p>
+                <div class="potion-actions" style="align-items:center;">
+                    <label style="color:#ddd;">Deal
+                        <input id="objectiveDealCount_${slug}" type="number" min="1" max="12" value="1" style="width:62px; margin-left:6px; background:#151515; color:white; border:1px solid #555; border-radius:4px; padding:6px;">
+                    </label>
+                    <button onclick="dealObjectiveCards('${tier}')" ${deckCards.length === 0 ? "disabled" : ""}>Deal to Player</button>
+                    <button onclick="shuffleObjectiveDeck('${tier}')" ${deckCards.length < 2 ? "disabled" : ""}>Shuffle</button>
+                </div>
+            </div>
+
+            <div class="relic-card discard">
+                <small>Objective Discard</small>
+                <h3>${tier} Discard</h3>
+                <p>${discardCards.length} card${discardCards.length === 1 ? "" : "s"} discarded</p>
+                <p style="color:#bbb;"><strong>Top:</strong> ${previewCard ? previewCard.name : "-"}</p>
+                <div class="potion-actions">
+                    <button onclick="shuffleObjectiveDiscardIntoDeck('${tier}')" ${discardCards.length === 0 ? "disabled" : ""}>Shuffle Discard Into Deck</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function dealObjectiveCards(tier) {
+    const targetProfile = getGmTargetProfile("gmObjectiveTargetSelect");
+    if (!targetProfile) return;
+
+    ensureObjectiveState(targetProfile);
+    const slug = getObjectiveTierSlug(tier);
+    const input = document.getElementById(`objectiveDealCount_${slug}`);
+    const requestedCount = Math.max(1, Number(input?.value || 1));
+    const sharedObjectiveState = data.sharedObjectives;
+    const playerObjectiveState = data[targetProfile].objectives;
+
+    for (let dealt = 0; dealt < requestedCount; dealt++) {
+        const deck = sharedObjectiveState.decks[tier] || [];
+        if (deck.length === 0) break;
+
+        const randomIndex = Math.floor(Math.random() * deck.length);
+        const card = deck.splice(randomIndex, 1)[0];
+        playerObjectiveState.inventory.push(card);
+    }
+
+    saveProfiles();
+    renderObjectives();
+    renderInventory();
+}
+
+function shuffleObjectiveDeck(tier) {
+    ensureObjectiveState(resourceProfile);
+    shuffleArray(data.sharedObjectives.decks[tier]);
+    saveProfiles();
+    renderObjectives();
+}
+
+function shuffleObjectiveDiscardIntoDeck(tier) {
+    ensureObjectiveState(resourceProfile);
+    const sharedObjectiveState = data.sharedObjectives;
+    sharedObjectiveState.decks[tier] = (sharedObjectiveState.decks[tier] || []).concat(sharedObjectiveState.discards[tier] || []);
+    sharedObjectiveState.discards[tier] = [];
+    shuffleArray(sharedObjectiveState.decks[tier]);
+    saveProfiles();
+    renderObjectives();
+}
+
+function renderObjectiveCard(card, zone, index) {
+    let buttons = "";
+
+    if (zone === "inventory") {
+        buttons = `
+            <button onclick="discardObjective(${index})">Complete / Discard</button>
+            <button onclick="returnObjectiveToDeck(${index})">Return to Deck</button>
+        `;
+    }
+
+    return `
+        <div class="relic-card objective">
+            <small>${card.tier || "Objective"}</small>
+            <h3>${card.name}</h3>
+            <p><strong>Objective:</strong> ${card.text || "-"}</p>
+            <p><strong>Reward:</strong> ${card.reward || "-"}</p>
+            <div class="potion-actions">
+                ${buttons}
+            </div>
+        </div>
+    `;
+}
+
+function discardObjective(index) {
+    if (!resourceProfile) return;
+    ensureObjectiveState(resourceProfile);
+
+    const playerObjectiveState = data[resourceProfile].objectives;
+    const card = playerObjectiveState.inventory.splice(index, 1)[0];
+    if (!card) return;
+
+    const tier = card.tier || "Tier 1";
+    if (!data.sharedObjectives.discards[tier]) data.sharedObjectives.discards[tier] = [];
+    data.sharedObjectives.discards[tier].push(card);
+
+    saveProfiles();
+    renderObjectives();
+    renderInventory();
+}
+
+function returnObjectiveToDeck(index) {
+    if (!resourceProfile) return;
+    ensureObjectiveState(resourceProfile);
+
+    const playerObjectiveState = data[resourceProfile].objectives;
+    const card = playerObjectiveState.inventory.splice(index, 1)[0];
+    if (!card) return;
+
+    const tier = card.tier || "Tier 1";
+    if (!data.sharedObjectives.decks[tier]) data.sharedObjectives.decks[tier] = [];
+    data.sharedObjectives.decks[tier].push(card);
+
+    saveProfiles();
+    renderObjectives();
+    renderInventory();
+}
+
+function resetObjectives() {
+    data.sharedObjectives = {
+        decks: makeObjectiveDecks(),
+        discards: makeObjectiveDiscards()
+    };
+
+    Object.keys(data).forEach(key => {
+        if (data[key] && data[key].objectives && data[key].objectives.inventory) {
+            data[key].objectives.inventory = [];
+        }
+    });
+
+    saveProfiles();
+    renderObjectives();
+    renderInventory();
+}
 
 function renderRelicDeck(deckCards) {
     const backImage = "https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/relic-back.png";
@@ -16334,6 +16600,15 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
 
 
 
