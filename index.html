@@ -11844,14 +11844,15 @@ const defaultPotionCards = [
   ...mythicPotionCards
 ];
 
-const objectiveTiers = ["Tier 1", "Tier 2 Good", "Tier 2 Neutral", "Tier 2 Evil", "Tier 3"];
-const objectiveDeckVersion = "tier1-52-tier2-all-alignments-art-v1";
+const objectiveTiers = ["Tier 1", "Tier 2 Good", "Tier 2 Neutral", "Tier 2 Evil", "Tier 3 The Order", "Tier 3"];
+const objectiveDeckVersion = "tier1-52-tier2-all-alignments-tier3-order-art-v1";
 const objectiveCardBackImage = "objective-cards/Background.png";
 const objectiveBackImages = {
   "Tier 1": objectiveCardBackImage,
   "Tier 2 Good": "objective-cards/tier-2-good/back.png",
   "Tier 2 Neutral": "objective-cards/tier-2-neutral/back.png",
   "Tier 2 Evil": "objective-cards/tier-2-evil/back.png",
+  "Tier 3 The Order": "objective-cards/tier-3-order/back.png",
   "Tier 3": objectiveCardBackImage
 };
 
@@ -11915,11 +11916,24 @@ const tierTwoEvilObjectiveCards = tierTwoEvilObjectiveFiles.map((fileName, index
   backImage: objectiveBackImages["Tier 2 Evil"]
 }));
 
+
+const tierThreeOrderObjectiveFiles = ["order-01.png", "order-02.png", "order-03.png"];
+
+const tierThreeOrderObjectiveCards = tierThreeOrderObjectiveFiles.map((fileName, index) => ({
+  id: `tier_3_order_objective_${index + 1}`,
+  tier: "Tier 3 The Order",
+  name: `Tier 3 The Order Objective ${index + 1}`,
+  text: "See card image.",
+  reward: "See card image.",
+  frontImage: `objective-cards/tier-3-order/${fileName}`,
+  backImage: objectiveBackImages["Tier 3 The Order"]
+}));
 const defaultObjectiveCards = [
   ...tierOneObjectiveCards,
   ...tierTwoGoodObjectiveCards,
   ...tierTwoNeutralObjectiveCards,
   ...tierTwoEvilObjectiveCards,
+  ...tierThreeOrderObjectiveCards,
   ...Array.from({ length: 12 }, (_, index) => ({
     id: `tier_3_objective_${index + 1}`,
     tier: "Tier 3",
@@ -16736,6 +16750,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
