@@ -8179,7 +8179,6 @@ const factionInfoContent = {
         entries: [
           { label: "Without Constructed Building", text: "Max 2 units of the same type. Elites and Commanders are limited to 1." },
           { label: "With Constructed Building", text: "No unit limit from that building, up to maximum faction point value." },
-          { label: "Structure Placement", text: "All constructed structures may be built in Faction Province or within Range 8 of Province." },
           { label: "Spawn Rule", text: "Spawn adjacent to the producing building unless specified otherwise." }
         ]
       },
@@ -8238,7 +8237,6 @@ const factionInfoContent = {
         entries: [
           { label: "Without Constructed Building", text: "Max 2 units of the same type. Elites and Commanders are limited to 1." },
           { label: "With Constructed Building", text: "No unit limit from that building, up to maximum faction point value." },
-          { label: "Structure Placement", text: "All constructed structures may be built in Faction Province or within Range 8 of Province." },
           { label: "Spawn Rule", text: "Spawn adjacent to the producing building unless specified otherwise." }
         ]
       },
@@ -8305,7 +8303,6 @@ const factionInfoContent = {
         entries: [
           { label: "Without Constructed Building", text: "Max 2 units of the same type. Elites and Commanders are limited to 1." },
           { label: "With Constructed Building", text: "No unit limit from that building, up to maximum faction point value." },
-          { label: "Structure Placement", text: "All constructed structures may be built in Faction Province or within Range 8 of Province." },
           { label: "Spawn Rule", text: "Spawn adjacent to the producing building unless specified otherwise." }
         ]
       },
@@ -8391,7 +8388,6 @@ const factionInfoContent = {
         entries: [
           { label: "Without Constructed Building", text: "Max 2 units of the same type. Elites and Commanders are limited to 1." },
           { label: "With Constructed Building", text: "No unit limit from that building, up to maximum faction point value." },
-          { label: "Structure Placement", text: "All constructed structures may be built in Faction Province or within Range 8 of Province." },
           { label: "Spawn Rule", text: "Spawn adjacent to the producing building unless specified otherwise." }
         ]
       },
@@ -8457,7 +8453,6 @@ const factionInfoContent = {
         entries: [
           { label: "Without Constructed Building", text: "Max 2 units of the same type. Elites and Commanders are limited to 1." },
           { label: "With Constructed Building", text: "No unit limit from that building, up to maximum faction point value." },
-          { label: "Structure Placement", text: "All constructed structures may be built in Faction Province or within Range 8 of Province." },
           { label: "Spawn Rule", text: "Spawn adjacent to the producing building unless specified otherwise." }
         ]
       },
@@ -8535,7 +8530,6 @@ const factionInfoContent = {
         entries: [
           { label: "Without Constructed Building", text: "Max 2 units of the same type. Elites and Commanders are limited to 1." },
           { label: "With Constructed Building", text: "No unit limit from that building, up to maximum faction point value." },
-          { label: "Structure Placement", text: "All constructed structures may be built in Faction Province or within Range 8 of Province." },
           { label: "Spawn Rule", text: "Spawn adjacent to the producing building unless specified otherwise." }
         ]
       },
@@ -8969,6 +8963,10 @@ function renderFactionInfo() {
         <div style="color:#f2ead2; font-weight:bold; margin-bottom:8px;">${info.subtitle}</div>
         <p style="max-width:760px; color:#eee; line-height:1.5; margin:0;">${info.playStyle}</p>
       </div>
+    </div>
+    <div class="faction-info-card" style="margin-top:16px; border-left-color:#66cc88; background:rgba(24, 36, 28, 0.94);">
+      <h3>Structure Placement</h3>
+      <div style="color:#e8f5df; line-height:1.45; font-size:15px;">All constructed structures may be built in Faction Province or within Range 8 of Province.</div>
     </div>
     <div class="faction-info-layout" style="margin-top:16px;">
       ${info.sections.map(renderSection).join("")}
@@ -16738,6 +16736,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
