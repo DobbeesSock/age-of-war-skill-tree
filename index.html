@@ -11841,16 +11841,41 @@ const defaultPotionCards = [
 ];
 
 const objectiveTiers = ["Tier 1", "Tier 2", "Tier 3"];
+const objectiveDeckVersion = "tier1-art-v1";
+const objectiveCardBackImage = "objective-cards/Background.png";
 
-const defaultObjectiveCards = objectiveTiers.flatMap(tier =>
-  Array.from({ length: 12 }, (_, index) => ({
-    id: `${tier.toLowerCase().replace(/\s+/g, "_")}_objective_${index + 1}`,
-    tier,
-    name: `${tier} Objective ${index + 1}`,
-    text: "Objective text coming soon.",
-    reward: "Reward text coming soon."
-  }))
-);
+const tierOneObjectiveFiles = [
+  "1.png", "2.png", "3.png", "4.png", "5.png", "6.png", "7.png", "8.png", "9.png", "10.png",
+  "11.png", "12.png", "13.png", "14.png", "15.png", "16.png", "17.png", "18.png", "19.png", "20.png",
+  "21.png", "22.png", "23.png", "24.png", "25.png", "25.1.png", "26.png", "26.5.png", "27.png", "28.png",
+  "29.png", "30.png"
+];
+
+const tierOneObjectiveCards = tierOneObjectiveFiles.map(fileName => {
+  const cardNumber = fileName.replace(/\.png$/i, "");
+  return {
+    id: `tier_1_objective_${cardNumber.replace(/[^a-z0-9]+/gi, "_")}`,
+    tier: "Tier 1",
+    name: `Tier 1 Objective ${cardNumber}`,
+    text: "See card image.",
+    reward: "See card image.",
+    frontImage: `objective-cards/${fileName}`,
+    backImage: objectiveCardBackImage
+  };
+});
+
+const defaultObjectiveCards = [
+  ...tierOneObjectiveCards,
+  ...["Tier 2", "Tier 3"].flatMap(tier =>
+    Array.from({ length: 12 }, (_, index) => ({
+      id: `${tier.toLowerCase().replace(/\s+/g, "_")}_objective_${index + 1}`,
+      tier,
+      name: `${tier} Objective ${index + 1}`,
+      text: "Objective text coming soon.",
+      reward: "Reward text coming soon."
+    }))
+  )
+];
 
 function makeObjectiveDecks() {
   const decks = {};
@@ -15925,8 +15950,9 @@ function resetRelics() {
 
 
 function ensureObjectiveState(profileName) {
-    if (!data.sharedObjectives) {
+    if (!data.sharedObjectives || data.sharedObjectives.version !== objectiveDeckVersion) {
         data.sharedObjectives = {
+            version: objectiveDeckVersion,
             decks: makeObjectiveDecks(),
             discards: makeObjectiveDiscards()
         };
@@ -15987,6 +16013,7 @@ function renderObjectiveDeckPile(tier, sharedObjectiveState) {
             <div class="relic-card deck">
                 <small>Objective Deck</small>
                 <h3>${tier} Deck</h3>
+                <img src="${objectiveCardBackImage}" alt="Objective Deck Back" style="width:100%; border-radius:8px; margin:8px 0; opacity:0.95;">
                 <p>${deckCards.length} card${deckCards.length === 1 ? "" : "s"} remaining</p>
                 <div class="potion-actions" style="align-items:center;">
                     <label style="color:#ddd;">Deal
@@ -16000,6 +16027,7 @@ function renderObjectiveDeckPile(tier, sharedObjectiveState) {
             <div class="relic-card discard">
                 <small>Objective Discard</small>
                 <h3>${tier} Discard</h3>
+                ${previewCard && previewCard.frontImage ? `<img src="${previewCard.frontImage}" alt="${previewCard.name}" style="width:100%; border-radius:8px; margin:8px 0;">` : ""}
                 <p>${discardCards.length} card${discardCards.length === 1 ? "" : "s"} discarded</p>
                 <p style="color:#bbb;"><strong>Top:</strong> ${previewCard ? previewCard.name : "-"}</p>
                 <div class="potion-actions">
@@ -16009,7 +16037,6 @@ function renderObjectiveDeckPile(tier, sharedObjectiveState) {
         </div>
     `;
 }
-
 function dealObjectiveCards(tier) {
     const targetProfile = getGmTargetProfile("gmObjectiveTargetSelect");
     if (!targetProfile) return;
@@ -16066,15 +16093,16 @@ function renderObjectiveCard(card, zone, index) {
         <div class="relic-card objective">
             <small>${card.tier || "Objective"}</small>
             <h3>${card.name}</h3>
-            <p><strong>Objective:</strong> ${card.text || "-"}</p>
-            <p><strong>Reward:</strong> ${card.reward || "-"}</p>
+            ${card.frontImage ? `<img src="${card.frontImage}" alt="${card.name}" style="width:100%; border-radius:8px; margin:8px 0;">` : `
+              <p><strong>Objective:</strong> ${card.text || "-"}</p>
+              <p><strong>Reward:</strong> ${card.reward || "-"}</p>
+            `}
             <div class="potion-actions">
                 ${buttons}
             </div>
         </div>
     `;
 }
-
 function discardObjective(index) {
     if (!resourceProfile) return;
     ensureObjectiveState(resourceProfile);
@@ -16600,6 +16628,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
