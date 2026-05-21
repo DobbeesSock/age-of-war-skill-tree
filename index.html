@@ -3254,6 +3254,87 @@ const blueprintBuildingCards = [
     cost: "20 Gold",
     hp: "12",
     ability: "May hold up to 17 Energy. If destroyed, all Energy is lost and causes 5 damage to adjacent units or structures."
+  },
+  {
+    building: "Black Market",
+    income: "+3 Gold",
+    limit: "max 1",
+    size: "2x2",
+    cost: "20 Gold",
+    hp: "3",
+    ability: "Condition: Gain 1 Red Keyword of your choice."
+  },
+  {
+    building: "Unstable Mine",
+    income: "+3 Metal",
+    limit: "max 1",
+    size: "2x2",
+    cost: "5 Gold",
+    hp: "4",
+    ability: "Risk: Each Collection roll 1D8. 2-8: Nothing happens. 1: Mine is destroyed and the Blueprint is returned to the discard pile."
+  },
+  {
+    building: "Market Stall",
+    income: "+2 Gold",
+    limit: "max 2",
+    size: "1x1",
+    cost: "12 Food",
+    hp: "3",
+    ability: "1 adjacent unit heals for 3 HP per Round."
+  },
+  {
+    building: "Granary",
+    income: "+2 Food",
+    limit: "max 2",
+    size: "1x1",
+    cost: "12 Gold",
+    hp: "4",
+    ability: "Once per Mission stop Food storage from dropping below 10 due to a Game Effect."
+  },
+  {
+    building: "Ore Sluice",
+    income: "+2 Metal",
+    limit: "max 1",
+    size: "1x1",
+    cost: "18 Gold",
+    hp: "6",
+    ability: "Condition: Must be built outside Province."
+  },
+  {
+    building: "Tax Office",
+    income: "+5 Gold",
+    limit: "max 1",
+    size: "1x2",
+    cost: "5 Metal",
+    hp: "5",
+    ability: "When Built: Gain +1 Dragon Coin."
+  },
+  {
+    building: "Overcharged Forge",
+    income: "+3 Metal",
+    limit: "max 1",
+    size: "1x3",
+    cost: "22 Gold",
+    hp: "5",
+    ability: "Risk: If destroyed all adjacent structures and units suffer 3 damage."
+  },
+  {
+    building: "Dragon Shrine",
+    income: "+1 Dragon Coin",
+    limit: "max 1",
+    size: "2x2",
+    cost: "15 Gold",
+    hp: "7",
+    ability: "Deal +1 OD against Dragon enemies."
+  },
+  {
+    building: "Trade Post",
+    income: "+1 Gold & +1 Food",
+    limit: "max 1",
+    size: "1x1",
+    cost: "7 Metal",
+    hp: "5",
+    ability: "After allying with a Faction each Alliance gain +1 Dragon Coins or +5 Gold."
   }
 ].map(card => ({ ...card, source: "Blueprint" }));
 
@@ -3425,6 +3506,86 @@ const chestBuildingCards = [
     hp: "-",
     ability: "Heal friendly adjacent units 3 HP each round. Creates terrain that ends unit movement if they move through the water.",
     source: "Chest Card"
+  },
+  {
+    building: "Dragon Roost",
+    income: "+3 Dragon Coins",
+    limit: "max 1",
+    size: "3x3",
+    cost: "75 Gold",
+    hp: "12",
+    ability: "Bonus: Ultimate unit costs -5 Dragon Coins.",
+    source: "Chest Card"
+  },
+  {
+    building: "Cursed Treasury",
+    income: "+10 Gold & +1 Dragon Coin",
+    limit: "max 1",
+    size: "1x1",
+    cost: "60 Food or 20 Metal",
+    hp: "8",
+    ability: "Risk: If this structure is destroyed Presence increases by +3 and lose 20 Gold.",
+    source: "Chest Card"
+  },
+  {
+    building: "Unstable Rift Engine",
+    income: "+9 Energy",
+    limit: "max 1",
+    size: "1x1",
+    cost: "50 Gold",
+    hp: "6",
+    ability: "Risk: Each Collection roll 1D8. 4-8: Nothing happens. 1-3: all adjacent Structures and units suffer 3 damage.",
+    source: "Chest Card"
+  },
+  {
+    building: "Arcane Reactor",
+    income: "+6 Energy",
+    limit: "max 1",
+    size: "2x2",
+    cost: "55 Gold",
+    hp: "6",
+    ability: "Risk Ability: May roll 1D6. 5-6: +5 extra Energy. 3-4: Nothing happens. 1-2: Reactor suffers 3 damage.",
+    source: "Chest Card"
+  },
+  {
+    building: "Royal Mint",
+    income: "+9 Gold",
+    limit: "max 1",
+    size: "2x2",
+    cost: "65 Food",
+    hp: "7",
+    ability: "Bonus: Every time you gain 1 or more Dragon Coins also gain +3 Gold.",
+    source: "Chest Card"
+  },
+  {
+    building: "Crystal Mine",
+    income: "+4 Metal & +1 Dragon Coin",
+    limit: "max 1",
+    size: "2x2",
+    cost: "60 Gold",
+    hp: "8",
+    ability: "Construction: Must be built outside of Province.",
+    source: "Chest Card"
+  },
+  {
+    building: "Grand Bazaar",
+    income: "Choose 1: +8 Gold / +7 Food / +4 Metal",
+    limit: "max 1",
+    size: "2x2",
+    cost: "50 Gold",
+    hp: "8",
+    ability: "Collection Choose 1: +8 Gold, +7 Food, or +4 Metal.",
+    source: "Chest Card"
+  },
+  {
+    building: "Ancient Tribute Hall",
+    income: "+3 Dragon Coins",
+    limit: "max 1",
+    size: "2x2",
+    cost: "70 Gold",
+    hp: "10",
+    ability: "When you discover a POI gain +1 Dragon Coin and when you discover a Cave once per Mission gain +2 Dragon Coins.",
+    source: "Chest Card"
   }
 ];
 
@@ -3457,34 +3618,47 @@ function addResourceByName(name, amount) {
 }
 
 function applyCollectionIncome(incomeText) {
-  const normalized = incomeText.replace(/,/g, " & ");
-  const parts = normalized.split("&").map(part => part.trim()).filter(Boolean);
+  const resourceMap = {
+    food: "Food",
+    gold: "Gold",
+    energy: "Energy",
+    metal: "Metal",
+    "dragon coin": "Dragon Coins",
+    "dragon coins": "Dragon Coins",
+    "shadow mark": "Shadow Marks",
+    "shadow marks": "Shadow Marks"
+  };
 
-  parts.forEach(part => {
+  function applyPart(part) {
     const match = part.match(/^\+(\d+)\s+(.+?)(?:\s+per\s+.+)?$/i);
     if (!match) return;
 
     const amount = parseInt(match[1], 10);
     const resourceName = match[2].trim().toLowerCase();
-
-    const resourceMap = {
-      food: "Food",
-      gold: "Gold",
-      energy: "Energy",
-      metal: "Metal",
-      "dragon coin": "Dragon Coins",
-      "dragon coins": "Dragon Coins",
-      "shadow mark": "Shadow Marks",
-      "shadow marks": "Shadow Marks"
-    };
-
     const mappedName = resourceMap[resourceName];
     if (!mappedName) return;
 
     addResourceByName(mappedName, amount);
-  });
-}
+  }
 
+  if (/choose\s*1/i.test(incomeText)) {
+    const choices = [...incomeText.matchAll(/\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)/gi)]
+      .map(match => `+${match[1]} ${match[2]}`);
+
+    if (choices.length > 0) {
+      const answer = prompt(`Choose collection income:\n${choices.map((choice, index) => `${index + 1}. ${choice}`).join("\n")}`);
+      const choiceIndex = parseInt(answer, 10) - 1;
+      if (choiceIndex >= 0 && choiceIndex < choices.length) {
+        applyPart(choices[choiceIndex]);
+      }
+      return;
+    }
+  }
+
+  const normalized = incomeText.replace(/,/g, " & ");
+  const parts = normalized.split("&").map(part => part.trim()).filter(Boolean);
+  parts.forEach(applyPart);
+}
 function collectBuildingIncome(incomeText) {
   if (!resourceProfile) return;
 
@@ -16820,6 +16994,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
