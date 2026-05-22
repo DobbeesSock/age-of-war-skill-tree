@@ -1531,6 +1531,7 @@ body.elves {
 
 <div id="mainNav" style="margin-bottom:15px; display:none; gap:10px; flex-wrap:wrap; align-items:center;">
   <button onclick="showView('factionInfo')">Faction Info</button>
+  <button onclick="showView('unlocks')">Unlocks</button>
   <button onclick="showView('skill')">Skill Trees</button>
   <button onclick="showView('resources')">Resources</button>
   <button onclick="showView('buildings')">Income</button>
@@ -2795,7 +2796,13 @@ body.elves {
 
 
 
-<div id="resourceView" style="display:none;">
+
+<div id="unlocksView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);">
+    <h2 style="margin-top:0; color:gold;">Unlocks</h2>
+    <div id="unlocksApp"></div>
+  </div>
+</div><div id="resourceView" style="display:none;">
   <div style="margin-bottom:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
     <select id="resourceProfileSelect" onchange="syncProfileFromResourceSelect()"></select>
     <button onclick="newProfile()">New Profile</button>
@@ -7881,7 +7888,133 @@ function renderPurchasedShopReminders() {
   `;
 }
 
-function ensureBuildingState(profileName) {
+
+const factionUnlockEnvelopes = {
+  men: [
+    { id: "men_secret_t", title: "Secret Card T - Men", type: "Unique Unit Unlock", lore: "A sealed war charter bears the mark of the thousand banners. The council has held this force in reserve until the realm proves dangerous enough to justify it.", unlocks: ["Unlock the Men unique unit from Secret Card T.", "This unit becomes permanently available during setup once revealed.", "If the card has death or return rules, record them in the notes below."] },
+    { id: "men_faction_secret", title: "Tribes of Men Secret Envelope", type: "Faction Secret", lore: "Old roads, old kings, and old debts return to the campaign map. The Men remember more than their enemies expected.", unlocks: ["Reveal when a Men secret faction card or campaign reward tells you to open it.", "Record the exact unlocked unit, structure, or rule in the notes."] }
+  ],
+  dwarves: [
+    { id: "dwarves_secret_t", title: "Secret Card T - Dwarves", type: "Unique Unit Unlock", lore: "A vault door opens beneath the hold. Something ancient answers the hammer-stroke from the deep forge.", unlocks: ["Unlock the Dwarves unique unit from Secret Card T.", "This unit becomes permanently available during setup once revealed.", "Record any tunnel, forge, or death rules in the notes below."] },
+    { id: "dwarves_faction_secret", title: "Dwarven Vault Envelope", type: "Faction Secret", lore: "Runes that were never meant for the surface burn gold-blue in the dark. The mountain remembers its hidden makers.", unlocks: ["Reveal when a Dwarves secret faction card or campaign reward tells you to open it.", "Record the exact unlocked unit, structure, or rule in the notes."] }
+  ],
+  elves: [
+    { id: "elves_secret_t", title: "Secret Card T - Elves", type: "Unique Unit Unlock", lore: "The oldest roots twist beneath the Lost Forest. A name hidden in leaf-shadow is spoken again.", unlocks: ["Unlock the Elves unique unit from Secret Card T.", "This unit becomes permanently available during setup once revealed.", "Record any forest, stealth, or revival rules in the notes below."] },
+    { id: "elves_faction_secret", title: "Veiled Canopy Envelope", type: "Faction Secret", lore: "The forest has layers the younger kingdoms cannot see. One of them opens only to those who have paid in silence and patience.", unlocks: ["Reveal when an Elves secret faction card or campaign reward tells you to open it.", "Record the exact unlocked unit, structure, or rule in the notes."] }
+  ],
+  orcs: [
+    { id: "orcs_secret_t", title: "Secret Card T - Shadow Orcs", type: "Unique Unit Unlock", lore: "The war drums stop. In the silence after them, something larger than a raid answers from the smoke.", unlocks: ["Unlock the Shadow Orcs unique unit from Secret Card T.", "This unit becomes permanently available during setup once revealed.", "Record any plunder, spawn, or graveyard rules in the notes below."] },
+    { id: "orcs_faction_secret", title: "Bloodied Banner Envelope", type: "Faction Secret", lore: "A banner no commander admits owning is raised over the camp. Every blade turns toward it.", unlocks: ["Reveal when a Shadow Orcs secret faction card or campaign reward tells you to open it.", "Record the exact unlocked unit, structure, or rule in the notes."] }
+  ],
+  order: [
+    { id: "order_secret_t", title: "Secret Card T - Order", type: "Unique Unit Unlock", lore: "A sealed mandate arrives without messenger or seal-break. The parchment is warm, as if it remembers a verdict not yet spoken.", unlocks: ["Unlock the Order unique unit from Secret Card T.", "This unit becomes permanently available during setup once revealed.", "Record any spell, assassin, or service rules in the notes below."] },
+    { id: "order_faction_secret", title: "Silent Mandate Envelope", type: "Faction Secret", lore: "The court beneath the chapel has reached a decision. No bell rings, but every blade hears it.", unlocks: ["Reveal when an Order secret faction card or campaign reward tells you to open it.", "Record the exact unlocked unit, structure, or rule in the notes."] }
+  ],
+  barbarians: [
+    { id: "barbarians_secret_t", title: "Secret Card T - Barbarians", type: "Unique Unit Unlock", lore: "A saga-stone cracks beside the fire. The old gods do not explain themselves; they send a champion instead.", unlocks: ["Unlock the Barbarians unique unit from Secret Card T.", "This unit becomes permanently available during setup once revealed.", "Record any fury, god, or graveyard rules in the notes below."] },
+    { id: "barbarians_faction_secret", title: "Saga-Bound Envelope", type: "Faction Secret", lore: "The warband carves a new verse into its shields. The ending is not written yet, but the cost is already known.", unlocks: ["Reveal when a Barbarians secret faction card or campaign reward tells you to open it.", "Record the exact unlocked unit, structure, or rule in the notes."] }
+  ]
+};
+
+const campaignUnlockEnvelopes = [
+  { id: "campaign_mythic_cave_reward", title: "Mythological Cave Reward Envelope", type: "Campaign Unlock", lore: "The cave does not only give treasure. Sometimes it leaves a door inside the faction that opened it.", unlocks: ["Use this envelope for mythological cave rewards that unlock a unit, rule, spell, or campaign option.", "Record the exact reward in the notes once revealed."] },
+  { id: "campaign_world_secret", title: "World Secret Envelope", type: "Campaign Unlock", lore: "The map changes when enough factions learn what should have stayed buried.", unlocks: ["Use this envelope for world-event, secret-card, or endgame campaign unlocks.", "Record who unlocked it and what it changes."] }
+];
+
+function getUnlockEnvelopeList() {
+  const hub = getCurrentHub();
+  const hubKey = currentHubFaction || getHubKeyFromFaction(currentFaction);
+  return [
+    ...(factionUnlockEnvelopes[hubKey] || []),
+    ...campaignUnlockEnvelopes.map(card => ({ ...card, title: `${hub.label} ${card.title}` }))
+  ];
+}
+
+function ensureUnlockState(profileName) {
+  if (!profileName || !data[profileName]) return;
+
+  if (!data[profileName].unlocks) {
+    data[profileName].unlocks = { revealed: {}, notes: {} };
+  }
+
+  if (!data[profileName].unlocks.revealed) {
+    data[profileName].unlocks.revealed = {};
+  }
+
+  if (!data[profileName].unlocks.notes) {
+    data[profileName].unlocks.notes = {};
+  }
+}
+
+function revealUnlockEnvelope(unlockId) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  ensureUnlockState(resourceProfile);
+  data[resourceProfile].unlocks.revealed[unlockId] = true;
+  saveProfiles();
+  renderUnlocks();
+}
+
+function sealUnlockEnvelope(unlockId) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  if (!confirm("Seal this unlock again? Any notes will stay saved.")) return;
+  ensureUnlockState(resourceProfile);
+  data[resourceProfile].unlocks.revealed[unlockId] = false;
+  saveProfiles();
+  renderUnlocks();
+}
+
+function updateUnlockNote(unlockId, value) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  ensureUnlockState(resourceProfile);
+  data[resourceProfile].unlocks.notes[unlockId] = value;
+  saveProfiles();
+}
+
+function renderUnlocks() {
+  const app = document.getElementById("unlocksApp");
+  if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+  ensureUnlockState(resourceProfile);
+  const hub = getCurrentHub();
+  const unlockState = data[resourceProfile].unlocks;
+  const envelopes = getUnlockEnvelopeList();
+  const revealedCount = envelopes.filter(card => unlockState.revealed[card.id]).length;
+
+  app.innerHTML = `
+    <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-bottom:16px;">
+      <div>
+        <h3 style="margin:0; color:#ffe08a;">${hub.label} Unlock Envelopes</h3>
+        <p style="margin:5px 0 0 0; color:#cfc6a4; line-height:1.45;">Reveal secret units, faction cards, and campaign rewards here. Revealed envelopes and notes save to this profile.</p>
+      </div>
+      <div style="padding:10px 12px; border-radius:8px; background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.35); color:#ffe08a; font-weight:bold;">${revealedCount} / ${envelopes.length} Revealed</div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">
+      ${envelopes.map(card => {
+        const revealed = Boolean(unlockState.revealed[card.id]);
+        const note = unlockState.notes[card.id] || "";
+        const idArg = JSON.stringify(card.id).replace(/"/g, "&quot;");
+        return `
+          <div style="border-radius:10px; border:1px solid ${revealed ? "rgba(255,224,138,0.45)" : "rgba(255,255,255,0.12)"}; border-left:6px solid ${revealed ? "#d4af37" : "#777"}; background:${revealed ? "linear-gradient(145deg, rgba(48,38,18,0.95), rgba(24,24,24,0.94))" : "linear-gradient(145deg, rgba(34,34,34,0.96), rgba(12,12,12,0.96))"}; padding:16px; box-shadow:${revealed ? "0 0 16px rgba(212,175,55,0.2)" : "none"};">
+            <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:10px;">
+              <div><div style="font-size:12px; text-transform:uppercase; letter-spacing:0.6px; color:${revealed ? "#ffd86b" : "#aaa"};">${card.type}</div><h3 style="margin:4px 0 0 0; color:#ffe08a;">${card.title}</h3></div>
+              <div style="font-size:12px; padding:5px 8px; border-radius:999px; border:1px solid ${revealed ? "rgba(102,204,136,0.65)" : "rgba(255,255,255,0.16)"}; color:${revealed ? "#9ff0b8" : "#bbb"}; white-space:nowrap;">${revealed ? "Unlocked" : "Sealed"}</div>
+            </div>
+            ${revealed ? `
+              <div style="color:#eadfbf; line-height:1.45; margin-bottom:12px; font-style:italic;">${card.lore}</div>
+              <div style="background:rgba(0,0,0,0.22); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px; margin-bottom:12px;"><h4 style="margin:0 0 8px 0; color:#ffd86b;">Unlocked</h4><ul style="margin:0; padding-left:18px; color:#eee; line-height:1.45;">${card.unlocks.map(item => `<li>${item}</li>`).join("")}</ul></div>
+              <label style="display:block; color:#ffd86b; font-weight:bold; margin-bottom:6px;">Unit / Rule Notes</label>
+              <textarea oninput="updateUnlockNote(${idArg}, this.value)" placeholder="Add the exact unit name, stats, rules, or booklet reference here..." style="width:100%; min-height:92px; box-sizing:border-box; background:#171717; color:#fff; border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:10px; resize:vertical;">${note}</textarea>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;"><button onclick="sealUnlockEnvelope(${idArg})">Seal Again</button></div>
+            ` : `
+              <div style="min-height:190px; display:flex; align-items:center; justify-content:center; text-align:center; border-radius:8px; border:1px dashed rgba(255,255,255,0.18); background:radial-gradient(circle at center, rgba(212,175,55,0.12), rgba(0,0,0,0.28)); color:#bbb; padding:18px; margin-bottom:12px;"><div><div style="font-size:34px; color:#d4af37; margin-bottom:8px;">?</div><div style="font-weight:bold; color:#e9dba3;">Sealed Envelope</div><div style="font-size:13px; margin-top:6px; line-height:1.35;">Reveal only when the card, GM, or campaign reward tells this player to open it.</div></div></div>
+              <button onclick="revealUnlockEnvelope(${idArg})">Reveal Unlock</button>
+            `}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}function ensureBuildingState(profileName) {
   if (!profileName || !data[profileName]) return;
 
   if (!data[profileName].buildings) {
@@ -9155,6 +9288,7 @@ function renderHubHome() {
   app.innerHTML = `
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
       <button onclick="showView('factionInfo')" class="hub-choice"><strong>Faction Info</strong><br>Play style, faction reminders, and booklet rules.</button>
+      <button onclick="showView('unlocks')" class="hub-choice"><strong>Unlocks</strong><br>Lore envelopes, secret units, and campaign reveals.</button>
       <button onclick="showView('skill')" class="hub-choice"><strong>Skill Trees</strong><br>${hub.trees.length} faction paths on one page.</button>
       <button onclick="showView('resources')" class="hub-choice"><strong>Resources</strong><br>Large resource counters for quick phone use.</button>
       <button onclick="showView('factionAbilities')" class="hub-choice"><strong>Faction Abilities</strong><br>Clickable ability costs and faction rules.</button>
@@ -9177,6 +9311,7 @@ function createProfile() {
         potions: { inventory: [] },
         relics: { inventory: [] },
         objectives: { inventory: [] },
+        unlocks: { revealed: {}, notes: {} },
         keywords: { selected: {} },
         buildings: { constructed: {} },
         shop: { purchases: {} },
@@ -9268,6 +9403,7 @@ function loadProfile() {
 
     ensureRelicState(resourceProfile);
     ensureObjectiveState(resourceProfile);
+ensureUnlockState(resourceProfile);
 renderRelics();
   renderObjectives();
 ensureKeywordState(resourceProfile);
@@ -9313,6 +9449,10 @@ function showView(view) {
   const inventoryView = document.getElementById("inventoryView");
   if (inventoryView) {
     inventoryView.style.display = view === "inventory" ? "block" : "none";
+  }
+  const unlocksView = document.getElementById("unlocksView");
+  if (unlocksView) {
+    unlocksView.style.display = view === "unlocks" ? "block" : "none";
   }
 
   document.getElementById("potionsView").style.display =
@@ -9381,6 +9521,9 @@ function showView(view) {
 
   if (view === "inventory") {
     renderInventory();
+  }
+  if (view === "unlocks") {
+    renderUnlocks();
   }
 
   if (view === "objectives" && isHostMode) {
@@ -16994,6 +17137,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
