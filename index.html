@@ -1531,7 +1531,6 @@ body.elves {
 
 <div id="mainNav" style="margin-bottom:15px; display:none; gap:10px; flex-wrap:wrap; align-items:center;">
   <button onclick="showView('factionInfo')">Faction Info</button>
-  <button onclick="showView('unlocks')">Unlocks</button>
   <button onclick="showView('skill')">Skill Trees</button>
   <button onclick="showView('resources')">Resources</button>
   <button onclick="showView('buildings')">Income</button>
@@ -1540,6 +1539,7 @@ body.elves {
   <button onclick="showView('keywords')">Keywords</button>
   <button onclick="showView('allianceTrading')">Alliance & Trading</button>
   <button onclick="showView('shop')">Upgrade Shop</button>
+  <button onclick="showView('unlocks')">Unlocks</button>
   <button onclick="manualSaveProfile()">Save / Sync Profile</button>
 
   
@@ -9215,6 +9215,24 @@ function renderFactionInfoTableCell(section, row, cell, cellIndex, hub) {
 
   return `${baseHp + bonusHp} <span style="color:#9ee6a8; font-size:12px;">(${baseHp} + ${bonusHp})</span>`;
 }
+function renderLadderInfoCard() {
+  return `
+    <div class="faction-info-card" style="border-left-color:#cdbb8c; background:rgba(35, 30, 22, 0.94);">
+      <h3>Ladders</h3>
+      <table class="faction-info-table">
+        <thead>
+          <tr><th>Item</th><th>Cost</th><th>HP</th><th>Max #</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Ladder</td><td>5 Gold</td><td>3</td><td>3</td></tr>
+        </tbody>
+      </table>
+      <div style="color:#e8e8e8; line-height:1.45; margin-top:10px;">
+        May be carried only by Elites unless otherwise specified. Each unit may carry 1 Ladder at a time.
+      </div>
+    </div>
+  `;
+}
 function renderFactionInfo() {
   const app = document.getElementById("factionInfoApp");
   if (!app) return;
@@ -9276,7 +9294,7 @@ function renderFactionInfo() {
       <div style="color:#e8f5df; line-height:1.45; font-size:15px;">All constructed structures may be built in Faction Province or within Range 8 of Province.</div>
     </div>
     <div class="faction-info-layout" style="margin-top:16px;">
-      ${info.sections.map(renderSection).join("")}
+      ${info.sections.map(section => `${renderSection(section)}${section.title && /gates?\s*&\s*walls?/i.test(section.title) ? renderLadderInfoCard() : ""}`).join("")}
     </div>
   `;
 }
@@ -17137,6 +17155,8 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
 
 
 
