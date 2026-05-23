@@ -2982,12 +2982,12 @@ let data = JSON.parse(localStorage.getItem("skillTreeData")) || {};
 
 
 const defaultResources = [
-  { name: "Food", value: 0, color: "#4CAF50", icon: "ðŸ–" },
-  { name: "Gold", value: 0, color: "#D4AF37", icon: "ðŸª™" },
-  { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "âš¡" },
-  { name: "Metal", value: 0, color: "#9E9E9E", icon: "â›“ï¸" },
-  { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "ðŸ‰" },
-  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "ðŸ’€" },
+  { name: "Food", value: 0, color: "#4CAF50", icon: "&#127838;" },
+  { name: "Gold", value: 0, color: "#D4AF37", icon: "&#129689;" },
+  { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "&#9889;" },
+  { name: "Metal", value: 0, color: "#9E9E9E", icon: "&#9939;" },
+  { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "&#128009;" },
+  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "&#128128;" },
   { name: "Unlock Tokens", value: 0, color: "#14B8A6", icon: "UT" }
 ];
 
@@ -2996,7 +2996,7 @@ function normalizeResourceList(resourceList) {
   const normalizedResources = defaultResources.map(defaultResource => {
     const existingResource = existingResources.find(resource => resource.name === defaultResource.name);
     return existingResource
-      ? { ...defaultResource, ...existingResource, value: Number(existingResource.value || 0) }
+      ? { ...defaultResource, ...existingResource, icon: defaultResource.icon, color: defaultResource.color, value: Number(existingResource.value || 0) }
       : { ...defaultResource };
   });
 
@@ -17155,6 +17155,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
