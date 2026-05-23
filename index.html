@@ -3044,6 +3044,34 @@ const constructionProductionTables = {
       { name: "Rift", cost: "5 Energy + 6 Food", produced: "Kingsguard" },
       { name: "Cavern", cost: "2 Energy + 7 Food", produced: "Spawn of the Deep" }
     ]
+  },
+  "The Order": {
+    construction: [
+      { name: "Cathedral", cost: "-", bonus: "-", hp: "10", count: "1", size: "2x2" },
+      { name: "Cathedral Decoy", cost: "25 Gold", bonus: "Decoy Token", hp: "10", count: "1", size: "2x2" },
+      { name: "Garden", cost: "20 Gold", bonus: "+1 Metal", hp: "5", count: "3", size: "1x1" },
+      { name: "Mythical Forest", cost: "Energy Ability", bonus: "+1 Dragon Coin", hp: "6", count: "3", size: "2x2" },
+      { name: "Statue", cost: "14 Gold", bonus: "Move 1 Assassin 3", hp: "7", count: "2", size: "1x1" },
+      { name: "Upgrade 1", cost: "20 Gold", bonus: "+2 Dragon Coins", hp: "-", count: "1", size: "-" },
+      { name: "Upgrade 2", cost: "40 Gold", bonus: "+2 Metal", hp: "-", count: "1", size: "-" },
+      { name: "Upgrade 3", cost: "55 Gold", bonus: "+2 Campaign Points", hp: "-", count: "1", size: "-" },
+      { name: "Fountain", cost: "10 Food or Gold", bonus: "Heal 1 unit for 3 HP then adjacent units heal 1 HP per round", hp: "5", count: "2", size: "1x1" },
+      { name: "Shrine", cost: "7 Energy", bonus: "+1 Dragon Coin", hp: "-", count: "1", size: "1x1" },
+      { name: "Bureau", cost: "18 Gold", bonus: "Spawn 1 Assassin", hp: "9", count: "1", size: "1x2" },
+      { name: "Marksmen Field", cost: "24 Gold", bonus: "+5 Food", hp: "4", count: "1", size: "1x2" },
+      { name: "Homestead", cost: "38 Gold", bonus: "+5 Gold", hp: "5", count: "1", size: "1x2" }
+    ],
+    production: [
+      { name: "Cathedral", cost: "7 Energy<br>10 Energy", produced: "Goat Warlord<br>Battle Rhino" },
+      { name: "Cathedral Upgrade 1", cost: "3 Energy", produced: "Move 1 Goat Beast" },
+      { name: "Cathedral Upgrade 2", cost: "7 Energy", produced: "Move All Goat units for free" },
+      { name: "Cathedral Upgrade 3", cost: "30 Dragon Coins", produced: "The Disgraced" },
+      { name: "Homestead", cost: "4 Energy + 10 Food", produced: "Armoured Cavalry" },
+      { name: "Marksmen Field", cost: "1 Energy & 4 Food<br>3 Energy & 7 Food", produced: "Bowman<br>Winged Archer" },
+      { name: "Shrine", cost: "5 Energy & 9 Food<br>5 Energy & 9 Food", produced: "Light Mage<br>Dark Mage" },
+      { name: "Bureau", cost: "2 Energy & 10 Gold<br>1 Energy & 6 Food", produced: "Assassin<br>Soldier" },
+      { name: "Mythical Forest", cost: "4 Energy & 5 Food", produced: "Goat Beast" }
+    ]
   }
 };
 let resources = [];
@@ -17241,6 +17269,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
