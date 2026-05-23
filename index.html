@@ -1534,6 +1534,7 @@ body.elves {
   <button onclick="showView('skill')">Skill Trees</button>
   <button onclick="showView('resources')">Resources</button>
   <button onclick="showView('buildings')">Income</button>
+  <button onclick="showView('constructionProduction')">Construction & Production</button>
   <button onclick="showView('inventory')">Inventory</button>
   <button onclick="showView('factionAbilities')">Faction Abilities</button>
   <button onclick="showView('keywords')">Keywords</button>
@@ -2787,6 +2788,13 @@ body.elves {
   </div>
 </div>
 
+<div id="constructionProductionView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+    <h2 style="margin-top:0; color:gold;">Construction & Production</h2>
+    <div id="constructionProductionApp"></div>
+  </div>
+</div>
+
 <div id="inventoryView" style="display:none; margin:20px; color:white;">
   <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
     <h2 style="margin-top:0; color:gold;">Inventory</h2>
@@ -3008,6 +3016,36 @@ function normalizeResourceList(resourceList) {
 
   return normalizedResources;
 }
+
+const constructionProductionTables = {
+  Dwarves: {
+    construction: [
+      { name: "Fortress", cost: "-", bonus: "-", hp: "12", count: "1", size: "2x2" },
+      { name: "Upgrade 1", cost: "20 Gold", bonus: "+1 Dragon Coin", hp: "-", count: "1", size: "-" },
+      { name: "Upgrade 2", cost: "35 Gold", bonus: "+1 Dragon Coin & +1 Metal", hp: "-", count: "1", size: "-" },
+      { name: "Upgrade 3", cost: "48 Gold", bonus: "+2 Campaign Points", hp: "-", count: "1", size: "-" },
+      { name: "Grand Forge", cost: "8 Energy", bonus: "Spawn 1 Guard", hp: "6", count: "3", size: "2x2" },
+      { name: "Cavern", cost: "30 Gold<br><span style=\"font-size:12px; color:#ccc;\">Must have a Mountain built to build a Cavern</span>", bonus: "+1 Metal", hp: "-", count: "4", size: "-" },
+      { name: "Mountain", cost: "5 Energy & 5 Metal", bonus: "+2 Food & +1 Dragon Coin", hp: "12", count: "4", size: "3x3" },
+      { name: "Treasure Hoard", cost: "24 Food", bonus: "Spawn 1 Knight", hp: "5", count: "2", size: "2x2" },
+      { name: "Hall of Warrior", cost: "30 Gold", bonus: "+2 Metal", hp: "7", count: "1", size: "2x3" },
+      { name: "Ram Pen", cost: "36 Gold", bonus: "+1 Metal", hp: "7", count: "1", size: "2x3" },
+      { name: "Rift", cost: "40 Gold", bonus: "+2 Dragon Coins", hp: "-", count: "1", size: "1x1" },
+      { name: "Isle", cost: "30 Gold", bonus: "+2 Metal", hp: "-", count: "1", size: "1x1" }
+    ],
+    production: [
+      { name: "Fortress", cost: "2 Energy & 5 Food<br>10 Energy", produced: "Commando<br>Fierce Gorilla" },
+      { name: "Upgrade 1", cost: "2 Energy", produced: "Fortification Level 1" },
+      { name: "Upgrade 2", cost: "3 Energy & 2 Metal", produced: "Fortification Level 2" },
+      { name: "Upgrade 3", cost: "5 Energy & 3 Metal<br>30 Dragon Coins", produced: "Fortification Level 3<br>Fire Creature" },
+      { name: "Isle", cost: "5 Energy + 9 Food", produced: "King or Lord Commander" },
+      { name: "Hall of Warriors", cost: "1 Energy + 4 Food", produced: "Guard" },
+      { name: "Pen", cost: "2 Energy + 6 Food<br>2 Energy + 5 Food", produced: "Ram Rider<br>Feral Hog" },
+      { name: "Rift", cost: "5 Energy + 6 Food", produced: "Kingsguard" },
+      { name: "Cavern", cost: "2 Energy + 7 Food", produced: "Spawn of the Deep" }
+    ]
+  }
+};
 let resources = [];
 let selectedCollectionFaction = "auto";
 
@@ -8178,6 +8216,44 @@ function renderBuildings() {
   `;
 }
 
+function renderProductionTable(title, headers, rows, cells) {
+  return `
+    <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px; overflow:auto;">
+      <h3 style="margin:0 0 12px 0; color:#ffe08a; text-align:center;">${title}</h3>
+      <table style="width:100%; border-collapse:collapse; color:white; min-width:720px;">
+        <thead><tr>${headers.map(header => `<th style="text-align:center; padding:8px; border:1px solid rgba(255,255,255,0.22); background:rgba(255,255,255,0.06);">${header}</th>`).join("")}</tr></thead>
+        <tbody>
+          ${rows.map(row => `<tr>${cells.map(cell => `<td style="text-align:center; vertical-align:top; padding:8px; border:1px solid rgba(255,255,255,0.18);">${row[cell] || "-"}</td>`).join("")}</tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderConstructionProduction() {
+  const app = document.getElementById("constructionProductionApp");
+  if (!app) return;
+
+  const hub = getCurrentHub();
+  const tables = constructionProductionTables[hub.family];
+
+  if (!tables) {
+    app.innerHTML = `
+      <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px;">
+        <h3 style="margin-top:0; color:#ffe08a;">${hub.label} Construction & Production</h3>
+        <p style="margin-bottom:0; color:#ddd;">Construction costs and unit production for this faction are coming soon.</p>
+      </div>
+    `;
+    return;
+  }
+
+  app.innerHTML = `
+    <div style="display:grid; gap:20px;">
+      ${renderProductionTable("Construction Costs & Bonuses", ["Name", "Cost", "Construction Bonus", "HP", "Count", "Size"], tables.construction, ["name", "cost", "bonus", "hp", "count", "size"])}
+      ${renderProductionTable("Unit & Ability Production", ["Name", "Cost", "Produced"], tables.production, ["name", "cost", "produced"])}
+    </div>
+  `;
+}
 function renderInventory() {
   const app = document.getElementById("inventoryApp");
   if (!app || !resourceProfile || !data[resourceProfile]) return;
@@ -9311,6 +9387,7 @@ function renderHubHome() {
       <button onclick="showView('resources')" class="hub-choice"><strong>Resources</strong><br>Large resource counters for quick phone use.</button>
       <button onclick="showView('factionAbilities')" class="hub-choice"><strong>Faction Abilities</strong><br>Clickable ability costs and faction rules.</button>
       <button onclick="showView('buildings')" class="hub-choice"><strong>Income</strong><br>Income buildings and collection controls.</button>
+      <button onclick="showView('constructionProduction')" class="hub-choice"><strong>Construction & Production</strong><br>Structure costs and unit production tables.</button>
       <button onclick="showView('inventory')" class="hub-choice"><strong>Inventory</strong><br>Potions, relics, and objectives assigned by the GM.</button>
     </div>
   `;
@@ -9464,6 +9541,11 @@ function showView(view) {
     buildingsView.style.display = view === "buildings" ? "block" : "none";
   }
 
+  const constructionProductionView = document.getElementById("constructionProductionView");
+  if (constructionProductionView) {
+    constructionProductionView.style.display = view === "constructionProduction" ? "block" : "none";
+  }
+
   const inventoryView = document.getElementById("inventoryView");
   if (inventoryView) {
     inventoryView.style.display = view === "inventory" ? "block" : "none";
@@ -9535,6 +9617,10 @@ function showView(view) {
 
   if (view === "buildings") {
     renderBuildings();
+  }
+
+  if (view === "constructionProduction") {
+    renderConstructionProduction();
   }
 
   if (view === "inventory") {
@@ -17155,6 +17241,9 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
 
 
 
