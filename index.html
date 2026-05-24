@@ -3072,6 +3072,36 @@ const constructionProductionTables = {
       { name: "Bureau", cost: "2 Energy & 10 Gold<br>1 Energy & 6 Food", produced: "Assassin<br>Soldier" },
       { name: "Mythical Forest", cost: "4 Energy & 5 Food", produced: "Goat Beast" }
     ]
+  },
+  Barbarians: {
+    construction: [
+      { name: "Garrison", cost: "-", bonus: "-", hp: "13", count: "1", size: "2x2" },
+      { name: "Hofs", cost: "15 Gold", bonus: "Heal adjacent units 2 HP per round", hp: "3", count: "3", size: "1x1" },
+      { name: "Mead Hall", cost: "28 Gold", bonus: "Move a unit 4", hp: "4", count: "2", size: "2x2" },
+      { name: "Longhouse", cost: "30 Gold", bonus: "Heal a unit 2", hp: "5", count: "3", size: "2x3" },
+      { name: "Upgrade 1", cost: "12 Gold", bonus: "Reduce cost of all units by 2 Food", hp: "-", count: "1", size: "-" },
+      { name: "Upgrade 2", cost: "32 Gold", bonus: "Setup 2 & +2 Dragon Coins", hp: "-", count: "1", size: "-" },
+      { name: "Upgrade 3", cost: "48 Gold", bonus: "+2 Campaign Points", hp: "-", count: "1", size: "-" },
+      { name: "Training Grounds", cost: "18 Gold", bonus: "+1 Metal", hp: "3", count: "2", size: "2x2" },
+      { name: "Tar Pits", cost: "32 Gold", bonus: "Spawn a Maniac", hp: "3", count: "2", size: "2x2" },
+      { name: "Uppsala", cost: "40 Gold", bonus: "+2 Metal", hp: "5", count: "1", size: "2x2" },
+      { name: "Potg", cost: "Priest", bonus: "Spawn a Norse Skullshot", hp: "15", count: "1", size: "3x3" },
+      { name: "Shooting Gallery", cost: "26 Gold", bonus: "+5 Dragon Coins", hp: "6", count: "1", size: "1x2" },
+      { name: "Sanctum", cost: "36 Gold", bonus: "+2 Metal", hp: "8", count: "1", size: "1x1" }
+    ],
+    production: [
+      { name: "Garrison", cost: "10 Food<br>10 Energy", produced: "Guardian<br>Chimera" },
+      { name: "Upgrade 1", cost: "2 Energy", produced: "Move 1 unit" },
+      { name: "Upgrade 2", cost: "3 Energy", produced: "Move 2 units" },
+      { name: "Upgrade 3", cost: "5 Energy", produced: "Move 4 units" },
+      { name: "Hofs", cost: "4 Energy", produced: "+10 Gold" },
+      { name: "Passage of the gods", cost: "8 Energy", produced: "Titan" },
+      { name: "Tar Pits", cost: "4 Energy + 8 Food", produced: "Dino Traveller" },
+      { name: "Uppsala", cost: "2 Energy + 4 Food", produced: "Druid or Priest" },
+      { name: "Training Grounds", cost: "1 Energy + 5 Food<br>3 Energy + 8 Food", produced: "Housecarl<br>Maniac" },
+      { name: "Shooting Gallery", cost: "1 Energy + 4 Food<br>3 Energy + 4 Food", produced: "Axe man<br>Norse Skullshot" },
+      { name: "Sanctum", cost: "6 Energy + 10 Food<br>4 Energy + 7 Food", produced: "Vladuk<br>Berserker" }
+    ]
   }
 };
 let resources = [];
@@ -17269,6 +17299,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
