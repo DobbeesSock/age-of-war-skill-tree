@@ -3102,6 +3102,93 @@ const constructionProductionTables = {
       { name: "Shooting Gallery", cost: "1 Energy + 4 Food<br>3 Energy + 4 Food", produced: "Axe man<br>Norse Skullshot" },
       { name: "Sanctum", cost: "6 Energy + 10 Food<br>4 Energy + 7 Food", produced: "Vladuk<br>Berserker" }
     ]
+  },
+  Elves: {
+    construction: [
+      { name: "Palace", cost: "-", bonus: "-", hp: "12", count: "1", size: "2x2" },
+      { name: "Upgrade 1", cost: "20 Gold", bonus: "+2 Metal", hp: "-", count: "1", size: "-" },
+      { name: "Upgrade 2", cost: "35 Gold", bonus: "Setup 2 & +2 Dragon Coins", hp: "-", count: "1", size: "-" },
+      { name: "Upgrade 3", cost: "48 Gold", bonus: "+3 Campaign Points", hp: "-", count: "1", size: "-" },
+      { name: "Lost Forest", cost: "Rootwalker Death", bonus: "+8 Food", hp: "10", count: "3", size: "2x2" },
+      { name: "Smith", cost: "32 Gold", bonus: "+1 Metal", hp: "6", count: "2", size: "2x2" },
+      { name: "Workshop", cost: "36 Gold", bonus: "+1 Dragon Coin", hp: "7", count: "1", size: "2x2" },
+      { name: "Academy", cost: "30 Gold", bonus: "+1 Metal", hp: "6", count: "1", size: "1x1" },
+      { name: "Temple", cost: "32 Gold", bonus: "Spawn 1 Longbow", hp: "6", count: "1", size: "1x2" },
+      { name: "Armoury", cost: "32 Gold", bonus: "Unlock Golden Age Ability", hp: "7", count: "1", size: "1x1" },
+      { name: "Ancient Hall", cost: "20 Gold", bonus: "+1 SM", hp: "6", count: "1", size: "1x2" },
+      { name: "Dawn Tree", cost: "20 Gold", bonus: "1 Common Potion", hp: "3", count: "3", size: "1x1" },
+      { name: "Obelisk of Knowledge", cost: "12 Gold", bonus: "+1 Dragon Coin", hp: "3", count: "2", size: "1x1" },
+      { name: "Supply Wagon", cost: "3 Metal", bonus: "1 Rare Potion", hp: "3", count: "1", size: "1x1" }
+    ],
+    production: [
+      { name: "Palace", cost: "5 Energy<br>10 Energy", produced: "+10 Gold [x1 Phase]<br>River Lord" },
+      { name: "Upgrade 1", cost: "3 Energy", produced: "+5 Food [x1 Phase]" },
+      { name: "Upgrade 2", cost: "3 Energy", produced: "+8 Food & +6 Gold [x1 Phase]" },
+      { name: "Upgrade 3", cost: "30 Dragon Coins", produced: "Elven Royals" },
+      { name: "Lost Forrest", cost: "30 Food", produced: "Rootwalker" },
+      { name: "Stream", cost: "30 Food", produced: "Hero of the Storm" },
+      { name: "Workshop", cost: "4 Energy + 10 Food<br>2 Energy + 6 Food", produced: "Captain of the Guard<br>Hoplite" },
+      { name: "Academy", cost: "4 Energy + 12 Food<br>2 Energy + 10 Food", produced: "Squad Leader<br>Bow Mount" },
+      { name: "Temple of the Flame", cost: "4 Energy + 11 Food", produced: "Sabertooth Rider" },
+      { name: "Ancient Hall", cost: "2 Energy + 8 Food<br>2 Energy + 6 Food", produced: "Longbow<br>Crossbow" }
+    ]
+  },
+  Men: {
+    construction: [
+      { name: "Castle", cost: "-", bonus: "-", hp: "10", count: "1", size: "3x3" },
+      { name: "Upgrade 1", cost: "15 Gold", bonus: "+6 Province & +1 Dragon Coin", hp: "-", count: "1", size: "-" },
+      { name: "Upgrade 2", cost: "30 Gold", bonus: "Setup 2 & +2 Dragon Coins", hp: "-", count: "1", size: "-" },
+      { name: "Upgrade 3", cost: "50 Gold", bonus: "+5 Metal", hp: "-", count: "1", size: "-" },
+      { name: "Farm", cost: "4 Food or 10 Gold", bonus: "+1 Metal", hp: "3", count: "4", size: "1x1" },
+      { name: "Blacksmith", cost: "38 Gold", bonus: "+1 Dragon Coin", hp: "5", count: "1", size: "1x2" },
+      { name: "Vault", cost: "44 Gold", bonus: "+1 SM", hp: "6", count: "1", size: "2x2" },
+      { name: "Marketplace", cost: "30 Gold", bonus: "+1 SM", hp: "3", count: "1", size: "2x2" },
+      { name: "Obelisk of Power", cost: "10 Gold", bonus: "+1 Metal", hp: "4", count: "2", size: "1x1" },
+      { name: "Barracks", cost: "24 Gold", bonus: "Spawn 1 Guard", hp: "6", count: "1", size: "1x2" },
+      { name: "Archery Range", cost: "26 Gold", bonus: "Spawn 1 Range", hp: "5", count: "1", size: "1x2" },
+      { name: "Stable", cost: "30 Gold & 5 Food", bonus: "Spawn 1 Hound", hp: "7", count: "1", size: "2x2" }
+    ],
+    production: [
+      { name: "Castle", cost: "3 Energy + 6 Food<br>6 Energy + 8 Food<br>10 Energy", produced: "Champion<br>Legionary<br>Battle Boar" },
+      { name: "Upgrade 1", cost: "-", produced: "Convert 2:1 Gold or Food" },
+      { name: "Upgrade 2", cost: "6 Energy & 9 Food", produced: "Ferocious Bear" },
+      { name: "Upgrade 3", cost: "6 Energy<br>30 Dragon Coins", produced: "Heal 1 unit for 5<br>Archangel" },
+      { name: "Blacksmith", cost: "1 Energy + 3 Food<br>4 Energy + 5 Food", produced: "Bannerman<br>Cleric" },
+      { name: "The Vault", cost: "6 Energy + 12 Food", produced: "General" },
+      { name: "Barracks", cost: "2 Energy + 5 Food<br>3 Energy + 6 Food", produced: "Swordsman<br>Paladin" },
+      { name: "Archery Range", cost: "3 Energy + 5 Food", produced: "Ranger" },
+      { name: "Stable", cost: "4 Energy + 10 Food<br>1 Energy + 4 Food", produced: "War Horse<br>Viscous Hound" },
+      { name: "Obelisk of Power", cost: "5 Energy + 10 Food", produced: "Angelic Soldier" }
+    ]
+  },
+  Orcs: {
+    construction: [
+      { name: "Stronghold", cost: "-", bonus: "-", hp: "12", count: "1", size: "2x2" },
+      { name: "Forge", cost: "24 Gold", bonus: "+4 Metal", hp: "4", count: "2", size: "2x2" },
+      { name: "Orc Pit", cost: "28 Gold", bonus: "+8 Food", hp: "2", count: "2", size: "1x1" },
+      { name: "Temple", cost: "40 Gold", bonus: "+1 Dragon Coin", hp: "5", count: "1", size: "1x1" },
+      { name: "Upgrade 1", cost: "10 Gold", bonus: "+1 Metal", hp: "-", count: "1", size: "-" },
+      { name: "Upgrade 2", cost: "25 Gold", bonus: "Setup 2 & +2 DC", hp: "-", count: "1", size: "-" },
+      { name: "Upgrade 3", cost: "45 Gold", bonus: "+2 Campaign Points", hp: "-", count: "1", size: "-" },
+      { name: "Obelisk", cost: "12 Gold", bonus: "+5 Food", hp: "4", count: "3", size: "1x1" },
+      { name: "Totem", cost: "5 Gold", bonus: "Heal 1 HP adjacent units per round", hp: "4", count: "6", size: "1x1" },
+      { name: "Troll Cave", cost: "40 Gold", bonus: "+2 Metal", hp: "6", count: "1", size: "1x2" },
+      { name: "Wolf Den", cost: "26 Gold", bonus: "+10 Food & +1 Metal", hp: "6", count: "1", size: "1x2" },
+      { name: "Dark Stone", cost: "44 Gold", bonus: "+3 Metal", hp: "10", count: "1", size: "2x2" },
+      { name: "Dragons Nest", cost: "70 Gold", bonus: "+3 Dragon Coins", hp: "10", count: "1", size: "2x2" }
+    ],
+    production: [
+      { name: "Stronghold", cost: "5 Energy<br>10 Energy<br>7 Energy", produced: "Commander<br>Troll Brawler<br>Ravenger Troll Commander" },
+      { name: "Upgrade 1", cost: "2 Energy", produced: "Level 1 Vines" },
+      { name: "Upgrade 2", cost: "3 Energy", produced: "Level 2 Vines" },
+      { name: "Upgrade 3", cost: "5 Energy<br>30 DC", produced: "Level 3 Vines<br>Elder Dragon" },
+      { name: "Orc Pit", cost: "1 Energy + 3 Food<br>1 Energy + 5 Food<br>2 Energy + 5 Food<br>2 Energy + 6 Food", produced: "Goblin Bowmen<br>Orc Warrior<br>Orc Bowmen<br>Goblin Slayer" },
+      { name: "Troll Cave", cost: "4 Energy", produced: "Mighty Troll" },
+      { name: "Den", cost: "2 Energy + 5 Food", produced: "Wolf Scout" },
+      { name: "Dark Stone", cost: "3 Energy", produced: "Rankenfile" },
+      { name: "Dragons Nest", cost: "8 Energy", produced: "Drake" },
+      { name: "Temple", cost: "6 Energy", produced: "Abomination" }
+    ]
   }
 };
 let resources = [];
@@ -17299,6 +17386,9 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
 
 
 
