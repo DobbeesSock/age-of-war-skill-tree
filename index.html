@@ -10093,22 +10093,25 @@ const creatureGeneratorRewardPools = {
     { label: "1 random Relic card", weight: 1 }
   ],
   greater: [
-    { label: "22 Gold", weight: 3 },
-    { label: "6 Energy", weight: 3 },
+    { label: "25 Gold", weight: 4 },
+    { label: "8 Energy", weight: 3 },
     { label: "6 Metal", weight: 3 },
     { label: "2 Dragon Coins", weight: 2 },
-    { label: "1 SM", weight: 2 },
+    { label: "1 SM", weight: 1 },
+    { label: "1 Blueprint", weight: 2 },
+    { label: "2 Rare Potions", weight: 3 },
     { label: "1 Legendary Potion", weight: 3 },
     { label: "1 Mythic Potion", weight: 1 },
     { label: "1 random Relic card", weight: 2 }
   ],
   boss: [
-    { label: "35 Gold", weight: 2 },
-    { label: "10 Metal", weight: 3 },
-    { label: "4 Dragon Coins", weight: 3 },
-    { label: "2 SM", weight: 2 },
+    { label: "40 Gold", weight: 4 },
+    { label: "12 Metal", weight: 3 },
+    { label: "3 Dragon Coins", weight: 3 },
+    { label: "1 SM", weight: 2 },
+    { label: "1 Blueprint", weight: 3 },
+    { label: "2 Legendary Potions", weight: 3 },
     { label: "1 Mythic Potion", weight: 3 },
-    { label: "2 Legendary Potions", weight: 2 },
     { label: "1 random Relic card", weight: 3 },
     { label: "1 Superior Relic or GM-chosen Relic", weight: 1 }
   ]
@@ -10131,7 +10134,7 @@ function generateCreatureAttackProfile(tier) {
 
 function generateCreatureRewards(tier) {
   const pool = creatureGeneratorRewardPools[tier] || creatureGeneratorRewardPools.minor;
-  const rewardCount = tier === "boss" ? randomBetween(2, 3) : tier === "greater" ? randomBetween(1, 2) : 1;
+  const rewardCount = tier === "boss" ? randomBetween(3, 4) : tier === "greater" ? randomBetween(2, 3) : 1;
   const rewards = [];
   while (rewards.length < rewardCount) {
     const reward = chooseWeightedCreatureReward(pool);
@@ -17736,6 +17739,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
