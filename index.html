@@ -1556,6 +1556,7 @@ body.elves {
   <button onclick="showView('memories')">Memories</button>
   <button onclick="showView('worldEvents')">World Events</button>
   <button onclick="showView('breachEvents')">Breach Events</button>
+  <button onclick="showView('creatureGenerator')">Creature Generator</button>
   <button onclick="showView('trackers')">Trackers</button>
   <button onclick="showView('caveRandomizer')">Cave Randomizer</button>
   <button onclick="showView('mythologicalCaves')">Mythological Caves</button>
@@ -2932,6 +2933,13 @@ body.elves {
   </div>
 </div>
 
+
+<div id="creatureGeneratorView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1400px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+    <h2 style="margin-top:0; color:#ffcc66;">Creature Generator</h2>
+    <div id="creatureGeneratorApp"></div>
+  </div>
+</div>
 <div id="trackersView" style="display:none; margin:20px; color:white;">
   <div style="max-width:1400px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
     <h2 style="margin-top:0; color:#e8d7ae;">Trackers</h2>
@@ -9677,6 +9685,9 @@ function showView(view) {
   document.getElementById("breachEventsView").style.display =
     view === "breachEvents" && isHostMode ? "block" : "none";
 
+  document.getElementById("creatureGeneratorView").style.display =
+    view === "creatureGenerator" && isHostMode ? "block" : "none";
+
   document.getElementById("trackersView").style.display =
     view === "trackers" && isHostMode ? "block" : "none";
   
@@ -9763,6 +9774,10 @@ function showView(view) {
       initializeBreachEventDeck();
     }
     renderBreachEvents();
+  }
+
+  if (view === "creatureGenerator" && isHostMode) {
+    renderCreatureGenerator();
   }
 
   if (view === "mythologicalCaves" && isHostMode) {
@@ -9915,6 +9930,263 @@ function toggleBreachTrackerStep(index) {
 
 
 
+
+const creatureGeneratorTiers = {
+  minor: {
+    label: "Minor Creature",
+    hpMin: 6,
+    hpMax: 12,
+    damageMin: 1,
+    damageMax: 2,
+    odMin: 0,
+    odMax: 1,
+    rollCheckMin: 2,
+    rollCheckMax: 4,
+    nameParts: ["Skitter", "Ash", "Gloom", "Briar", "Fang", "Mire", "Cinder", "Rift"]
+  },
+  major: {
+    label: "Major Creature",
+    hpMin: 13,
+    hpMax: 23,
+    damageMin: 2,
+    damageMax: 4,
+    odMin: 1,
+    odMax: 2,
+    rollCheckMin: 3,
+    rollCheckMax: 5,
+    nameParts: ["Iron", "Hollow", "Grave", "Storm", "Blood", "Obsidian", "Thorn", "Void"]
+  },
+  greater: {
+    label: "Greater Creature",
+    hpMin: 24,
+    hpMax: 34,
+    damageMin: 4,
+    damageMax: 6,
+    odMin: 2,
+    odMax: 4,
+    rollCheckMin: 4,
+    rollCheckMax: 6,
+    nameParts: ["Ancient", "Dread", "Titan", "World", "Crown", "Abyss", "Elder", "Cataclysm"]
+  },
+  boss: {
+    label: "Boss Creature",
+    hpMin: 35,
+    hpMax: 55,
+    damageMin: 6,
+    damageMax: 9,
+    odMin: 4,
+    odMax: 7,
+    rollCheckMin: 5,
+    rollCheckMax: 8,
+    nameParts: ["Mythic", "Doom", "Primordial", "Oathless", "Eternal", "Sovereign", "Apocalypse", "Nameless"]
+  }
+};
+
+const creatureGeneratorForms = [
+  "Stalker", "Warden", "Horror", "Beast", "Sentinel", "Devourer", "Watcher", "Brute",
+  "Ravager", "Echo", "Goliath", "Herald", "Maw", "Avatar", "Hunter", "Colossus"
+];
+
+const creatureGeneratorBehaviors = {
+  hunter: {
+    label: "Move then Attack",
+    text: "During its timing window, this creature moves toward its target, then attacks if able."
+  },
+  retaliator: {
+    label: "Retaliates After Being Attacked",
+    text: "This creature remains passive until attacked. After it is attacked, it targets the attacker for the rest of the mission unless a stronger target rule overrides it."
+  },
+  phasePredator: {
+    label: "Phase Predator",
+    text: "This creature only acts during the selected phase timing. If no valid target is in range, it moves toward the closest valid target."
+  },
+  guardian: {
+    label: "Territory Guardian",
+    text: "This creature guards the spawn area, cave, POI, or breach point. It attacks units that enter or contest that area first."
+  },
+  opportunist: {
+    label: "Opportunist",
+    text: "This creature targets damaged units, isolated units, or the faction with the lowest keyword alignment first."
+  },
+  commanded: {
+    label: "Spawned by a Faction",
+    text: "This creature follows the faction or event that spawned it. It avoids targeting that faction unless betrayed, damaged by them, or instructed by the GM."
+  }
+};
+
+const creatureGeneratorTimings = {
+  collection: "Collection / Income Round",
+  actionStart: "Start of each Player Action Round",
+  actionEnd: "End of each Player Action Round",
+  production: "Production Round",
+  immediate: "Immediately when spawned",
+  damaged: "After this creature is attacked"
+};
+
+const creatureGeneratorTargets = {
+  nearest: "Nearest unit",
+  spawnedBy: "Faction that caused or spawned this creature",
+  highestVirtue: "Faction with the highest positive keyword score",
+  lowestVirtue: "Faction with the lowest keyword score",
+  richest: "Faction with the most total resources",
+  mostRelics: "Faction with the most relics or mythic rewards",
+  poiController: "Faction controlling the nearest Point of Interest",
+  gmChoice: "GM choice based on the event that spawned it"
+};
+
+let creatureGeneratorState = {
+  generated: []
+};
+
+function randomBetween(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getCreatureGeneratorValue(id, fallback = "") {
+  const element = document.getElementById(id);
+  return element ? element.value : fallback;
+}
+
+function generateCreatureName(tier) {
+  const config = creatureGeneratorTiers[tier] || creatureGeneratorTiers.minor;
+  const prefix = config.nameParts[randomBetween(0, config.nameParts.length - 1)];
+  const form = creatureGeneratorForms[randomBetween(0, creatureGeneratorForms.length - 1)];
+  return `The ${prefix} ${form}`;
+}
+
+function generateHostCreature() {
+  const tier = getCreatureGeneratorValue("creatureTierSelect", "minor");
+  const config = creatureGeneratorTiers[tier] || creatureGeneratorTiers.minor;
+  const behavior = getCreatureGeneratorValue("creatureBehaviorSelect", "hunter");
+  const timing = getCreatureGeneratorValue("creatureTimingSelect", "actionStart");
+  const target = getCreatureGeneratorValue("creatureTargetSelect", "nearest");
+  const spawnReason = getCreatureGeneratorValue("creatureSpawnReasonInput", "").trim();
+  const spawnSource = getCreatureGeneratorValue("creatureSpawnSourceInput", "").trim();
+  const spawnCount = Math.max(1, parseInt(getCreatureGeneratorValue("creatureSpawnCountInput", "1"), 10) || 1);
+  const sharedName = generateCreatureName(tier);
+  const creature = {
+    id: Date.now(),
+    tier,
+    tierLabel: config.label,
+    name: sharedName,
+    spawnCount,
+    hp: randomBetween(config.hpMin, config.hpMax),
+    damage: randomBetween(config.damageMin, config.damageMax),
+    outputDamage: randomBetween(config.damageMin + 1, config.damageMax + 2),
+    rollCheck: randomBetween(config.rollCheckMin, config.rollCheckMax),
+    od: randomBetween(config.odMin, config.odMax),
+    behavior,
+    timing,
+    target,
+    spawnReason,
+    spawnSource
+  };
+
+  creatureGeneratorState.generated.unshift(creature);
+  renderCreatureGenerator();
+}
+
+function clearGeneratedCreatures() {
+  if (!confirm("Clear generated creatures from this Host tool?")) return;
+  creatureGeneratorState.generated = [];
+  renderCreatureGenerator();
+}
+
+function removeGeneratedCreature(creatureId) {
+  creatureGeneratorState.generated = creatureGeneratorState.generated.filter(creature => creature.id !== creatureId);
+  renderCreatureGenerator();
+}
+
+function renderGeneratedCreatureCard(creature) {
+  const behavior = creatureGeneratorBehaviors[creature.behavior] || creatureGeneratorBehaviors.hunter;
+  const timing = creatureGeneratorTimings[creature.timing] || creatureGeneratorTimings.actionStart;
+  const target = creatureGeneratorTargets[creature.target] || creatureGeneratorTargets.nearest;
+  const tierAccent = {
+    minor: "#84c46a",
+    major: "#ffcc66",
+    greater: "#c084fc",
+    boss: "#ff5a4f"
+  }[creature.tier] || "#ffcc66";
+
+  return `
+    <div style="background:rgba(45,45,45,0.94); border:1px solid rgba(255,255,255,0.14); border-left:6px solid ${tierAccent}; border-radius:10px; padding:14px; box-shadow:0 0 10px rgba(0,0,0,0.35);">
+      <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:10px;">
+        <div>
+          <h3 style="margin:0; color:#ffe08a;">${creature.name}</h3>
+          <p style="margin:4px 0 0 0; color:#bbb;">${creature.tierLabel}${creature.spawnCount > 1 ? ` - Spawn ${creature.spawnCount} matching creatures` : ""}</p>
+        </div>
+        <button type="button" onclick="removeGeneratedCreature(${creature.id})">Remove</button>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin-bottom:12px;">
+        <div><strong style="color:#ffcc66;">HP</strong><br>${creature.hp}</div>
+        <div><strong style="color:#ffcc66;">Damage</strong><br>${creature.damage}</div>
+        <div><strong style="color:#ffcc66;">Output Damage</strong><br>${creature.outputDamage}</div>
+        <div><strong style="color:#ffcc66;">Roll Check</strong><br>${creature.rollCheck}</div>
+        <div><strong style="color:#ffcc66;">OD</strong><br>${creature.od}</div>
+      </div>
+      <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Timing:</strong> ${timing}</p>
+      <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Targeting:</strong> ${target}</p>
+      <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Behavior:</strong> ${behavior.label} - ${behavior.text}</p>
+      ${creature.spawnSource ? `<p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Spawned By:</strong> ${creature.spawnSource}</p>` : ""}
+      ${creature.spawnReason ? `<p style="margin:0; color:#ddd;"><strong style="color:#ffe08a;">Reason:</strong> ${creature.spawnReason}</p>` : ""}
+    </div>
+  `;
+}
+
+function renderCreatureGenerator() {
+  const app = document.getElementById("creatureGeneratorApp");
+  if (!app) return;
+
+  app.innerHTML = `
+    <div style="display:grid; grid-template-columns:minmax(280px, 420px) 1fr; gap:18px; align-items:start;">
+      <div style="background:rgba(20,20,20,0.92); border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:16px;">
+        <h3 style="margin:0 0 12px 0; color:#ffe08a;">Generate Creature</h3>
+        <label style="display:block; margin-bottom:10px; color:#ddd;">Creature Type<br>
+          <select id="creatureTierSelect" style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
+            ${Object.entries(creatureGeneratorTiers).map(([key, tier]) => `<option value="${key}">${tier.label} (${tier.hpMin}${tier.hpMax >= 55 ? "+" : `-${tier.hpMax}`} HP)</option>`).join("")}
+          </select>
+        </label>
+        <label style="display:block; margin-bottom:10px; color:#ddd;">Spawn Count<br>
+          <input id="creatureSpawnCountInput" type="number" min="1" value="1" style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
+        </label>
+        <label style="display:block; margin-bottom:10px; color:#ddd;">Behavior<br>
+          <select id="creatureBehaviorSelect" style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
+            ${Object.entries(creatureGeneratorBehaviors).map(([key, behavior]) => `<option value="${key}">${behavior.label}</option>`).join("")}
+          </select>
+        </label>
+        <label style="display:block; margin-bottom:10px; color:#ddd;">Acts During<br>
+          <select id="creatureTimingSelect" style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
+            ${Object.entries(creatureGeneratorTimings).map(([key, label]) => `<option value="${key}">${label}</option>`).join("")}
+          </select>
+        </label>
+        <label style="display:block; margin-bottom:10px; color:#ddd;">Target Priority<br>
+          <select id="creatureTargetSelect" style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
+            ${Object.entries(creatureGeneratorTargets).map(([key, label]) => `<option value="${key}">${label}</option>`).join("")}
+          </select>
+        </label>
+        <label style="display:block; margin-bottom:10px; color:#ddd;">Spawned By / Source<br>
+          <input id="creatureSpawnSourceInput" placeholder="World Event, Breach, faction, cave..." style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
+        </label>
+        <label style="display:block; margin-bottom:14px; color:#ddd;">Spawn Reason<br>
+          <textarea id="creatureSpawnReasonInput" rows="3" placeholder="Why it spawned or special GM note..." style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;"></textarea>
+        </label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" onclick="generateHostCreature()">Generate Creature</button>
+          <button type="button" onclick="clearGeneratedCreatures()" ${creatureGeneratorState.generated.length ? "" : "disabled"}>Clear List</button>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+          <h3 style="margin:0; color:#ffe08a;">Generated Creatures</h3>
+          <span style="color:#bbb;">${creatureGeneratorState.generated.length} active note${creatureGeneratorState.generated.length === 1 ? "" : "s"}</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:12px;">
+          ${creatureGeneratorState.generated.length ? creatureGeneratorState.generated.map(renderGeneratedCreatureCard).join("") : `<div style="background:rgba(45,45,45,0.92); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:18px; color:#bbb;">No creatures generated yet.</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
 function toggleHostMode() {
   if (isHostMode) return;
 
@@ -17369,6 +17641,8 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
 
 
 
