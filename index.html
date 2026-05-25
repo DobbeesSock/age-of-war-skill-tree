@@ -10052,6 +10052,94 @@ function getCreatureRollCheck(outputDamage) {
   return "5-6";
 }
 
+const creatureGeneratorAttackProfiles = {
+  minor: [
+    { mode: "Adjacent", range: "Adjacent", targets: "1 target", note: "Basic melee threat." },
+    { mode: "Adjacent", range: "Adjacent", targets: "up to 2 adjacent targets", note: "Splashes into nearby units." },
+    { mode: "Ranged", range: "2-4", targets: "1 target", note: "Short ranged pressure." }
+  ],
+  major: [
+    { mode: "Adjacent", range: "Adjacent", targets: "up to 2 adjacent targets", note: "Hits clustered units." },
+    { mode: "Adjacent", range: "Adjacent", targets: "up to 3 adjacent targets", note: "Designed to punish surrounds." },
+    { mode: "Ranged", range: "2-6", targets: "up to 2 targets", note: "Can split attacks between valid targets." }
+  ],
+  greater: [
+    { mode: "Adjacent", range: "Adjacent", targets: "all adjacent targets", note: "Sweeps everything touching it." },
+    { mode: "Adjacent", range: "Adjacent", targets: "up to 4 adjacent targets", note: "Large threat against grouped armies." },
+    { mode: "Ranged", range: "3-8", targets: "up to 3 targets", note: "Prioritizes highest-value targets first." }
+  ],
+  boss: [
+    { mode: "Adjacent", range: "Adjacent", targets: "all adjacent targets", note: "Boss sweep. Resolve attacks in GM-chosen order." },
+    { mode: "Ranged", range: "3-10", targets: "up to 4 targets", note: "Boss ranged pattern. May split across factions." },
+    { mode: "Mixed", range: "Adjacent or 2-8", targets: "all adjacent or up to 3 ranged targets", note: "Uses adjacent sweep if surrounded, otherwise ranged attack." }
+  ]
+};
+
+const creatureGeneratorRewardPools = {
+  minor: [
+    { label: "8 Gold", weight: 4 },
+    { label: "6 Food", weight: 4 },
+    { label: "2 Energy", weight: 3 },
+    { label: "1 Common Potion", weight: 2 },
+    { label: "1 Rare Potion", weight: 1 }
+  ],
+  major: [
+    { label: "14 Gold", weight: 4 },
+    { label: "10 Food", weight: 3 },
+    { label: "4 Energy", weight: 3 },
+    { label: "3 Metal", weight: 2 },
+    { label: "1 Rare Potion", weight: 3 },
+    { label: "1 Legendary Potion", weight: 1 },
+    { label: "1 random Relic card", weight: 1 }
+  ],
+  greater: [
+    { label: "22 Gold", weight: 3 },
+    { label: "6 Energy", weight: 3 },
+    { label: "6 Metal", weight: 3 },
+    { label: "2 Dragon Coins", weight: 2 },
+    { label: "1 SM", weight: 2 },
+    { label: "1 Legendary Potion", weight: 3 },
+    { label: "1 Mythic Potion", weight: 1 },
+    { label: "1 random Relic card", weight: 2 }
+  ],
+  boss: [
+    { label: "35 Gold", weight: 2 },
+    { label: "10 Metal", weight: 3 },
+    { label: "4 Dragon Coins", weight: 3 },
+    { label: "2 SM", weight: 2 },
+    { label: "1 Mythic Potion", weight: 3 },
+    { label: "2 Legendary Potions", weight: 2 },
+    { label: "1 random Relic card", weight: 3 },
+    { label: "1 Superior Relic or GM-chosen Relic", weight: 1 }
+  ]
+};
+
+function chooseWeightedCreatureReward(pool) {
+  const totalWeight = pool.reduce((sum, reward) => sum + reward.weight, 0);
+  let roll = randomBetween(1, totalWeight);
+  for (const reward of pool) {
+    roll -= reward.weight;
+    if (roll <= 0) return reward.label;
+  }
+  return pool[0].label;
+}
+
+function generateCreatureAttackProfile(tier) {
+  const profiles = creatureGeneratorAttackProfiles[tier] || creatureGeneratorAttackProfiles.minor;
+  return profiles[randomBetween(0, profiles.length - 1)];
+}
+
+function generateCreatureRewards(tier) {
+  const pool = creatureGeneratorRewardPools[tier] || creatureGeneratorRewardPools.minor;
+  const rewardCount = tier === "boss" ? randomBetween(2, 3) : tier === "greater" ? randomBetween(1, 2) : 1;
+  const rewards = [];
+  while (rewards.length < rewardCount) {
+    const reward = chooseWeightedCreatureReward(pool);
+    if (!rewards.includes(reward) || pool.length <= rewardCount) rewards.push(reward);
+  }
+  return rewards;
+}
+
 function generateHostCreature() {
   const tier = getCreatureGeneratorValue("creatureTierSelect", "minor");
   const config = creatureGeneratorTiers[tier] || creatureGeneratorTiers.minor;
@@ -10073,6 +10161,8 @@ function generateHostCreature() {
     outputDamage,
     rollCheck: getCreatureRollCheck(outputDamage),
     addedDamage: randomBetween(config.addedDamageMin, config.addedDamageMax),
+    attackProfile: generateCreatureAttackProfile(tier),
+    rewards: generateCreatureRewards(tier),
     behavior,
     timing,
     target,
@@ -10119,6 +10209,15 @@ function renderGeneratedCreatureCard(creature) {
         <div><strong style="color:#ffcc66;">Output Damage</strong><br>${creature.outputDamage}</div>
         <div><strong style="color:#ffcc66;">Roll Check</strong><br>${creature.rollCheck}</div>
         <div><strong style="color:#ffcc66;">Added Damage</strong><br>${creature.addedDamage}</div>
+      </div>
+      <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; margin-bottom:10px;">
+        <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Attack Profile:</strong> ${creature.attackProfile.mode} - ${creature.attackProfile.range}</p>
+        <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Targets:</strong> ${creature.attackProfile.targets}</p>
+        <p style="margin:0; color:#bbb;">${creature.attackProfile.note}</p>
+      </div>
+      <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; margin-bottom:10px;">
+        <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Rewards:</strong></p>
+        <ul style="margin:0; padding-left:20px; color:#ddd;">${(creature.rewards || []).map(reward => `<li>${reward}</li>`).join("")}</ul>
       </div>
       <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Timing:</strong> ${timing}</p>
       <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Targeting:</strong> ${target}</p>
@@ -17637,6 +17736,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
