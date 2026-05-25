@@ -9936,48 +9936,40 @@ const creatureGeneratorTiers = {
     label: "Minor Creature",
     hpMin: 6,
     hpMax: 12,
-    damageMin: 1,
-    damageMax: 2,
-    odMin: 0,
-    odMax: 1,
-    rollCheckMin: 2,
-    rollCheckMax: 4,
+    outputDamageMin: 2,
+    outputDamageMax: 3,
+    addedDamageMin: 2,
+    addedDamageMax: 3,
     nameParts: ["Skitter", "Ash", "Gloom", "Briar", "Fang", "Mire", "Cinder", "Rift"]
   },
   major: {
     label: "Major Creature",
     hpMin: 13,
     hpMax: 23,
-    damageMin: 2,
-    damageMax: 4,
-    odMin: 1,
-    odMax: 2,
-    rollCheckMin: 3,
-    rollCheckMax: 5,
+    outputDamageMin: 4,
+    outputDamageMax: 5,
+    addedDamageMin: 3,
+    addedDamageMax: 5,
     nameParts: ["Iron", "Hollow", "Grave", "Storm", "Blood", "Obsidian", "Thorn", "Void"]
   },
   greater: {
     label: "Greater Creature",
     hpMin: 24,
     hpMax: 34,
-    damageMin: 4,
-    damageMax: 6,
-    odMin: 2,
-    odMax: 4,
-    rollCheckMin: 4,
-    rollCheckMax: 6,
+    outputDamageMin: 5,
+    outputDamageMax: 6,
+    addedDamageMin: 5,
+    addedDamageMax: 7,
     nameParts: ["Ancient", "Dread", "Titan", "World", "Crown", "Abyss", "Elder", "Cataclysm"]
   },
   boss: {
     label: "Boss Creature",
     hpMin: 35,
     hpMax: 55,
-    damageMin: 6,
-    damageMax: 9,
-    odMin: 4,
-    odMax: 7,
-    rollCheckMin: 5,
-    rollCheckMax: 8,
+    outputDamageMin: 6,
+    outputDamageMax: 8,
+    addedDamageMin: 7,
+    addedDamageMax: 10,
     nameParts: ["Mythic", "Doom", "Primordial", "Oathless", "Eternal", "Sovereign", "Apocalypse", "Nameless"]
   }
 };
@@ -10054,6 +10046,12 @@ function generateCreatureName(tier) {
   return `The ${prefix} ${form}`;
 }
 
+function getCreatureRollCheck(outputDamage) {
+  if (outputDamage <= 3) return "2-6";
+  if (outputDamage === 4) return "4-6";
+  return "5-6";
+}
+
 function generateHostCreature() {
   const tier = getCreatureGeneratorValue("creatureTierSelect", "minor");
   const config = creatureGeneratorTiers[tier] || creatureGeneratorTiers.minor;
@@ -10064,6 +10062,7 @@ function generateHostCreature() {
   const spawnSource = getCreatureGeneratorValue("creatureSpawnSourceInput", "").trim();
   const spawnCount = Math.max(1, parseInt(getCreatureGeneratorValue("creatureSpawnCountInput", "1"), 10) || 1);
   const sharedName = generateCreatureName(tier);
+  const outputDamage = randomBetween(config.outputDamageMin, config.outputDamageMax);
   const creature = {
     id: Date.now(),
     tier,
@@ -10071,10 +10070,9 @@ function generateHostCreature() {
     name: sharedName,
     spawnCount,
     hp: randomBetween(config.hpMin, config.hpMax),
-    damage: randomBetween(config.damageMin, config.damageMax),
-    outputDamage: randomBetween(config.damageMin + 1, config.damageMax + 2),
-    rollCheck: randomBetween(config.rollCheckMin, config.rollCheckMax),
-    od: randomBetween(config.odMin, config.odMax),
+    outputDamage,
+    rollCheck: getCreatureRollCheck(outputDamage),
+    addedDamage: randomBetween(config.addedDamageMin, config.addedDamageMax),
     behavior,
     timing,
     target,
@@ -10085,7 +10083,6 @@ function generateHostCreature() {
   creatureGeneratorState.generated.unshift(creature);
   renderCreatureGenerator();
 }
-
 function clearGeneratedCreatures() {
   if (!confirm("Clear generated creatures from this Host tool?")) return;
   creatureGeneratorState.generated = [];
@@ -10119,10 +10116,9 @@ function renderGeneratedCreatureCard(creature) {
       </div>
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin-bottom:12px;">
         <div><strong style="color:#ffcc66;">HP</strong><br>${creature.hp}</div>
-        <div><strong style="color:#ffcc66;">Damage</strong><br>${creature.damage}</div>
         <div><strong style="color:#ffcc66;">Output Damage</strong><br>${creature.outputDamage}</div>
         <div><strong style="color:#ffcc66;">Roll Check</strong><br>${creature.rollCheck}</div>
-        <div><strong style="color:#ffcc66;">OD</strong><br>${creature.od}</div>
+        <div><strong style="color:#ffcc66;">Added Damage</strong><br>${creature.addedDamage}</div>
       </div>
       <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Timing:</strong> ${timing}</p>
       <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Targeting:</strong> ${target}</p>
@@ -17641,6 +17637,8 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
 
 
 
