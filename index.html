@@ -4977,57 +4977,6 @@ const worldEvents = [
     ]
   },
   {
-    id: 11,
-    title: "The Golden Collapse",
-    trigger: "Major World Event",
-    type: "economy",
-    intro:
-      "A city-sized vault buckles somewhere below the world. Wealth erupts upward faster than wisdom can follow.",
-    choices: [
-      {
-        label: "Inflation Breaks Loose",
-        details: [
-          "All factions gain 14 Gold immediately.",
-          "Exchange becomes 6:1 for the remainder of the campaign.",
-          "Increase Presence by 2.",
-          "Campaign tag gained: Inflation."
-        ]
-      }
-    ],
-    aftermath: [
-      "This event should reshape the campaign economy, not just fund one turn."
-    ]
-  },
-  {
-    id: 12,
-    title: "The Vault That Should Not Open",
-    trigger: "Campaign-Defining",
-    type: "campaign",
-    intro:
-      "A single lock waits in silence. Every key fits. That is the first warning.",
-    choices: [
-      {
-        label: "Open It Together",
-        details: [
-          "Split 2 Mythic rewards among the table.",
-          "Spawn a World Boss.",
-          "Campaign tag gained: Unsealed."
-        ]
-      },
-      {
-        label: "Seal It Forever",
-        details: [
-          "Reduce Presence by 3.",
-          "Remove 3 random Mythic rewards from the campaign pool.",
-          "Campaign tag gained: Denied."
-        ]
-      }
-    ],
-    aftermath: [
-      "Future reward, vault, and greed events should reference Unsealed or Denied."
-    ]
-  },
-  {
   id: 11,
   title: "The Golden Collapse",
   trigger: "Major World Event",
@@ -5070,13 +5019,13 @@ const worldEvents = [
       label: "Seal It Forever",
       details: [
         "Reduce Presence by 3.",
-        "Lose access to Mythic rewards for the remainder of the campaign.",
-        "Campaign tag gained: Temptation Denied."
+        "Mythic rewards can no longer be gained from World Events.",
+        "Campaign tag gained: Temptation."
       ]
     }
   ],
   aftermath: [
-    "Future vault, greed, and power events can reference Temptation or Temptation Denied."
+    "Future vault, greed, and power events can reference Temptation."
   ]
 },
 {
@@ -5712,7 +5661,7 @@ const worldEvents = [
 },
 {
   id: 39,
-  title: "The Mouth of Many Promises",
+  title: "The Mouth of Promises",
   trigger: "Major World Event",
   type: "political",
   intro:
@@ -13321,11 +13270,45 @@ mythologicalCaveKeywordAdditions.campaign.forEach(keyword => {
   corruptionKeywordSet.delete(keyword);
 });
 
+const worldAndBreachKeywordAdditions = {
+  virtue: [
+    "Alliance", "Judged Worthy", "Remembrance"
+  ],
+  corruption: [
+    "Betrayal", "Corruption", "Scavenger"
+  ],
+  campaign: [
+    "Appeasement", "Escalation", "Fragment", "Independence", "Inflation",
+    "Marked by Echoes", "Reckoning", "Reversal"
+  ]
+};
+
+worldAndBreachKeywordAdditions.virtue.forEach(keyword => {
+  virtueKeywordSet.add(keyword);
+  corruptionKeywordSet.delete(keyword);
+  campaignKeywordSet.delete(keyword);
+});
+
+worldAndBreachKeywordAdditions.corruption.forEach(keyword => {
+  corruptionKeywordSet.add(keyword);
+  virtueKeywordSet.delete(keyword);
+  campaignKeywordSet.delete(keyword);
+});
+
+worldAndBreachKeywordAdditions.campaign.forEach(keyword => {
+  campaignKeywordSet.add(keyword);
+  virtueKeywordSet.delete(keyword);
+  corruptionKeywordSet.delete(keyword);
+});
+
 const allKeywords = [...new Set([
   ...keywordSourceSections.flatMap(section => section.keywords),
   ...mythologicalCaveKeywordAdditions.virtue,
   ...mythologicalCaveKeywordAdditions.corruption,
-  ...mythologicalCaveKeywordAdditions.campaign
+  ...mythologicalCaveKeywordAdditions.campaign,
+  ...worldAndBreachKeywordAdditions.virtue,
+  ...worldAndBreachKeywordAdditions.corruption,
+  ...worldAndBreachKeywordAdditions.campaign
 ])]
   .sort((a, b) => a.localeCompare(b));
 
@@ -17386,6 +17369,9 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
 
 
 
