@@ -13604,10 +13604,14 @@ campaignKeywordSet.forEach(keyword => {
 
 const mythologicalCaveKeywordAdditions = {
   virtue: [
-    "Faithful", "Informed", "Lawbound", "Measured", "Sea-Bound", "Starguided", "Steward"
+    "Accord", "Bargain", "Coordinated", "Faithful", "Glory", "Growth", "Hospitality", "Informed",
+    "Lawbound", "Loyalty", "Measured", "Sea-Bound", "Signal", "Starguided", "Steward", "Strategy",
+    "Truth", "Unity", "Wonder"
   ],
   corruption: [
-    "Bloodmarked", "Divided", "Haunted", "Resentful", "Root-Claimant", "Suspected", "Tempted"
+    "Author", "Bloodmarked", "Claim", "Cost", "Divided", "Dread", "Exposure", "Haunted", "Hunger",
+    "Obstruction", "Panic", "Resentful", "Revision", "Root-Claimant", "Suspected", "Tempest",
+    "Tempted", "Treachery", "Wither"
   ],
   campaign: [
     "Ash Court Unsettled", "Ashen Accord", "Ash-Forged", "Balanced Crowns", "Borrowed Doom",
@@ -13618,7 +13622,7 @@ const mythologicalCaveKeywordAdditions = {
     "Open Parliament", "Patron", "Root-Debtor", "Rootbound", "Shared Record", "Shared Victory",
     "Star-Touched", "Starwatchers Below", "Stolen Mandate", "Sun-Seen", "The Door Was Listening",
     "Three Roads, One Purpose", "Throne-Cursed", "Trust Broken", "Unclear History", "Unnamed Debt",
-    "Unsettled Accord", "Vault-Debtor", "Witnesses of the White Hour"
+    "Unsettled Accord", "Vault-Debtor", "War Council Below", "Witnesses of the White Hour"
   ]
 };
 
@@ -13642,14 +13646,14 @@ mythologicalCaveKeywordAdditions.campaign.forEach(keyword => {
 
 const worldAndBreachKeywordAdditions = {
   virtue: [
-    "Alliance", "Judged Worthy", "Remembrance"
+    "Alliance", "Freedom", "Judged Worthy", "Remembrance"
   ],
   corruption: [
-    "Betrayal", "Corruption", "Scavenger"
+    "Betrayal", "Corruption", "Power", "Profit", "Scavenger"
   ],
   campaign: [
     "Appeasement", "Escalation", "Fragment", "Independence", "Inflation",
-    "Marked by Echoes", "Reckoning", "Reversal"
+    "Major Breach", "Marked by Echoes", "Reckoning", "Reversal"
   ]
 };
 
@@ -13671,6 +13675,58 @@ worldAndBreachKeywordAdditions.campaign.forEach(keyword => {
   corruptionKeywordSet.delete(keyword);
 });
 
+const volumeOneCaveKeywordAdditions = {
+  virtue: [
+    "Anchored", "Ashen Gardener", "Ashen Survivor", "Breachwarden", "Cleansed", "Clear Reflection",
+    "Clear-Minded", "Commerce", "Committed", "Debt-Free", "Devoted", "Disciplined", "Earth Listener",
+    "Fearless", "Gatekeeper", "Giantslayer", "Heartwarden", "Horizon Keeper", "Leviathan Hunter",
+    "Leviathan Slayer", "Lightbearer", "Peacebearer", "Reality Anchored", "Relentless", "Resisting",
+    "Resolve", "Respond", "Sky Survivor", "Storm Survivor", "Survived the Hollow Sea", "Survived the Hunt",
+    "Tide Survivor", "Unbent", "Unyielding", "Veilkeeper", "Warmthkeeper", "Witnessed the Above"
+  ],
+  corruption: [
+    "Altarbreaker", "Apex Slayer", "Ash Defiant", "Bearer of Ash", "Bloodsworn", "Bone Gatherer",
+    "Breaker of Chains", "Burning Soul", "Chainbreaker", "Claimant", "Coldhearted", "Crowned by Fear",
+    "Crowned by the Hollow", "Deceived", "Defy", "Disruptive", "Disturbed the Sleeper", "Enginebreaker",
+    "Erase", "False Prophet", "Flesh-Fed", "Forced", "Gambler", "Gravebreaker", "Graverobber",
+    "Heartbreaker", "Hollow-Fed", "Kingbreaker", "Machinebreaker", "Moonbreaker", "Overconfident",
+    "Patternbreaker", "Proud", "Sabotage", "Scorched the Deep", "Scorched the Garden", "Shadow-Touched",
+    "Skybreaker", "Submissive", "Sun Extinguisher", "Sunbreaker", "Titanbreaker", "Traitor", "Unstable",
+    "Uprising", "Veinbreaker", "Void-Touched"
+  ],
+  campaign: [
+    "Abyss-Touched", "Ascended", "Awakened", "Bearer of the Last Ember", "Blood of the World",
+    "Breachbound", "Breach-Touched", "Called Below", "Deepwalker", "Dreamt Beneath the Veil",
+    "Drowned Witness", "Echo-Touched", "End of Warmth", "Escaped the Living Cave", "Faded",
+    "False Record", "Forgotten", "Freed from the False Light", "Gravity-Touched", "Hesitation",
+    "I Did It Differently", "Ignore", "Interference", "It Almost Knew", "It Already Happened", "It Answered",
+    "It Lied Twice", "It Saw Me", "It’s Inside Now", "King of the Hollow Realm", "Kingless",
+    "Kingless Wanderer", "Loyal to the Many-Handed King", "Lunar Witness", "Machinebound", "Marked by the Bell",
+    "Marked by the Maw", "Mirrored", "Mirrored Soul", "Observed", "Opened the Final Door", "Processional",
+    "Redrawn", "Retreat", "Seen by the Many", "Silenced the Bell", "Silenced the Final Song",
+    "Silenced the Song", "Singular", "Solar-Touched", "Star Reader", "The Second King", "They Know Me",
+    "Tidebreaker", "Timebound", "Tithebound", "Uncertainty", "Unease", "Uneasy", "Unmarked", "Watermarked",
+    "Unruled", "Unseen", "Walker Beyond the Horizon", "World Anchor"
+  ]
+};
+
+volumeOneCaveKeywordAdditions.virtue.forEach(keyword => {
+  virtueKeywordSet.add(keyword);
+  corruptionKeywordSet.delete(keyword);
+  campaignKeywordSet.delete(keyword);
+});
+
+volumeOneCaveKeywordAdditions.corruption.forEach(keyword => {
+  corruptionKeywordSet.add(keyword);
+  virtueKeywordSet.delete(keyword);
+  campaignKeywordSet.delete(keyword);
+});
+
+volumeOneCaveKeywordAdditions.campaign.forEach(keyword => {
+  campaignKeywordSet.add(keyword);
+  virtueKeywordSet.delete(keyword);
+  corruptionKeywordSet.delete(keyword);
+});
 const allKeywords = [...new Set([
   ...keywordSourceSections.flatMap(section => section.keywords),
   ...mythologicalCaveKeywordAdditions.virtue,
@@ -13679,6 +13735,10 @@ const allKeywords = [...new Set([
   ...worldAndBreachKeywordAdditions.virtue,
   ...worldAndBreachKeywordAdditions.corruption,
   ...worldAndBreachKeywordAdditions.campaign
+,
+  ...volumeOneCaveKeywordAdditions.virtue,
+  ...volumeOneCaveKeywordAdditions.corruption,
+  ...volumeOneCaveKeywordAdditions.campaign
 ])]
   .sort((a, b) => a.localeCompare(b));
 
@@ -17739,6 +17799,10 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
+
 
 
 
