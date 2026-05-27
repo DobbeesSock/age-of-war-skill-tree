@@ -13727,6 +13727,30 @@ volumeOneCaveKeywordAdditions.campaign.forEach(keyword => {
   virtueKeywordSet.delete(keyword);
   corruptionKeywordSet.delete(keyword);
 });
+
+const volumeThreeActKeywordAdditions = {
+  virtue: ["Patient", "Warden"],
+  corruption: ["Unready"],
+  campaign: ["Transformed"]
+};
+
+volumeThreeActKeywordAdditions.virtue.forEach(keyword => {
+  virtueKeywordSet.add(keyword);
+  corruptionKeywordSet.delete(keyword);
+  campaignKeywordSet.delete(keyword);
+});
+
+volumeThreeActKeywordAdditions.corruption.forEach(keyword => {
+  corruptionKeywordSet.add(keyword);
+  virtueKeywordSet.delete(keyword);
+  campaignKeywordSet.delete(keyword);
+});
+
+volumeThreeActKeywordAdditions.campaign.forEach(keyword => {
+  campaignKeywordSet.add(keyword);
+  virtueKeywordSet.delete(keyword);
+  corruptionKeywordSet.delete(keyword);
+});
 const allKeywords = [...new Set([
   ...keywordSourceSections.flatMap(section => section.keywords),
   ...mythologicalCaveKeywordAdditions.virtue,
@@ -13738,7 +13762,10 @@ const allKeywords = [...new Set([
 ,
   ...volumeOneCaveKeywordAdditions.virtue,
   ...volumeOneCaveKeywordAdditions.corruption,
-  ...volumeOneCaveKeywordAdditions.campaign
+  ...volumeOneCaveKeywordAdditions.campaign,
+  ...volumeThreeActKeywordAdditions.virtue,
+  ...volumeThreeActKeywordAdditions.corruption,
+  ...volumeThreeActKeywordAdditions.campaign
 ])]
   .sort((a, b) => a.localeCompare(b));
 
@@ -17799,6 +17826,9 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
 
 
 
