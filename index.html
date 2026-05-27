@@ -3172,6 +3172,7 @@ const constructionProductionTables = {
   Orcs: {
     construction: [
       { name: "Stronghold", cost: "-", bonus: "-", hp: "12", count: "1", size: "2x2" },
+      { name: "Slaughter House", cost: "16 Gold", bonus: "Spawn 1 Orc Warrior", hp: "3", count: "2", size: "2x2" },
       { name: "Forge", cost: "24 Gold", bonus: "+4 Metal", hp: "4", count: "2", size: "2x2" },
       { name: "Orc Pit", cost: "28 Gold", bonus: "+8 Food", hp: "2", count: "2", size: "1x1" },
       { name: "Temple", cost: "40 Gold", bonus: "+1 Dragon Coin", hp: "5", count: "1", size: "1x1" },
@@ -3195,7 +3196,8 @@ const constructionProductionTables = {
       { name: "Den", cost: "2 Energy + 5 Food", produced: "Wolf Scout" },
       { name: "Dark Stone", cost: "3 Energy", produced: "Rankenfile" },
       { name: "Dragons Nest", cost: "8 Energy", produced: "Drake" },
-      { name: "Temple", cost: "6 Energy", produced: "Abomination" }
+      { name: "Temple", cost: "6 Energy", produced: "Abomination" },
+      { name: "Forge", cost: "10 Energy", produced: "+6 Metal" }
     ]
   }
 };
@@ -3264,6 +3266,7 @@ const collectionTables = {
 
   Orcs: [
     { building: "Stronghold", income: "+4 Gold & +3 Energy", limit: "1", size: "2x2" },
+    { building: "Slaughter House", income: "+4 Food", limit: "2", size: "2x2", cost: "16 Gold", hp: "3" },
     { building: "Upgrade 2", income: "+2 Gold", limit: "1", size: "-" },
     { building: "Forge", income: "+4 Gold", limit: "2", size: "1x1" },
     { building: "Orc Pit", income: "+2 Food", limit: "2", size: "1x1" },
@@ -8947,7 +8950,7 @@ const factionInfoContent = {
           headers: ["Name", "Cost", "HP", "Size"],
           rows: [
             ["Gate", "-", "14", "1x2"],
-            ["Wall", "-", "8", "1x1"]
+            ["Wall", "5 Gold", "8", "1x1"]
           ]
         }
       }
