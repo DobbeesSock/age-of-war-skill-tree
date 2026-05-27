@@ -8063,6 +8063,36 @@ const campaignUnlockEnvelopes = [
   { id: "campaign_mythic_cave_reward", title: "Mythological Cave Reward Envelope", type: "Campaign Unlock", lore: "The cave does not only give treasure. Sometimes it leaves a door inside the faction that opened it.", unlocks: ["Use this envelope for mythological cave rewards that unlock a unit, rule, spell, or campaign option.", "Record the exact reward in the notes once revealed."] },
   { id: "campaign_world_secret", title: "World Secret Envelope", type: "Campaign Unlock", lore: "The map changes when enough factions learn what should have stayed buried.", unlocks: ["Use this envelope for world-event, secret-card, or endgame campaign unlocks.", "Record who unlocked it and what it changes."] }
 ];
+const setupSixSecretUnlocks = {
+  dwarves: {
+    title: "Setup 6 Dwarven Secret Choice",
+    factionShopName: "Dwarves",
+    requirement: "Requires Dwarves Setup 6 from the Upgrade Shop. Choose only one for the whole campaign.",
+    cards: [
+      {
+        id: "dwarves_setup6_deep_call",
+        name: "The Deep Call",
+        backImage: "faction-secret-cards/dwarves/tunnel-back.png",
+        frontImage: "faction-secret-cards/dwarves/the-deep-call.png",
+        summary: "Long Tunnels no longer require Cave-In Checks. Then choose Hold the Line or Awaken the Gates."
+      },
+      {
+        id: "dwarves_setup6_mountain_remembers",
+        name: "The Mountain Remembers",
+        backImage: "faction-secret-cards/dwarves/anvil-back.png",
+        frontImage: "faction-secret-cards/dwarves/the-mountain-remembers.png",
+        summary: "Play immediately after completing a Cave. Claim the Ancient Anvil, search blueprints, and speak the old name."
+      },
+      {
+        id: "dwarves_setup6_last_forge",
+        name: "The Last Forge",
+        backImage: "faction-secret-cards/dwarves/weapon-back.png",
+        frontImage: "faction-secret-cards/dwarves/the-last-forge.png",
+        summary: "Play during Production. Unlock the Living Weapon and open the Ancient Furnace."
+      }
+    ]
+  }
+};
 
 function getUnlockEnvelopeList() {
   const hub = getCurrentHub();
@@ -8086,6 +8116,9 @@ function ensureUnlockState(profileName) {
 
   if (!data[profileName].unlocks.notes) {
     data[profileName].unlocks.notes = {};
+  }
+  if (!data[profileName].unlocks.setupSixChoices) {
+    data[profileName].unlocks.setupSixChoices = {};
   }
 }
 
@@ -8112,6 +8145,88 @@ function updateUnlockNote(unlockId, value) {
   data[resourceProfile].unlocks.notes[unlockId] = value;
   saveProfiles();
 }
+function getSetupSixShopItemId(secretSet) {
+  return `setup_${secretSet.factionShopName}_6`.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+}
+
+function hasSetupSixSecretAccess(hubKey) {
+  if (!resourceProfile || !data[resourceProfile]) return false;
+  const secretSet = setupSixSecretUnlocks[hubKey];
+  if (!secretSet) return false;
+
+  ensureShopState(resourceProfile);
+  ensureUnlockState(resourceProfile);
+
+  const selectedId = data[resourceProfile].unlocks.setupSixChoices[hubKey];
+  const setupSixId = getSetupSixShopItemId(secretSet);
+  return Boolean(selectedId || data[resourceProfile].shop.purchases[setupSixId]);
+}
+
+function chooseSetupSixSecretUnlock(hubKey, cardId) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  const secretSet = setupSixSecretUnlocks[hubKey];
+  if (!secretSet || !hasSetupSixSecretAccess(hubKey)) return;
+
+  ensureUnlockState(resourceProfile);
+  if (data[resourceProfile].unlocks.setupSixChoices[hubKey]) {
+    alert("This profile has already chosen its Setup 6 secret unlock for this campaign.");
+    return;
+  }
+
+  const card = secretSet.cards.find(option => option.id === cardId);
+  if (!card) return;
+  if (!confirm(`Choose ${card.name} as this faction's only Setup 6 secret unlock for the campaign?`)) return;
+
+  data[resourceProfile].unlocks.setupSixChoices[hubKey] = card.id;
+  saveProfiles();
+  renderUnlocks();
+}
+
+function renderSetupSixSecretUnlocks(hubKey, unlockState) {
+  const secretSet = setupSixSecretUnlocks[hubKey];
+  if (!secretSet) return "";
+
+  const selectedId = unlockState.setupSixChoices?.[hubKey] || null;
+  const selectedCard = selectedId ? secretSet.cards.find(card => card.id === selectedId) : null;
+  const hasAccess = hasSetupSixSecretAccess(hubKey);
+  const statusText = selectedCard ? "Chosen" : hasAccess ? "Setup 6 Unlocked" : "Requires Setup 6";
+  const statusColor = selectedCard ? "#9ff0b8" : hasAccess ? "#ffe08a" : "#bbb";
+
+  const cardGrid = selectedCard ? `
+    <div style="display:grid; grid-template-columns:minmax(240px, 420px) 1fr; gap:18px; align-items:start;">
+      <img src="${selectedCard.frontImage}" alt="${selectedCard.name}" style="width:100%; border-radius:12px; border:1px solid rgba(255,224,138,0.35); box-shadow:0 0 18px rgba(212,175,55,0.25); background:#111;">
+      <div style="background:rgba(0,0,0,0.24); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:14px; line-height:1.45;">
+        <h3 style="margin:0 0 8px 0; color:#ffe08a;">${selectedCard.name}</h3>
+        <p style="margin:0; color:#ddd;">${selectedCard.summary}</p>
+        <p style="margin:12px 0 0 0; color:#cfc6a4;">This is the one Dwarven Setup 6 secret unlock for this campaign. The GM can now hand over any matching stat cards or reminders.</p>
+      </div>
+    </div>
+  ` : `
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:14px;">
+      ${secretSet.cards.map(card => `
+        <div style="background:rgba(35,35,35,0.94); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${hasAccess ? "#d4af37" : "#777"}; border-radius:10px; padding:12px;">
+          <img src="${card.backImage}" alt="${card.name} sealed card" style="width:100%; aspect-ratio:2.5 / 1; object-fit:cover; border-radius:8px; border:1px solid rgba(255,255,255,0.12); background:#111; margin-bottom:10px;">
+          <h3 style="margin:0 0 6px 0; color:#ffe08a;">Sealed Dwarven Card</h3>
+          <p style="margin:0 0 10px 0; color:#bbb; line-height:1.4;">Choose based on the card back. The front reveals permanently after selection.</p>
+          <button onclick="chooseSetupSixSecretUnlock('${hubKey}', '${card.id}')" ${hasAccess ? "" : "disabled"}>${hasAccess ? "Choose This Card" : "Requires Setup 6"}</button>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  return `
+    <div style="margin-bottom:20px; border-radius:12px; border:1px solid rgba(212,175,55,0.28); background:linear-gradient(145deg, rgba(40,34,20,0.92), rgba(16,16,16,0.94)); padding:16px;">
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-bottom:14px;">
+        <div>
+          <h3 style="margin:0; color:#ffe08a;">${secretSet.title}</h3>
+          <p style="margin:5px 0 0 0; color:#cfc6a4; line-height:1.45;">${secretSet.requirement}</p>
+        </div>
+        <div style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.16); color:${statusColor}; background:rgba(0,0,0,0.2); font-weight:bold;">${statusText}</div>
+      </div>
+      ${cardGrid}
+    </div>
+  `;
+}
 
 function renderUnlocks() {
   const app = document.getElementById("unlocksApp");
@@ -8131,6 +8246,7 @@ function renderUnlocks() {
       </div>
       <div style="padding:10px 12px; border-radius:8px; background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.35); color:#ffe08a; font-weight:bold;">${revealedCount} / ${envelopes.length} Revealed</div>
     </div>
+    ${renderSetupSixSecretUnlocks(currentHubFaction || getHubKeyFromFaction(currentFaction), unlockState)}
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">
       ${envelopes.map(card => {
         const revealed = Boolean(unlockState.revealed[card.id]);
@@ -13617,7 +13733,7 @@ const mythologicalCaveKeywordAdditions = {
     "Tempted", "Treachery", "Wither"
   ],
   campaign: [
-    "Ash Court Unsettled", "Ashen Accord", "Ash-Forged", "Balanced Crowns", "Borrowed Doom",
+    "Ash Court Unsettled", "Ashen Accord", "Ash-Forged", "Balanced Crowns", "Borrowed Doom", "Forged",
     "Breadbound", "Choirbound Accord", "Crown-Debtor", "Crowned Witness", "Crownsworn",
     "Deep Navigator", "Discordant Choir", "Fair Trade Below", "Feast-Broken", "Forge-Bearer",
     "Forged in Unity", "Future Debt", "Garden Freed", "Hung Vote", "Judged", "Keepers of the Deep",
@@ -17829,6 +17945,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
