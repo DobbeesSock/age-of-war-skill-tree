@@ -8091,6 +8091,34 @@ const setupSixSecretUnlocks = {
         summary: "Play during Production. Unlock the Living Weapon and open the Ancient Furnace."
       }
     ]
+  },
+  orcs: {
+    title: "Setup 6 Shadow Orc Secret Choice",
+    factionShopName: "Orcs",
+    requirement: "Requires Orcs Setup 6 from the Upgrade Shop. Choose only one for the whole campaign.",
+    cards: [
+      {
+        id: "orcs_setup6_red_howl",
+        name: "The Red Howl",
+        backImage: "faction-secret-cards/orcs/red-howl-back.png",
+        frontImage: "faction-secret-cards/orcs/red-howl.png",
+        summary: "Immediately trigger War Reigns and gain Orc Conqueror. Then choose Blood for the Horde or War Without End."
+      },
+      {
+        id: "orcs_setup6_world_eater",
+        name: "The World Eater",
+        backImage: "faction-secret-cards/orcs/world-eater-back.png",
+        frontImage: "faction-secret-cards/orcs/world-eater.png",
+        summary: "Unlock The World Eater. All non-Orc factions increase Presence and lose resources as the battlefield trembles."
+      },
+      {
+        id: "orcs_setup6_necro_chief",
+        name: "Necromancer & War Chief",
+        backImage: "faction-secret-cards/orcs/necro-chief-back.png",
+        frontImage: "faction-secret-cards/orcs/necro-chief.png",
+        summary: "Gain The Necromancer and The War Chief. Orc Guards may become Bloodbound and Graveyard units become cheaper to resurrect."
+      }
+    ]
   }
 };
 
@@ -13733,12 +13761,12 @@ const mythologicalCaveKeywordAdditions = {
     "Tempted", "Treachery", "Wither"
   ],
   campaign: [
-    "Ash Court Unsettled", "Ashen Accord", "Ash-Forged", "Balanced Crowns", "Borrowed Doom", "Forged",
+    "Ash Court Unsettled", "Ashen Accord", "Ash-Forged", "Balanced Crowns", "Bloodbound", "Borrowed Doom", "Forged",
     "Breadbound", "Choirbound Accord", "Crown-Debtor", "Crowned Witness", "Crownsworn",
     "Deep Navigator", "Discordant Choir", "Fair Trade Below", "Feast-Broken", "Forge-Bearer",
     "Forged in Unity", "Future Debt", "Garden Freed", "Hung Vote", "Judged", "Keepers of the Deep",
     "Lantern-Bearer", "Many Hands", "Mirror-Cracked", "Mirror-Sworn", "Oathlit", "Oaths Remembered",
-    "Open Parliament", "Patron", "Root-Debtor", "Rootbound", "Shared Record", "Shared Victory",
+    "Open Parliament", "Orc Conqueror", "Patron", "Root-Debtor", "Rootbound", "Shared Record", "Shared Victory",
     "Star-Touched", "Starwatchers Below", "Stolen Mandate", "Sun-Seen", "The Door Was Listening",
     "Three Roads, One Purpose", "Throne-Cursed", "Trust Broken", "Unclear History", "Unnamed Debt",
     "Unsettled Accord", "Vault-Debtor", "War Council Below", "Witnesses of the White Hour"
@@ -17945,6 +17973,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
