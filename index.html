@@ -8120,7 +8120,35 @@ const setupSixSecretUnlocks = {
       }
     ]
   }
-};
+,
+  barbarians: {
+    title: "Setup 6 Barbarian Secret Choice",
+    factionShopName: "Barbarians",
+    requirement: "Requires Barbarians Setup 6 from the Upgrade Shop. Choose only one for the whole campaign.",
+    cards: [
+      {
+        id: "barbarians_setup6_stormcaller_mammoth",
+        name: "The Stormcaller & The Thunder Mammoth",
+        backImage: "faction-secret-cards/barbarians/storm-back.png",
+        frontImage: "faction-secret-cards/barbarians/stormcaller-thunder-mammoth.png",
+        summary: "Gain The Stormcaller abilities and The Thunder Mammoth. Barbarian Elites gain +5 Movement Upgrade for the remainder of the campaign."
+      },
+      {
+        id: "barbarians_setup6_golem_totem",
+        name: "The Ancient Golem & Totem Spirit",
+        backImage: "faction-secret-cards/barbarians/totem-golem-back.png",
+        frontImage: "faction-secret-cards/barbarians/ancient-golem-totem-spirit.png",
+        summary: "Gain The Totem Speaker and The Ancient Golem. Totem Spirits become available during Production and Totems reshape nearby line of sight."
+      },
+      {
+        id: "barbarians_setup6_blood_champion_fenrir",
+        name: "The Blood Champion & Spawn of Fenrir",
+        backImage: "faction-secret-cards/barbarians/fenrir-back.png",
+        frontImage: "faction-secret-cards/barbarians/blood-champion-fenrir.png",
+        summary: "Gain The Blood Champion and Spawn of Fenrir. Barbarian units gain movement while wounded, and Guards may enter Blood Fury once per mission."
+      }
+    ]
+  }};
 
 function getUnlockEnvelopeList() {
   const hub = getCurrentHub();
@@ -17973,6 +18001,7 @@ returnToHubLanding();
 
 </body>
 </html>
+
 
 
 
