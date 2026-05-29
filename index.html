@@ -8405,6 +8405,7 @@ function renderSetupSixSecretUnlocks(hubKey, unlockState) {
   const hasAccess = hasSetupSixSecretAccess(hubKey);
   const statusText = selectedCard ? "Chosen" : hasAccess ? "Setup 6 Unlocked" : "Requires Setup 6";
   const statusColor = selectedCard ? "#9ff0b8" : hasAccess ? "#ffe08a" : "#bbb";
+  const sealedFactionLabel = secretSet.factionShopName === "Orcs" ? "Orc" : secretSet.factionShopName;
 
   const cardGrid = selectedCard ? `
     <div style="display:grid; grid-template-columns:minmax(240px, 420px) 1fr; gap:18px; align-items:start;">
@@ -8412,7 +8413,7 @@ function renderSetupSixSecretUnlocks(hubKey, unlockState) {
       <div style="background:rgba(0,0,0,0.24); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:14px; line-height:1.45;">
         <h3 style="margin:0 0 8px 0; color:#ffe08a;">${selectedCard.name}</h3>
         <p style="margin:0; color:#ddd;">${selectedCard.summary}</p>
-        <p style="margin:12px 0 0 0; color:#cfc6a4;">This is the one Dwarven Setup 6 secret unlock for this campaign. The GM can now hand over any matching stat cards or reminders.</p>
+        <p style="margin:12px 0 0 0; color:#cfc6a4;">This is the one ${secretSet.factionShopName} Setup 6 secret unlock for this campaign. The GM can now hand over any matching stat cards or reminders.</p>
       </div>
     </div>
   ` : `
@@ -8420,7 +8421,7 @@ function renderSetupSixSecretUnlocks(hubKey, unlockState) {
       ${secretSet.cards.map(card => `
         <div style="background:rgba(35,35,35,0.94); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${hasAccess ? "#d4af37" : "#777"}; border-radius:10px; padding:12px;">
           <img src="${card.backImage}" alt="${card.name} sealed card" style="width:100%; aspect-ratio:2.5 / 1; object-fit:cover; border-radius:8px; border:1px solid rgba(255,255,255,0.12); background:#111; margin-bottom:10px;">
-          <h3 style="margin:0 0 6px 0; color:#ffe08a;">Sealed Dwarven Card</h3>
+          <h3 style="margin:0 0 6px 0; color:#ffe08a;">Sealed ${sealedFactionLabel} Card</h3>
           <p style="margin:0 0 10px 0; color:#bbb; line-height:1.4;">Choose based on the card back. The front reveals permanently after selection.</p>
           <button onclick="chooseSetupSixSecretUnlock('${hubKey}', '${card.id}')" ${hasAccess ? "" : "disabled"}>${hasAccess ? "Choose This Card" : "Requires Setup 6"}</button>
         </div>
