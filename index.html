@@ -8537,10 +8537,10 @@ function renderSetupSixSecretUnlocks(hubKey, unlockState) {
       </div>
     </div>
   ` : `
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:14px;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:18px;">
       ${secretSet.cards.map(card => `
-        <div style="background:rgba(35,35,35,0.94); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${hasAccess ? "#d4af37" : "#777"}; border-radius:10px; padding:12px;">
-          <img src="${card.backImage}" alt="${card.name} sealed card" style="width:100%; aspect-ratio:2.5 / 1; object-fit:cover; border-radius:8px; border:1px solid rgba(255,255,255,0.12); background:#111; margin-bottom:10px;">
+        <div style="background:rgba(35,35,35,0.94); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${hasAccess ? "#d4af37" : "#777"}; border-radius:10px; padding:14px;">
+          <img src="${card.backImage}" alt="${card.name} sealed card" style="width:100%; min-height:210px; max-height:280px; object-fit:cover; object-position:center; border-radius:8px; border:1px solid rgba(255,255,255,0.12); background:#111; margin-bottom:12px;">
           <h3 style="margin:0 0 6px 0; color:#ffe08a;">Sealed ${sealedFactionLabel} Card</h3>
           <p style="margin:0 0 10px 0; color:#bbb; line-height:1.4;">Choose based on the card back. The front reveals permanently after selection.</p>
           <button onclick="chooseSetupSixSecretUnlock('${hubKey}', '${card.id}')" ${hasAccess ? "" : "disabled"}>${hasAccess ? "Choose This Card" : "Requires Setup 6"}</button>
