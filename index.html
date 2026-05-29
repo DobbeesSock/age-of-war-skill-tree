@@ -2401,6 +2401,74 @@ body.elves {
 </div>
 
 
+<div id="orcsRuin" class="tree">
+
+    <div class="doctrine-wrapper">
+    <div class="node root available" data-id="orcsRuin_root" data-cost="1">
+        <h3>Path of Ruin</h3>
+        <p>
+            The Horde no longer raids merely to survive.<br>
+            Unlocks the Ruin branches once this hidden path is claimed.
+        </p>
+    </div>
+</div>
+
+    <div class="branch-container">
+
+        <div class="branch">
+            <div class="branch-title">Smoke Banner</div>
+
+            <div class="node locked" data-id="orcs_ruin_1" data-cost="2">
+                <h3>Smoke Follows</h3>
+                <p>After destroying a Structure, one Orc 1x1 unit may move 3 spaces.</p>
+            </div>
+
+            <div class="node locked" data-id="orcs_ruin_2" data-cost="4" data-prereq="orcs_ruin_1">
+                <h3>Broken Twice</h3>
+                <p>Orc attacks against damaged Structures deal +1 damage.</p>
+            </div>
+
+            <div class="node locked" data-id="orcs_ruin_3" data-cost="5" data-prereq="orcs_ruin_2">
+                <h3>Banner of Ash</h3>
+                <p>Once per Phase, when an Orc destroys an enemy, gain +1 Movement on one nearby Orc unit.</p>
+            </div>
+        </div>
+
+        <div class="branch">
+            <div class="branch-title">Ruin Host</div>
+
+            <div class="node locked" data-id="orcs_ruin_4" data-cost="2">
+                <h3>War Consumes</h3>
+                <p>When an Orc unit kills an enemy, gain +1 Food once per Phase.</p>
+            </div>
+
+            <div class="node locked" data-id="orcs_ruin_5" data-cost="4" data-prereq="orcs_ruin_4">
+                <h3>No Shelter</h3>
+                <p>Enemies adjacent to damaged terrain or Structures suffer -1 Movement.</p>
+            </div>
+
+            <div class="node locked" data-id="orcs_ruin_6" data-cost="5" data-prereq="orcs_ruin_5">
+                <h3>The Horde Consumes</h3>
+                <p>Once per mission, after destroying a Structure, spawn one Guard or Archer in your Province.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="capstone locked" data-id="cap_orcs_ruin" data-cost="9">
+        <h2>The World Left Broken</h2>
+        <p><b>Cost: 9 SM</b></p>
+        <p>
+            Once per mission, during an Action Phase:<br>
+            Orc units gain +1 damage against Structures<br>
+            When a Structure is destroyed, move up to 3 Orc units 4 spaces<br>
+            Enemy units adjacent to that Structure suffer 1 damage
+        </p>
+    </div>
+
+</div>
+
+
 <div id="order" class="tree">
 
     <div class="doctrine-wrapper">
@@ -9530,13 +9598,70 @@ const factionHubs = {
     subtitle: "Long War and Raging Host"
   }
 };
+const hiddenPathTrees = {
+  orcs: ["orcsRuin"]
+};
+const hiddenPathTreeHubs = {
+  orcsRuin: "orcs"
+};
+const hiddenPathDefinitions = {
+  orcs_ruin: {
+    hubKey: "orcs",
+    treeId: "orcsRuin",
+    title: "The Path of Ruin",
+    threshold: 12,
+    reward: "New Skill Tree: Path of Ruin",
+    breadcrumbs: [
+      "The Horde no longer raids merely to survive.",
+      "Smoke follows the Orc banners.",
+      "Even ruins are left broken twice.",
+      "The world whispers: The Horde consumes."
+    ],
+    weights: {
+      Aggressor: 1,
+      Bloodied: 1,
+      Greedy: 1,
+      Violent: 1,
+      Cruel: 2,
+      Dominating: 2,
+      Destroyer: 2,
+      Ruthless: 2,
+      Cataclysmic: 3,
+      "World Scar": 3,
+      Massacre: 3,
+      Corrupted: 3,
+      Protector: -1,
+      Merciful: -2,
+      Keeper: -2,
+      Guardian: -2,
+      Redeemer: -3
+    }
+  }
+};
 
 function getHubKeyFromFaction(faction) {
-  return Object.keys(factionHubs).find(key => factionHubs[key].trees.includes(faction)) || "dwarves";
+  return hiddenPathTreeHubs[faction] || Object.keys(factionHubs).find(key => factionHubs[key].trees.includes(faction)) || "dwarves";
 }
 
 function getCurrentHub() {
   return factionHubs[currentHubFaction] || factionHubs[getHubKeyFromFaction(currentFaction)];
+}
+
+function getHubTreeIds(hubKey = currentHubFaction || getHubKeyFromFaction(currentFaction)) {
+  const hub = factionHubs[hubKey] || getCurrentHub();
+  const baseTrees = hub?.trees || [currentFaction];
+  const optionalTrees = hiddenPathTrees[hubKey] || [];
+
+  if (!resourceProfile || !data[resourceProfile]) return baseTrees;
+  ensureHiddenPathState(resourceProfile);
+
+  return [
+    ...baseTrees,
+    ...optionalTrees.filter(treeId => {
+      const path = Object.values(hiddenPathDefinitions).find(definition => definition.treeId === treeId);
+      return path && data[resourceProfile].hiddenPaths.claimedPath === path.treeId;
+    })
+  ];
 }
 
 function setSyncStatus(message, color = "#bbb") {
@@ -9970,6 +10095,7 @@ function createProfile() {
         relics: { inventory: [] },
         objectives: { inventory: [] },
         unlocks: { revealed: {}, notes: {}, setupSixChoices: {}, actionBoard: {} },
+        hiddenPaths: { paths: {}, claimedPath: null },
         keywords: { selected: {} },
         buildings: { constructed: {} },
         shop: { purchases: {} },
@@ -9985,6 +10111,7 @@ function createProfile() {
         men2: { sm: 0, skills: {} },
         orcs: { sm: 0, skills: {} },
         orcsWar: { sm: 0, skills: {} },
+        orcsRuin: { sm: 0, skills: {} },
         order: { sm: 0, skills: {} },
         order2: { sm: 0, skills: {} },
         redacted1: { sm: 0, skills: {} },
@@ -10065,6 +10192,8 @@ ensureUnlockState(resourceProfile);
 renderRelics();
   renderObjectives();
 ensureKeywordState(resourceProfile);
+ensureHiddenPathState(resourceProfile);
+updateHiddenPathUnlocks(resourceProfile);
     renderKeywords();
 
     ensureShopState(resourceProfile);
@@ -11253,6 +11382,7 @@ const skillTreeRootIds = {
   elves2: "elves2_root",
   orcs: "orcs_root",
   orcsWar: "orcsWar_root",
+  orcsRuin: "orcsRuin_root",
   order: "order_root",
   order2: "order2_root",
   barbarians: "barbarians_root",
@@ -11260,6 +11390,19 @@ const skillTreeRootIds = {
   men: "men_root",
   men2: "men2_root"
 };
+
+function ensureSkillTreeState(profileName, treeId) {
+  if (!profileName || !treeId || !data[profileName]) return;
+  if (!data[profileName][treeId]) {
+    data[profileName][treeId] = { sm: 0, skills: {} };
+  }
+  if (!data[profileName][treeId].skills) {
+    data[profileName][treeId].skills = {};
+  }
+  if (typeof data[profileName][treeId].sm !== "number") {
+    data[profileName][treeId].sm = Number(data[profileName][treeId].sm || 0);
+  }
+}
 
 function showHubSkillTrees() {
   const hub = getCurrentHub();
@@ -11271,7 +11414,7 @@ function showHubSkillTrees() {
 
   document.querySelectorAll(".tree").forEach(tree => tree.classList.remove("active"));
 
-  hub.trees.forEach(treeId => {
+  getHubTreeIds(currentHubFaction).forEach(treeId => {
     const tree = document.getElementById(treeId);
     if (tree) tree.classList.add("active");
   });
@@ -11288,7 +11431,9 @@ function showHubSkillTrees() {
 }
 
 function refreshSkillTree(treeId) {
-  if (!resourceProfile || !data[resourceProfile]?.[treeId]) return;
+  if (!resourceProfile || !data[resourceProfile]) return;
+  ensureSkillTreeState(resourceProfile, treeId);
+  if (!data[resourceProfile]?.[treeId]) return;
 
   const tree = document.getElementById(treeId);
   if (!tree) return;
@@ -11334,8 +11479,7 @@ function refreshSkillTree(treeId) {
 }
 
 function applySkills() {
-  const hub = getCurrentHub();
-  const treeIds = hub?.trees || [currentFaction];
+  const treeIds = getHubTreeIds();
   treeIds.forEach(refreshSkillTree);
 }
 
@@ -13923,11 +14067,11 @@ const keywordSourceSections = [
     title: "Section A - Aggression / Dominance",
     keywords: [
       "Aggressor", "Ambition", "Anarchist", "Apex", "Ascendant", "Ascending", "Ascension", "Authority",
-      "Avarice", "Awakener", "Backstabber", "Beastmaster", "Blood Hunt", "Bloodcall", "Blooded", "Breaker",
+      "Avarice", "Awakener", "Backstabber", "Beastmaster", "Blood Hunt", "Bloodcall", "Blooded", "Bloodied", "Breaker",
       "Breaker of Armies", "Breaker of Crowns", "Breaker of Oath", "Breaker of Time", "Brutal", "Catalyst",
       "Chaos", "Chaotic Mind", "Claimed by Force", "Command", "Commander", "Commander of Ash", "Conqueror",
       "Controller", "Crowned", "Cruel", "Defiance", "Defiant", "Defied", "Desecrator", "Destruction",
-      "Dominance", "Dominant", "Entitled", "Erasure", "Excess", "Extractor", "Fatal", "Feeder", "Force",
+      "Destroyer", "Dominance", "Dominant", "Dominating", "Entitled", "Erasure", "Excess", "Extractor", "Fatal", "Feeder", "Force",
       "Forceful", "Fracture", "Godslayer", "Grave Robber", "Greed", "Greedy", "Harvester", "Hubris",
       "Hunter", "Iconoclast", "Impulse", "Impulsive", "Instigator", "Intruder", "Judgment", "Justice",
       "Lawbringer", "Leech", "Lightbreaker", "Manipulator", "Might", "Nemesis", "Opportunist", "Outburst",
@@ -13936,7 +14080,7 @@ const keywordSourceSections = [
       "Scavenger of Time", "Seized", "Selfish", "Selfish Freedom", "Shortsighted", "Siegebreaker",
       "Silenced", "Silencer", "Suppress", "Summoner", "Thief", "Thief of Flame", "Theft", "Tyrant",
       "Tycoon", "Unmaker", "Usurper", "Utilitarian", "Valor", "Vengeance", "Victor", "Violence",
-      "Warborn", "Warbound", "Warlord", "Wanted", "Worldbreaker"
+      "Violent", "Warborn", "Warbound", "Warlord", "Wanted", "Worldbreaker"
     ]
   },
   {
@@ -13947,9 +14091,9 @@ const keywordSourceSections = [
       "Devotion", "Devout", "Discipline", "Endure", "Endured", "Enduring", "Equilibrium", "Escaped",
       "Fixed", "Focused", "Fortified", "Freed", "Grounded", "Guardian", "Harmony", "Healer", "Hidden",
       "Humbled", "Humility", "Liberator", "Loyal", "Mastery", "Measured", "Measured Gratitude", "Mediator",
-      "Merciful", "Mercy", "Methodical", "Patient", "Patience", "Peacemaker", "Practical", "Pragmatic",
+      "Keeper", "Merciful", "Mercy", "Methodical", "Patient", "Patience", "Peacemaker", "Practical", "Pragmatic",
       "Precision", "Prepared", "Prudent", "Prudence", "Quiet", "Reconciled", "Refusal", "Released",
-      "Renewed", "Resilient", "Resistant", "Respect", "Respectful", "Responsible", "Restraint", "Rested",
+      "Protector", "Redeemer", "Renewed", "Resilient", "Resistant", "Respect", "Respectful", "Responsible", "Restraint", "Rested",
       "Reverent", "Safe", "Sealed", "Settled", "Shieldbearer", "Silent", "Spare", "Stabilizer",
       "Stability", "Steady", "Still", "Subtle", "Survival", "Survivor", "Symbiosis", "True", "Trust",
       "Trusted", "Trusting", "Unbothered", "Unbroken", "Unified", "United", "United Front", "Warden",
@@ -13973,14 +14117,14 @@ const keywordSourceSections = [
     title: "Section D - Risk / Corruption / Consequence",
     keywords: [
       "Abandoned", "Appeased", "Avoidance", "Avoided", "Bearer", "Blame", "Burden Shifter",
-      "Burdened", "Burned", "Careless", "Carried", "Catastrophe", "Chasing", "Clumsy", "Cold", "Complicit",
+      "Burdened", "Burned", "Careless", "Carried", "Catastrophe", "Cataclysmic", "Chasing", "Clumsy", "Cold", "Complicit",
       "Consumed", "Coward", "Debt", "Deceiver", "Deception", "Declined", "Deferred", "Delay", "Delayed",
       "Denial", "Denied", "Denied Power", "Desperate", "Discord", "Dissonance", "Disruption", "Disruptor",
       "Diverged", "Doubt", "Dragged", "Drifted", "Drowned", "Echo", "Echoed", "Erased", "Exposed",
       "Fall", "Falling", "Fearful", "Fooled", "Fool", "Foolish", "Followed", "Fractured", "Fractured Timeline",
       "Fractured Trust", "Fraud", "Frozen", "Gluttony", "Hard Choice", "Hasty", "Hunted", "Ignored",
       "Ignored Again", "Imitated", "Indecision", "Instability", "Isolated", "Isolated Minds", "Leaderless",
-      "Looped", "Lost", "Lost Route", "Marked", "Marked by Light", "Merged", "Misdirected", "Muted",
+      "Corrupted", "Looped", "Lost", "Lost Route", "Marked", "Marked by Light", "Massacre", "Merged", "Misdirected", "Muted",
       "Muzzled", "Neglect", "Neglected", "Neglectful", "Nimble", "Obedient", "Obliterated", "Obscurity",
       "Outpaced", "Overloaded", "Overwhelmed", "Owing", "Paradox", "Paranoia", "Paranoid", "Predictable",
       "Premature End", "Rebuked", "Rejected", "Regret", "Repelled", "Reprisal", "Risk", "Rushed", "Scarred",
@@ -14000,7 +14144,7 @@ const keywordSourceSections = [
       "Prisoner NPC", "Promise", "Reflected Hunger", "Resonant", "Rootbound Omen", "Runebound",
       "Satisfied", "Self-Reliant", "Shadowbound", "Shared Rule", "Shielded", "Storm-Hardened", "Swarm Shadow",
       "Swarmbound", "Tamer", "Trophy", "Unified Truth", "Unbound", "Unspoken Bond", "Verdant Omen", "Waybound",
-      "Waymarked", "Worldscarred"
+      "Waymarked", "World Scar", "Worldscarred"
     ]
   },
   {
@@ -15580,6 +15724,129 @@ function ensureKeywordState(profileName) {
   }
 }
 
+function ensureHiddenPathState(profileName) {
+  if (!profileName || !data[profileName]) return;
+
+  if (!data[profileName].hiddenPaths) {
+    data[profileName].hiddenPaths = { paths: {}, claimedPath: null };
+  }
+
+  if (!data[profileName].hiddenPaths.paths) {
+    data[profileName].hiddenPaths.paths = {};
+  }
+
+  Object.keys(hiddenPathDefinitions).forEach(pathId => {
+    if (!data[profileName].hiddenPaths.paths[pathId]) {
+      data[profileName].hiddenPaths.paths[pathId] = {
+        unlocked: false,
+        highScore: 0,
+        unlockedAt: null
+      };
+    }
+  });
+}
+
+function calculateHiddenPathScore(pathId, selected) {
+  const definition = hiddenPathDefinitions[pathId];
+  if (!definition) return { score: 0, matches: [] };
+
+  return Object.entries(definition.weights).reduce((result, [keyword, value]) => {
+    if (!selected[keyword]) return result;
+    result.score += value;
+    result.matches.push({ keyword, value });
+    return result;
+  }, { score: 0, matches: [] });
+}
+
+function updateHiddenPathUnlocks(profileName) {
+  if (!profileName || !data[profileName]) return;
+  ensureKeywordState(profileName);
+  ensureHiddenPathState(profileName);
+
+  const selected = data[profileName].keywords.selected || {};
+  Object.entries(hiddenPathDefinitions).forEach(([pathId, definition]) => {
+    if (definition.hubKey !== (data[profileName].hubFaction || currentHubFaction)) return;
+    const entry = data[profileName].hiddenPaths.paths[pathId];
+    const progress = calculateHiddenPathScore(pathId, selected);
+    entry.highScore = Math.max(Number(entry.highScore || 0), progress.score);
+    if (!entry.unlocked && progress.score >= definition.threshold) {
+      entry.unlocked = true;
+      entry.unlockedAt = new Date().toISOString();
+    }
+  });
+}
+
+function getHiddenPathBreadcrumb(definition, score) {
+  if (score >= definition.threshold) return definition.breadcrumbs.at(-1);
+  if (score >= 9) return definition.breadcrumbs[2];
+  if (score >= 6) return definition.breadcrumbs[1];
+  if (score >= 3) return definition.breadcrumbs[0];
+  return "No one sees the road yet, but the first stones are shifting.";
+}
+
+function claimHiddenPath(pathId) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  ensureHiddenPathState(resourceProfile);
+
+  const definition = hiddenPathDefinitions[pathId];
+  const entry = data[resourceProfile].hiddenPaths.paths[pathId];
+  if (!definition || !entry?.unlocked) return;
+
+  if (data[resourceProfile].hiddenPaths.claimedPath && data[resourceProfile].hiddenPaths.claimedPath !== definition.treeId) {
+    alert("This profile has already claimed a hidden path. Only one hidden path can be claimed.");
+    return;
+  }
+
+  data[resourceProfile].hiddenPaths.claimedPath = definition.treeId;
+  ensureSkillTreeState(resourceProfile, definition.treeId);
+  saveProfiles();
+  renderKeywords();
+  showView("skill");
+}
+
+function renderHiddenPathProgress(selected) {
+  if (!resourceProfile || !data[resourceProfile]) return "";
+  const hubKey = currentHubFaction || data[resourceProfile].hubFaction || getHubKeyFromFaction(currentFaction);
+  const pathEntries = Object.entries(hiddenPathDefinitions).filter(([, definition]) => definition.hubKey === hubKey);
+  if (!pathEntries.length) return "";
+
+  ensureHiddenPathState(resourceProfile);
+  updateHiddenPathUnlocks(resourceProfile);
+
+  return pathEntries.map(([pathId, definition]) => {
+    const entry = data[resourceProfile].hiddenPaths.paths[pathId];
+    const progress = calculateHiddenPathScore(pathId, selected);
+    const lockedScore = Math.max(Number(entry.highScore || 0), progress.score);
+    const unlocked = Boolean(entry.unlocked);
+    const claimed = data[resourceProfile].hiddenPaths.claimedPath === definition.treeId;
+    const alreadyClaimedOther = data[resourceProfile].hiddenPaths.claimedPath && !claimed;
+    const visibleScore = unlocked ? Math.max(definition.threshold, lockedScore) : lockedScore;
+    const percent = Math.max(0, Math.min(100, (visibleScore / definition.threshold) * 100));
+
+    return `
+      <div class="keyword-scale-panel" style="border-color:${unlocked ? "rgba(212,175,55,0.45)" : "rgba(255,255,255,0.14)"};">
+        <div class="keyword-scale-header">
+          <div>
+            <h3 class="keyword-scale-title">${definition.title}</h3>
+            <p style="margin:5px 0 0 0; color:#cfc6a4; line-height:1.45;">${getHiddenPathBreadcrumb(definition, visibleScore)}</p>
+          </div>
+          <div class="keyword-scale-status">${claimed ? "Claimed" : unlocked ? "Claimable" : `${visibleScore} / ${definition.threshold}`}</div>
+        </div>
+        <div class="keyword-scale-track">
+          <div class="keyword-scale-fill corruption" style="left:0; width:${percent}%;"></div>
+        </div>
+        <div class="keyword-scale-counts">
+          <span>${definition.reward}</span>
+          <span>${progress.matches.length ? progress.matches.map(match => `${match.keyword} ${match.value > 0 ? "+" : ""}${match.value}`).join(" / ") : "No weighted Ruin keywords selected"}</span>
+        </div>
+        <button onclick="claimHiddenPath('${pathId}')" ${unlocked && !claimed && !alreadyClaimedOther ? "" : "disabled"}>
+          ${claimed ? "Path Claimed" : alreadyClaimedOther ? "Another Path Claimed" : unlocked ? "Claim Path" : "Hidden Path Locked"}
+        </button>
+      </div>
+    `;
+  }).join("");
+}
+
 function toggleKeyword(keyword) {
   if (!resourceProfile) return;
 
@@ -15588,6 +15855,7 @@ function toggleKeyword(keyword) {
   const selected = data[resourceProfile].keywords.selected;
   selected[keyword] = !selected[keyword];
 
+  updateHiddenPathUnlocks(resourceProfile);
   saveProfiles();
   renderKeywords();
 }
@@ -15599,6 +15867,7 @@ function clearKeywords() {
   ensureKeywordState(resourceProfile);
   data[resourceProfile].keywords.selected = {};
 
+  updateHiddenPathUnlocks(resourceProfile);
   saveProfiles();
   renderKeywords();
 }
@@ -15753,7 +16022,7 @@ function renderKeywords() {
     })
     .join("");
 
-  app.innerHTML = renderKeywordScale(selected) + (renderedSections || `
+  app.innerHTML = renderKeywordScale(selected) + renderHiddenPathProgress(selected) + (renderedSections || `
     <div class="keyword-section">
       <h3>No Keywords Found</h3>
       <p style="margin:0; color:#bbb;">Try a different search.</p>
