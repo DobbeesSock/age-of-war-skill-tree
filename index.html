@@ -8063,6 +8063,20 @@ const campaignUnlockEnvelopes = [
   { id: "campaign_mythic_cave_reward", title: "Mythological Cave Reward Envelope", type: "Campaign Unlock", lore: "The cave does not only give treasure. Sometimes it leaves a door inside the faction that opened it.", unlocks: ["Use this envelope for mythological cave rewards that unlock a unit, rule, spell, or campaign option.", "Record the exact reward in the notes once revealed."] },
   { id: "campaign_world_secret", title: "World Secret Envelope", type: "Campaign Unlock", lore: "The map changes when enough factions learn what should have stayed buried.", unlocks: ["Use this envelope for world-event, secret-card, or endgame campaign unlocks.", "Record who unlocked it and what it changes."] }
 ];
+const actionBoardUnlockColumns = ["Column 1", "Column 2", "Column 3", "Column 4", "Column 5"];
+const actionBoardUnlockThreshold = 5;
+const actionBoardUnlocks = {
+  barbarians: {
+    id: "barbarians_warcamp_howling_clans",
+    faction: "Barbarians",
+    title: "Warcamp of the Howling Clans",
+    type: "Forward Operating Base",
+    requirement: "Slot 5 upgrades into a single action board column.",
+    gmText: "Requirement met. The GM may unlock this FOB and hand the Barbarian faction its physical card.",
+    frontImage: "assets/action-board-unlocks/barbarian-front.png",
+    backImage: "assets/action-board-unlocks/barbarian-back.png"
+  }
+};
 const setupSixSecretUnlocks = {
   dwarves: {
     title: "Setup 6 Dwarven Secret Choice",
@@ -8267,6 +8281,9 @@ function ensureUnlockState(profileName) {
   if (!data[profileName].unlocks.setupSixChoices) {
     data[profileName].unlocks.setupSixChoices = {};
   }
+  if (!data[profileName].unlocks.actionBoard) {
+    data[profileName].unlocks.actionBoard = {};
+  }
 }
 
 function revealUnlockEnvelope(unlockId) {
@@ -8375,6 +8392,120 @@ function renderSetupSixSecretUnlocks(hubKey, unlockState) {
   `;
 }
 
+function getActionBoardUnlockState(hubKey) {
+  if (!resourceProfile || !data[resourceProfile]) return null;
+  ensureUnlockState(resourceProfile);
+
+  const unlockConfig = actionBoardUnlocks[hubKey];
+  if (!unlockConfig) return null;
+
+  const actionBoardState = data[resourceProfile].unlocks.actionBoard;
+  if (!actionBoardState[hubKey]) {
+    actionBoardState[hubKey] = {
+      columns: Object.fromEntries(actionBoardUnlockColumns.map(column => [column, 0])),
+      unlocked: false
+    };
+  }
+
+  if (!actionBoardState[hubKey].columns) {
+    actionBoardState[hubKey].columns = Object.fromEntries(actionBoardUnlockColumns.map(column => [column, 0]));
+  }
+
+  return actionBoardState[hubKey];
+}
+
+function getActionBoardReadyColumn(entry) {
+  return actionBoardUnlockColumns.find(column => Number(entry.columns?.[column] || 0) >= actionBoardUnlockThreshold);
+}
+
+function getHighestActionBoardColumnCount(entry) {
+  return Math.max(0, ...actionBoardUnlockColumns.map(column => Number(entry.columns?.[column] || 0)));
+}
+
+function adjustActionBoardUnlockColumn(hubKey, column, amount) {
+  const entry = getActionBoardUnlockState(hubKey);
+  if (!entry || !actionBoardUnlockColumns.includes(column)) return;
+
+  entry.columns[column] = Math.max(0, Number(entry.columns[column] || 0) + amount);
+  saveProfiles();
+  renderUnlocks();
+}
+
+function toggleActionBoardUnlock(hubKey) {
+  const entry = getActionBoardUnlockState(hubKey);
+  if (!entry) return;
+
+  if (!entry.unlocked && !getActionBoardReadyColumn(entry)) return;
+
+  entry.unlocked = !entry.unlocked;
+  entry.unlockedAt = entry.unlocked ? new Date().toISOString() : null;
+  saveProfiles();
+  renderUnlocks();
+}
+
+function renderActionBoardUnlocks(hubKey) {
+  const unlockConfig = actionBoardUnlocks[hubKey];
+  if (!unlockConfig) return "";
+
+  const entry = getActionBoardUnlockState(hubKey);
+  if (!entry) return "";
+
+  const readyColumn = getActionBoardReadyColumn(entry);
+  const isReady = Boolean(readyColumn);
+  const isUnlocked = Boolean(entry.unlocked);
+  const statusText = isUnlocked ? "Unlocked" : isReady ? "Ready" : `${getHighestActionBoardColumnCount(entry)} / ${actionBoardUnlockThreshold}`;
+  const statusColor = isUnlocked ? "#9ff0b8" : isReady ? "#ffe08a" : "#bbb";
+  const statusBorder = isUnlocked ? "rgba(102,204,136,0.65)" : isReady ? "rgba(255,224,138,0.55)" : "rgba(255,255,255,0.16)";
+
+  return `
+    <div style="margin-bottom:20px; border-radius:12px; border:1px solid rgba(212,175,55,0.28); background:linear-gradient(145deg, rgba(42,24,18,0.94), rgba(16,16,16,0.96)); padding:16px;">
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-bottom:14px;">
+        <div>
+          <div style="font-size:12px; text-transform:uppercase; letter-spacing:0.6px; color:#ffd86b;">${unlockConfig.type}</div>
+          <h3 style="margin:4px 0 0 0; color:#ffe08a;">${unlockConfig.title}</h3>
+          <p style="margin:6px 0 0 0; color:#cfc6a4; line-height:1.45;">${unlockConfig.requirement}</p>
+        </div>
+        <div style="padding:7px 10px; border-radius:999px; border:1px solid ${statusBorder}; color:${statusColor}; background:rgba(0,0,0,0.2); font-weight:bold;">${statusText}</div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-bottom:14px;">
+        ${actionBoardUnlockColumns.map(column => {
+          const count = Number(entry.columns?.[column] || 0);
+          const columnReady = count >= actionBoardUnlockThreshold;
+          return `
+            <div style="border:1px solid ${columnReady ? "rgba(255,224,138,0.55)" : "rgba(255,255,255,0.12)"}; border-radius:10px; padding:10px; background:${columnReady ? "rgba(212,175,55,0.12)" : "rgba(0,0,0,0.22)"};">
+              <div style="color:#cfc6a4; font-size:12px; margin-bottom:8px;">${column}</div>
+              <div style="display:grid; grid-template-columns:34px 1fr 34px; align-items:center; gap:6px;">
+                <button type="button" onclick="adjustActionBoardUnlockColumn('${hubKey}', '${column}', -1)" ${count <= 0 ? "disabled" : ""} style="padding:7px 0; margin:0;">-</button>
+                <strong style="text-align:center; color:#fff; font-size:20px;">${count}</strong>
+                <button type="button" onclick="adjustActionBoardUnlockColumn('${hubKey}', '${column}', 1)" style="padding:7px 0; margin:0;">+</button>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:${isUnlocked ? "16px" : "0"};">
+        <p style="margin:0; color:#ddd; line-height:1.45;">${isUnlocked ? "FOB card is live in the app." : isReady ? unlockConfig.gmText : "Track upgrades slotted into each action board column. Any one column reaching 5 makes this ready for GM unlock."}</p>
+        <button type="button" onclick="toggleActionBoardUnlock('${hubKey}')" ${!isReady && !isUnlocked ? "disabled" : ""}>${isUnlocked ? "Lock FOB" : "Unlock FOB"}</button>
+      </div>
+
+      ${isUnlocked ? `
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
+          <figure style="margin:0;">
+            <img src="${unlockConfig.frontImage}" alt="${unlockConfig.title} front" style="width:100%; border-radius:12px; border:1px solid rgba(255,224,138,0.35); box-shadow:0 0 18px rgba(212,175,55,0.22); background:#111;">
+            <figcaption style="text-align:center; color:#cfc6a4; margin-top:6px;">Front</figcaption>
+          </figure>
+          <figure style="margin:0;">
+            <img src="${unlockConfig.backImage}" alt="${unlockConfig.title} back" style="width:100%; border-radius:12px; border:1px solid rgba(255,224,138,0.35); box-shadow:0 0 18px rgba(212,175,55,0.22); background:#111;">
+            <figcaption style="text-align:center; color:#cfc6a4; margin-top:6px;">Back</figcaption>
+          </figure>
+        </div>
+      ` : ""}
+    </div>
+  `;
+}
+
 function renderUnlocks() {
   const app = document.getElementById("unlocksApp");
   if (!app || !resourceProfile || !data[resourceProfile]) return;
@@ -8394,6 +8525,7 @@ function renderUnlocks() {
       <div style="padding:10px 12px; border-radius:8px; background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.35); color:#ffe08a; font-weight:bold;">${revealedCount} / ${envelopes.length} Revealed</div>
     </div>
     ${renderSetupSixSecretUnlocks(currentHubFaction || getHubKeyFromFaction(currentFaction), unlockState)}
+    ${renderActionBoardUnlocks(currentHubFaction || getHubKeyFromFaction(currentFaction))}
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">
       ${envelopes.map(card => {
         const revealed = Boolean(unlockState.revealed[card.id]);
@@ -9774,7 +9906,7 @@ function createProfile() {
         potions: { inventory: [] },
         relics: { inventory: [] },
         objectives: { inventory: [] },
-        unlocks: { revealed: {}, notes: {} },
+        unlocks: { revealed: {}, notes: {}, setupSixChoices: {}, actionBoard: {} },
         keywords: { selected: {} },
         buildings: { constructed: {} },
         shop: { purchases: {} },
