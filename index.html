@@ -8144,7 +8144,7 @@ const factionUnlockEnvelopes = {
   ],
   orcs: [
     { id: "orcs_secret_t", title: "Secret Card T - Shadow Orcs", type: "Unique Unit Unlock", lore: "The smoke behind the war camp thickens until it starts to breathe. The Shadow Orcs drag a brutal champion from the dark places, expanding their horde with muscle made for breaking lines.", unlocks: ["Unlock unique unit: Troll Brawler.", "The GM gives this faction the Troll Brawler stat card when this envelope is revealed.", "Troll Brawler becomes available to this faction for future army building once unlocked."], ...secretCardTImages },
-    { id: "orcs_faction_secret", title: "Bloodied Banner Envelope", type: "Faction Secret", lore: "A banner no commander admits owning is raised over the camp. Every blade turns toward it.", unlocks: ["Reveal when a Shadow Orcs secret faction card or campaign reward tells you to open it.", "Record the exact unlocked unit, structure, or rule in the notes."] }
+    { id: "orcs_faction_secret", title: "Path of Belief", type: "Hidden Path", lore: "A banner no commander admits owning is raised over the camp. Every blade turns toward it.", unlocks: ["Reveal when the Orcs unlock or claim the Path of Belief.", "Record the exact unlocked skill tree, rule, or campaign reward in the notes."] }
   ],
   order: [
     { id: "order_secret_t", title: "Secret Card T - Order", type: "Unique Unit Unlock", lore: "A hidden stable opens beneath the silent chapel, its doors marked with verdicts instead of names. The Order adds a living siege instrument to its ranks, proof that judgment can charge as well as strike from shadow.", unlocks: ["Unlock unique unit: Battle Rhino.", "The GM gives this faction the Battle Rhino stat card when this envelope is revealed.", "Battle Rhino becomes available to this faction for future army building once unlocked."], ...secretCardTImages },
@@ -8160,6 +8160,22 @@ const campaignUnlockEnvelopes = [
   { id: "campaign_mythic_cave_reward", title: "Mythological Cave Reward Envelope", type: "Campaign Unlock", lore: "The cave does not only give treasure. Sometimes it leaves a door inside the faction that opened it.", unlocks: ["Use this envelope for mythological cave rewards that unlock a unit, rule, spell, or campaign option.", "Record the exact reward in the notes once revealed."] },
   { id: "campaign_world_secret", title: "World Secret Envelope", type: "Campaign Unlock", lore: "The map changes when enough factions learn what should have stayed buried.", unlocks: ["Use this envelope for world-event, secret-card, or endgame campaign unlocks.", "Record who unlocked it and what it changes."] }
 ];
+const factionCampaignPathOverrides = {
+  orcs: {
+    campaign_mythic_cave_reward: {
+      title: "Path of Ascension",
+      type: "Hidden Path",
+      lore: "The cave does not only give treasure. It leaves a higher road inside the Horde.",
+      unlocks: ["Reveal when the Orcs unlock or claim the Path of Ascension.", "Record the exact unlocked skill tree, rule, or campaign reward in the notes."]
+    },
+    campaign_world_secret: {
+      title: "Path of Awakening",
+      type: "Hidden Path",
+      lore: "The map changes when enough buried truths begin to move beneath Orc banners.",
+      unlocks: ["Reveal when the Orcs unlock or claim the Path of Awakening.", "Record who unlocked it and what it changes."]
+    }
+  }
+};
 const actionBoardUnlockColumns = ["Column 1", "Column 2", "Column 3", "Column 4", "Column 5"];
 const actionBoardUnlockThreshold = 5;
 const actionBoardUnlocks = {
@@ -8405,9 +8421,16 @@ const setupSixSecretUnlocks = {
 function getUnlockEnvelopeList() {
   const hub = getCurrentHub();
   const hubKey = currentHubFaction || getHubKeyFromFaction(currentFaction);
+  const campaignOverrides = factionCampaignPathOverrides[hubKey] || {};
   return [
     ...(factionUnlockEnvelopes[hubKey] || []),
-    ...campaignUnlockEnvelopes.map(card => ({ ...card, title: `${hub.label} ${card.title}` }))
+    ...campaignUnlockEnvelopes.map(card => ({
+      ...card,
+      title: campaignOverrides[card.id]?.title || `${hub.label} ${card.title}`,
+      type: campaignOverrides[card.id]?.type || card.type,
+      lore: campaignOverrides[card.id]?.lore || card.lore,
+      unlocks: campaignOverrides[card.id]?.unlocks || card.unlocks
+    }))
   ];
 }
 
