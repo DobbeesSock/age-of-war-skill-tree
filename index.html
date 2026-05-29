@@ -260,6 +260,30 @@ h1 {
   color: #fff2b2;
 }
 
+.keyword-chip.hidden-path-pull {
+  border-color: rgba(128, 201, 80, 0.62);
+  box-shadow: 0 0 8px rgba(88, 190, 60, 0.28), inset 0 0 12px rgba(80, 130, 40, 0.12);
+}
+
+.keyword-chip.hidden-path-pull.active {
+  background: rgba(66, 112, 42, 0.34);
+  border-color: #83d35b;
+  box-shadow: 0 0 14px rgba(104, 220, 75, 0.48), inset 0 0 16px rgba(100, 180, 55, 0.16);
+  color: #efffdf;
+}
+
+.keyword-chip.hidden-path-resist {
+  border-color: rgba(165, 190, 210, 0.46);
+  opacity: 0.78;
+}
+
+.keyword-chip.hidden-path-resist.active {
+  background: rgba(42, 52, 62, 0.34);
+  border-color: #8498a8;
+  box-shadow: inset 0 0 14px rgba(130, 150, 165, 0.18);
+  color: #c8d1d8;
+}
+
 .keyword-scale-panel {
   grid-column: 1 / -1;
   background: rgba(28,28,28,0.96);
@@ -8650,6 +8674,7 @@ function renderUnlocks() {
     </div>
     ${renderSetupSixSecretUnlocks(currentHubFaction || getHubKeyFromFaction(currentFaction), unlockState)}
     ${renderActionBoardUnlocks(currentHubFaction || getHubKeyFromFaction(currentFaction))}
+    ${renderHiddenPathUnlocks()}
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">
       ${envelopes.map(card => {
         const revealed = Boolean(unlockState.revealed[card.id]);
@@ -15740,7 +15765,8 @@ function ensureHiddenPathState(profileName) {
       data[profileName].hiddenPaths.paths[pathId] = {
         unlocked: false,
         highScore: 0,
-        unlockedAt: null
+        unlockedAt: null,
+        notifiedAt: null
       };
     }
   });
@@ -15763,6 +15789,7 @@ function updateHiddenPathUnlocks(profileName) {
   ensureKeywordState(profileName);
   ensureHiddenPathState(profileName);
 
+  let newlyUnlocked = false;
   const selected = data[profileName].keywords.selected || {};
   Object.entries(hiddenPathDefinitions).forEach(([pathId, definition]) => {
     if (definition.hubKey !== (data[profileName].hubFaction || currentHubFaction)) return;
@@ -15772,8 +15799,11 @@ function updateHiddenPathUnlocks(profileName) {
     if (!entry.unlocked && progress.score >= definition.threshold) {
       entry.unlocked = true;
       entry.unlockedAt = new Date().toISOString();
+      newlyUnlocked = true;
     }
   });
+
+  return newlyUnlocked;
 }
 
 function getHiddenPathBreadcrumb(definition, score) {
@@ -15804,7 +15834,18 @@ function claimHiddenPath(pathId) {
   showView("skill");
 }
 
-function renderHiddenPathProgress(selected) {
+function getHiddenPathKeywordClass(keyword) {
+  if (!resourceProfile || !data[resourceProfile]) return "";
+  const hubKey = currentHubFaction || data[resourceProfile].hubFaction || getHubKeyFromFaction(currentFaction);
+  const definitions = Object.values(hiddenPathDefinitions).filter(definition => definition.hubKey === hubKey);
+  const weight = definitions.reduce((value, definition) => value || definition.weights[keyword] || 0, 0);
+
+  if (weight > 0) return "hidden-path-pull";
+  if (weight < 0) return "hidden-path-resist";
+  return "";
+}
+
+function renderHiddenPathUnlocks() {
   if (!resourceProfile || !data[resourceProfile]) return "";
   const hubKey = currentHubFaction || data[resourceProfile].hubFaction || getHubKeyFromFaction(currentFaction);
   const pathEntries = Object.entries(hiddenPathDefinitions).filter(([, definition]) => definition.hubKey === hubKey);
@@ -15815,32 +15856,24 @@ function renderHiddenPathProgress(selected) {
 
   return pathEntries.map(([pathId, definition]) => {
     const entry = data[resourceProfile].hiddenPaths.paths[pathId];
-    const progress = calculateHiddenPathScore(pathId, selected);
-    const lockedScore = Math.max(Number(entry.highScore || 0), progress.score);
     const unlocked = Boolean(entry.unlocked);
     const claimed = data[resourceProfile].hiddenPaths.claimedPath === definition.treeId;
     const alreadyClaimedOther = data[resourceProfile].hiddenPaths.claimedPath && !claimed;
-    const visibleScore = unlocked ? Math.max(definition.threshold, lockedScore) : lockedScore;
-    const percent = Math.max(0, Math.min(100, (visibleScore / definition.threshold) * 100));
+    if (!unlocked && !claimed) return "";
 
     return `
-      <div class="keyword-scale-panel" style="border-color:${unlocked ? "rgba(212,175,55,0.45)" : "rgba(255,255,255,0.14)"};">
-        <div class="keyword-scale-header">
+      <div style="margin-bottom:20px; border-radius:12px; border:1px solid rgba(118,185,82,0.42); background:linear-gradient(145deg, rgba(24,42,18,0.94), rgba(16,16,16,0.96)); padding:16px; box-shadow:${claimed ? "0 0 18px rgba(118,185,82,0.22)" : "0 0 18px rgba(212,175,55,0.18)"};">
+        <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-bottom:12px;">
           <div>
-            <h3 class="keyword-scale-title">${definition.title}</h3>
-            <p style="margin:5px 0 0 0; color:#cfc6a4; line-height:1.45;">${getHiddenPathBreadcrumb(definition, visibleScore)}</p>
+            <div style="font-size:12px; text-transform:uppercase; letter-spacing:0.6px; color:#9ed97b;">Hidden Path</div>
+            <h3 style="margin:4px 0 0 0; color:#ffe08a;">${definition.title}</h3>
+            <p style="margin:6px 0 0 0; color:#cfc6a4; line-height:1.45;">${definition.breadcrumbs.at(-1)}</p>
           </div>
-          <div class="keyword-scale-status">${claimed ? "Claimed" : unlocked ? "Claimable" : `${visibleScore} / ${definition.threshold}`}</div>
+          <div style="padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.16); color:${claimed ? "#9ff0b8" : "#ffe08a"}; background:rgba(0,0,0,0.2); font-weight:bold;">${claimed ? "Claimed" : "Claimable"}</div>
         </div>
-        <div class="keyword-scale-track">
-          <div class="keyword-scale-fill corruption" style="left:0; width:${percent}%;"></div>
-        </div>
-        <div class="keyword-scale-counts">
-          <span>${definition.reward}</span>
-          <span>${progress.matches.length ? progress.matches.map(match => `${match.keyword} ${match.value > 0 ? "+" : ""}${match.value}`).join(" / ") : "No weighted Ruin keywords selected"}</span>
-        </div>
+        <p style="margin:0 0 12px 0; color:#ddd; line-height:1.45;">${claimed ? "This hidden path has been claimed. Its skill tree is now available under Skill Trees." : `${definition.reward} is available. Only one hidden path can be claimed for this faction.`}</p>
         <button onclick="claimHiddenPath('${pathId}')" ${unlocked && !claimed && !alreadyClaimedOther ? "" : "disabled"}>
-          ${claimed ? "Path Claimed" : alreadyClaimedOther ? "Another Path Claimed" : unlocked ? "Claim Path" : "Hidden Path Locked"}
+          ${claimed ? "Path Claimed" : alreadyClaimedOther ? "Another Path Claimed" : "Claim Path"}
         </button>
       </div>
     `;
@@ -15855,9 +15888,12 @@ function toggleKeyword(keyword) {
   const selected = data[resourceProfile].keywords.selected;
   selected[keyword] = !selected[keyword];
 
-  updateHiddenPathUnlocks(resourceProfile);
+  const newlyUnlocked = updateHiddenPathUnlocks(resourceProfile);
   saveProfiles();
   renderKeywords();
+  if (newlyUnlocked) {
+    alert("Something has awakened. Check your Unlocks.");
+  }
 }
 
 function clearKeywords() {
@@ -16005,7 +16041,7 @@ function renderKeywords() {
           <p style="margin:0 0 12px 0; color:#bbb; font-size:13px; line-height:1.4;">${section.description}</p>
           <div class="keyword-grid">
             ${keywords.map(keyword => `
-              <label class="keyword-chip ${section.category} ${selected[keyword] ? "active" : ""}">
+              <label class="keyword-chip ${section.category} ${getHiddenPathKeywordClass(keyword)} ${selected[keyword] ? "active" : ""}">
                 <input
                   type="checkbox"
                   ${selected[keyword] ? "checked" : ""}
@@ -16022,7 +16058,7 @@ function renderKeywords() {
     })
     .join("");
 
-  app.innerHTML = renderKeywordScale(selected) + renderHiddenPathProgress(selected) + (renderedSections || `
+  app.innerHTML = renderKeywordScale(selected) + (renderedSections || `
     <div class="keyword-section">
       <h3>No Keywords Found</h3>
       <p style="margin:0; color:#bbb;">Try a different search.</p>
