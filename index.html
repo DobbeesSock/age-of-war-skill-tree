@@ -2429,10 +2429,10 @@ body.elves {
 
     <div class="doctrine-wrapper">
     <div class="node root available" data-id="orcsRuin_root" data-cost="1">
-        <h3>Path of Ruin</h3>
+        <h3>Path of Belief</h3>
         <p>
             The Horde no longer raids merely to survive.<br>
-            Unlocks the Ruin branches once this hidden path is claimed.
+            Unlocks the Belief branches once this hidden path is claimed.
         </p>
     </div>
 </div>
@@ -8144,7 +8144,7 @@ const factionUnlockEnvelopes = {
   ],
   orcs: [
     { id: "orcs_secret_t", title: "Secret Card T - Shadow Orcs", type: "Unique Unit Unlock", lore: "The smoke behind the war camp thickens until it starts to breathe. The Shadow Orcs drag a brutal champion from the dark places, expanding their horde with muscle made for breaking lines.", unlocks: ["Unlock unique unit: Troll Brawler.", "The GM gives this faction the Troll Brawler stat card when this envelope is revealed.", "Troll Brawler becomes available to this faction for future army building once unlocked."], ...secretCardTImages },
-    { id: "orcs_faction_secret", title: "Path of Belief", type: "Hidden Path", lore: "A banner no commander admits owning is raised over the camp. Every blade turns toward it.", unlocks: ["Reveal when the Orcs unlock or claim the Path of Belief.", "Record the exact unlocked skill tree, rule, or campaign reward in the notes."] }
+    { id: "orcs_faction_secret", pathId: "orcs_belief", title: "Path of Belief", type: "Hidden Path", lore: "A banner no commander admits owning is raised over the camp. Every blade turns toward it.", unlocks: ["Reveal when the Orcs unlock or claim the Path of Belief.", "Record the exact unlocked skill tree, rule, or campaign reward in the notes."] }
   ],
   order: [
     { id: "order_secret_t", title: "Secret Card T - Order", type: "Unique Unit Unlock", lore: "A hidden stable opens beneath the silent chapel, its doors marked with verdicts instead of names. The Order adds a living siege instrument to its ranks, proof that judgment can charge as well as strike from shadow.", unlocks: ["Unlock unique unit: Battle Rhino.", "The GM gives this faction the Battle Rhino stat card when this envelope is revealed.", "Battle Rhino becomes available to this faction for future army building once unlocked."], ...secretCardTImages },
@@ -8163,12 +8163,14 @@ const campaignUnlockEnvelopes = [
 const factionCampaignPathOverrides = {
   orcs: {
     campaign_mythic_cave_reward: {
+      pathId: "orcs_ascension",
       title: "Path of Ascension",
       type: "Hidden Path",
       lore: "The cave does not only give treasure. It leaves a higher road inside the Horde.",
       unlocks: ["Reveal when the Orcs unlock or claim the Path of Ascension.", "Record the exact unlocked skill tree, rule, or campaign reward in the notes."]
     },
     campaign_world_secret: {
+      pathId: "orcs_awakening",
       title: "Path of Awakening",
       type: "Hidden Path",
       lore: "The map changes when enough buried truths begin to move beneath Orc banners.",
@@ -8429,7 +8431,8 @@ function getUnlockEnvelopeList() {
       title: campaignOverrides[card.id]?.title || `${hub.label} ${card.title}`,
       type: campaignOverrides[card.id]?.type || card.type,
       lore: campaignOverrides[card.id]?.lore || card.lore,
-      unlocks: campaignOverrides[card.id]?.unlocks || card.unlocks
+      unlocks: campaignOverrides[card.id]?.unlocks || card.unlocks,
+      pathId: campaignOverrides[card.id]?.pathId || card.pathId
     }))
   ];
 }
@@ -8682,10 +8685,16 @@ function renderUnlocks() {
   if (!app || !resourceProfile || !data[resourceProfile]) return;
 
   ensureUnlockState(resourceProfile);
+  ensureHiddenPathState(resourceProfile);
   const hub = getCurrentHub();
   const unlockState = data[resourceProfile].unlocks;
   const envelopes = getUnlockEnvelopeList();
-  const revealedCount = envelopes.filter(card => unlockState.revealed[card.id]).length;
+  const revealedCount = envelopes.filter(card => {
+    if (!card.pathId) return unlockState.revealed[card.id];
+    const definition = hiddenPathDefinitions[card.pathId];
+    const claimId = definition?.treeId || card.pathId;
+    return data[resourceProfile].hiddenPaths.claimedPath === claimId;
+  }).length;
 
   app.innerHTML = `
     <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-bottom:16px;">
@@ -8697,17 +8706,26 @@ function renderUnlocks() {
     </div>
     ${renderSetupSixSecretUnlocks(currentHubFaction || getHubKeyFromFaction(currentFaction), unlockState)}
     ${renderActionBoardUnlocks(currentHubFaction || getHubKeyFromFaction(currentFaction))}
-    ${renderHiddenPathUnlocks()}
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">
       ${envelopes.map(card => {
-        const revealed = Boolean(unlockState.revealed[card.id]);
+        const pathDefinition = card.pathId ? hiddenPathDefinitions[card.pathId] : null;
+        const pathEntry = card.pathId ? data[resourceProfile].hiddenPaths.paths[card.pathId] : null;
+        const pathClaimId = pathDefinition ? (pathDefinition.treeId || card.pathId) : null;
+        const pathClaimed = Boolean(pathDefinition && data[resourceProfile].hiddenPaths.claimedPath === pathClaimId);
+        const pathClaimable = Boolean(pathEntry?.unlocked && !data[resourceProfile].hiddenPaths.claimedPath);
+        const pathBlocked = Boolean(pathDefinition && data[resourceProfile].hiddenPaths.claimedPath && !pathClaimed);
+        const revealed = pathDefinition ? pathClaimed : Boolean(unlockState.revealed[card.id]);
+        const statusLabel = pathDefinition
+          ? pathClaimed ? "Claimed" : pathClaimable ? "Claimable" : pathBlocked ? "Locked" : "Sealed"
+          : revealed ? "Unlocked" : "Sealed";
         const note = unlockState.notes[card.id] || "";
         const idArg = JSON.stringify(card.id).replace(/"/g, "&quot;");
+        const pathArg = card.pathId ? JSON.stringify(card.pathId).replace(/"/g, "&quot;") : "";
         return `
           <div style="border-radius:10px; border:1px solid ${revealed ? "rgba(255,224,138,0.45)" : "rgba(255,255,255,0.12)"}; border-left:6px solid ${revealed ? "#d4af37" : "#777"}; background:${revealed ? "linear-gradient(145deg, rgba(48,38,18,0.95), rgba(24,24,24,0.94))" : "linear-gradient(145deg, rgba(34,34,34,0.96), rgba(12,12,12,0.96))"}; padding:16px; box-shadow:${revealed ? "0 0 16px rgba(212,175,55,0.2)" : "none"};">
             <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:10px;">
               <div><div style="font-size:12px; text-transform:uppercase; letter-spacing:0.6px; color:${revealed ? "#ffd86b" : "#aaa"};">${card.type}</div><h3 style="margin:4px 0 0 0; color:#ffe08a;">${card.title}</h3></div>
-              <div style="font-size:12px; padding:5px 8px; border-radius:999px; border:1px solid ${revealed ? "rgba(102,204,136,0.65)" : "rgba(255,255,255,0.16)"}; color:${revealed ? "#9ff0b8" : "#bbb"}; white-space:nowrap;">${revealed ? "Unlocked" : "Sealed"}</div>
+              <div style="font-size:12px; padding:5px 8px; border-radius:999px; border:1px solid ${revealed ? "rgba(102,204,136,0.65)" : pathClaimable ? "rgba(255,224,138,0.55)" : "rgba(255,255,255,0.16)"}; color:${revealed ? "#9ff0b8" : pathClaimable ? "#ffe08a" : "#bbb"}; white-space:nowrap;">${statusLabel}</div>
             </div>
             ${revealed ? `
               ${card.revealedImage ? `<img src="${card.revealedImage}" alt="${card.title} revealed card" style="display:block; width:min(100%, 280px); margin:0 auto 12px; border-radius:8px; border:1px solid rgba(255,224,138,0.35); background:#111; box-shadow:0 0 14px rgba(212,175,55,0.2);">` : ""}
@@ -8715,7 +8733,7 @@ function renderUnlocks() {
               <div style="background:rgba(0,0,0,0.22); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px; margin-bottom:12px;"><h4 style="margin:0 0 8px 0; color:#ffd86b;">Unlocked</h4><ul style="margin:0; padding-left:18px; color:#eee; line-height:1.45;">${card.unlocks.map(item => `<li>${item}</li>`).join("")}</ul></div>
               <label style="display:block; color:#ffd86b; font-weight:bold; margin-bottom:6px;">Unit / Rule Notes</label>
               <textarea oninput="updateUnlockNote(${idArg}, this.value)" placeholder="Add the exact unit name, stats, rules, or booklet reference here..." style="width:100%; min-height:92px; box-sizing:border-box; background:#171717; color:#fff; border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:10px; resize:vertical;">${note}</textarea>
-              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;"><button onclick="sealUnlockEnvelope(${idArg})">Seal Again</button></div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">${pathDefinition ? "" : `<button onclick="sealUnlockEnvelope(${idArg})">Seal Again</button>`}</div>
             ` : `
               ${card.sealedImage ? `
                 <div style="min-height:190px; display:flex; align-items:center; justify-content:center; border-radius:8px; border:1px dashed rgba(255,255,255,0.18); background:radial-gradient(circle at center, rgba(212,175,55,0.12), rgba(0,0,0,0.28)); padding:12px; margin-bottom:12px;">
@@ -8724,7 +8742,10 @@ function renderUnlocks() {
               ` : `
                 <div style="min-height:190px; display:flex; align-items:center; justify-content:center; text-align:center; border-radius:8px; border:1px dashed rgba(255,255,255,0.18); background:radial-gradient(circle at center, rgba(212,175,55,0.12), rgba(0,0,0,0.28)); color:#bbb; padding:18px; margin-bottom:12px;"><div><div style="font-size:34px; color:#d4af37; margin-bottom:8px;">?</div><div style="font-weight:bold; color:#e9dba3;">Sealed Envelope</div><div style="font-size:13px; margin-top:6px; line-height:1.35;">Reveal only when the card, GM, or campaign reward tells this player to open it.</div></div></div>
               `}
-              <button onclick="revealUnlockEnvelope(${idArg})">Reveal Unlock</button>
+              ${pathDefinition
+                ? `<button onclick="claimHiddenPath(${pathArg})" ${pathClaimable ? "" : "disabled"}>${pathBlocked ? "Another Path Claimed" : pathClaimable ? "Claim Path" : "Path Hidden"}</button>`
+                : `<button onclick="revealUnlockEnvelope(${idArg})">Reveal Unlock</button>`
+              }
             `}
           </div>
         `;
@@ -9653,12 +9674,12 @@ const hiddenPathTreeHubs = {
   orcsRuin: "orcs"
 };
 const hiddenPathDefinitions = {
-  orcs_ruin: {
+  orcs_belief: {
     hubKey: "orcs",
     treeId: "orcsRuin",
-    title: "The Path of Ruin",
+    title: "The Path of Belief",
     threshold: 12,
-    reward: "New Skill Tree: Path of Ruin",
+    reward: "New Skill Tree: Path of Belief",
     breadcrumbs: [
       "The Horde no longer raids merely to survive.",
       "Smoke follows the Orc banners.",
@@ -9684,6 +9705,34 @@ const hiddenPathDefinitions = {
       Guardian: -2,
       Redeemer: -3
     }
+  },
+  orcs_ascension: {
+    hubKey: "orcs",
+    treeId: null,
+    title: "The Path of Ascension",
+    threshold: 75,
+    reward: "Path of Ascension Available",
+    source: "kills",
+    milestones: [
+      [25, "The battlefield feeds the regime."],
+      [50, "The dead outnumber the living."],
+      [75, "Something ancient stirs beneath the blood.\n\nPath of ASCENSION AVAILABLE\nThe Orcs may Ascend."]
+    ],
+    weights: {}
+  },
+  orcs_awakening: {
+    hubKey: "orcs",
+    treeId: null,
+    title: "The Path of Awakening",
+    threshold: 75,
+    reward: "Path of Awakening Available",
+    source: "deaths",
+    milestones: [
+      [25, "The dead do not rest."],
+      [50, "The earth drinks deeply."],
+      [75, "The Gorefather has heard the cries of our Empire, unlock Path of Awakening."]
+    ],
+    weights: {}
   }
 };
 
@@ -10105,6 +10154,7 @@ function renderFactionInfo() {
       <h3>Structure Placement</h3>
       <div style="color:#e8f5df; line-height:1.45; font-size:15px;">All constructed structures may be built in Faction Province or within Range 8 of Province.</div>
     </div>
+    ${renderOrcPathCounters()}
     <div class="faction-info-layout" style="margin-top:16px;">
       ${info.sections.map(section => `${renderSection(section)}${section.title && /gates?\s*&\s*walls?/i.test(section.title) ? renderLadderInfoCard() : ""}`).join("")}
     </div>
@@ -10143,7 +10193,7 @@ function createProfile() {
         relics: { inventory: [] },
         objectives: { inventory: [] },
         unlocks: { revealed: {}, notes: {}, setupSixChoices: {}, actionBoard: {} },
-        hiddenPaths: { paths: {}, claimedPath: null },
+        hiddenPaths: { paths: {}, claimedPath: null, counters: {} },
         keywords: { selected: {} },
         buildings: { constructed: {} },
         shop: { purchases: {} },
@@ -15776,11 +15826,15 @@ function ensureHiddenPathState(profileName) {
   if (!profileName || !data[profileName]) return;
 
   if (!data[profileName].hiddenPaths) {
-    data[profileName].hiddenPaths = { paths: {}, claimedPath: null };
+    data[profileName].hiddenPaths = { paths: {}, claimedPath: null, counters: {} };
   }
 
   if (!data[profileName].hiddenPaths.paths) {
     data[profileName].hiddenPaths.paths = {};
+  }
+
+  if (!data[profileName].hiddenPaths.counters) {
+    data[profileName].hiddenPaths.counters = {};
   }
 
   Object.keys(hiddenPathDefinitions).forEach(pathId => {
@@ -15789,8 +15843,13 @@ function ensureHiddenPathState(profileName) {
         unlocked: false,
         highScore: 0,
         unlockedAt: null,
-        notifiedAt: null
+        notifiedAt: null,
+        milestonesShown: {}
       };
+    }
+
+    if (!data[profileName].hiddenPaths.paths[pathId].milestonesShown) {
+      data[profileName].hiddenPaths.paths[pathId].milestonesShown = {};
     }
   });
 }
@@ -15845,16 +15904,92 @@ function claimHiddenPath(pathId) {
   const entry = data[resourceProfile].hiddenPaths.paths[pathId];
   if (!definition || !entry?.unlocked) return;
 
-  if (data[resourceProfile].hiddenPaths.claimedPath && data[resourceProfile].hiddenPaths.claimedPath !== definition.treeId) {
+  const claimId = definition.treeId || pathId;
+  if (data[resourceProfile].hiddenPaths.claimedPath && data[resourceProfile].hiddenPaths.claimedPath !== claimId) {
     alert("This profile has already claimed a hidden path. Only one hidden path can be claimed.");
     return;
   }
 
-  data[resourceProfile].hiddenPaths.claimedPath = definition.treeId;
-  ensureSkillTreeState(resourceProfile, definition.treeId);
+  data[resourceProfile].hiddenPaths.claimedPath = claimId;
+  if (definition.treeId) {
+    ensureSkillTreeState(resourceProfile, definition.treeId);
+  }
   saveProfiles();
   renderKeywords();
-  showView("skill");
+  if (definition.treeId) {
+    showView("skill");
+  } else {
+    renderUnlocks();
+  }
+}
+
+function getHiddenPathCounterValue(profileName, counterKey) {
+  ensureHiddenPathState(profileName);
+  return Number(data[profileName].hiddenPaths.counters[counterKey] || 0);
+}
+
+function setHiddenPathCounter(profileName, counterKey, value) {
+  ensureHiddenPathState(profileName);
+  data[profileName].hiddenPaths.counters[counterKey] = Math.max(0, Number(value || 0));
+}
+
+function checkHiddenCounterMilestones(pathId, value) {
+  const definition = hiddenPathDefinitions[pathId];
+  const entry = data[resourceProfile].hiddenPaths.paths[pathId];
+  if (!definition || !entry) return;
+
+  (definition.milestones || []).forEach(([threshold, message]) => {
+    if (value < threshold || entry.milestonesShown[threshold]) return;
+    entry.milestonesShown[threshold] = new Date().toISOString();
+    alert(message);
+  });
+
+  if (!entry.unlocked && value >= definition.threshold) {
+    entry.unlocked = true;
+    entry.unlockedAt = new Date().toISOString();
+  }
+}
+
+function changeOrcPathCounter(counterKey, amount) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  ensureHiddenPathState(resourceProfile);
+
+  const pathId = counterKey === "orcKills" ? "orcs_ascension" : "orcs_awakening";
+  const nextValue = Math.max(0, getHiddenPathCounterValue(resourceProfile, counterKey) + amount);
+  setHiddenPathCounter(resourceProfile, counterKey, nextValue);
+  checkHiddenCounterMilestones(pathId, nextValue);
+  saveProfiles();
+  renderFactionInfo();
+  renderUnlocks();
+}
+
+function renderOrcPathCounters() {
+  if (!resourceProfile || !data[resourceProfile]) return "";
+  const hubKey = currentHubFaction || data[resourceProfile].hubFaction || getHubKeyFromFaction(currentFaction);
+  if (hubKey !== "orcs") return "";
+
+  ensureHiddenPathState(resourceProfile);
+  const counters = [
+    ["orcKills", "Kill Counter"],
+    ["orcDeaths", "Unit Death Counter"]
+  ];
+
+  return `
+    <div class="faction-info-layout" style="margin-top:16px;">
+      ${counters.map(([counterKey, label]) => `
+        <div class="faction-info-card" style="border-left-color:#7fa35a; background:rgba(24,34,22,0.94);">
+          <h3>${label}</h3>
+          <div style="font-size:36px; color:#ffe08a; font-weight:bold; margin:8px 0;">${getHiddenPathCounterValue(resourceProfile, counterKey)}</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" onclick="changeOrcPathCounter('${counterKey}', 1)">+1</button>
+            <button type="button" onclick="changeOrcPathCounter('${counterKey}', 5)">+5</button>
+            <button type="button" onclick="changeOrcPathCounter('${counterKey}', -1)">-1</button>
+            <button type="button" onclick="changeOrcPathCounter('${counterKey}', -5)">-5</button>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
 }
 
 function getHiddenPathKeywordClass(keyword) {
