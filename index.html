@@ -1560,6 +1560,7 @@ body.elves {
   <button onclick="showView('buildings')">Income</button>
   <button onclick="showView('constructionProduction')">Construction & Production</button>
   <button onclick="showView('inventory')">Inventory</button>
+  <button onclick="showView('hero')">Hero</button>
   <button onclick="showView('factionAbilities')">Faction Abilities</button>
   <button onclick="showView('keywords')">Keywords</button>
   <button onclick="showView('allianceTrading')">Alliance & Trading</button>
@@ -2892,6 +2893,13 @@ body.elves {
   <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
     <h2 style="margin-top:0; color:gold;">Inventory</h2>
     <div id="inventoryApp"></div>
+  </div>
+</div>
+
+<div id="heroView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
+    <h2 style="margin-top:0; color:gold;">Hero</h2>
+    <div id="heroApp"></div>
   </div>
 </div>
 
@@ -9021,6 +9029,180 @@ function renderInventory() {
   `;
 }
 
+const heroEquipmentSlots = [
+  { id: "head", label: "Head" },
+  { id: "armour", label: "Armour" },
+  { id: "legs", label: "Legs" },
+  { id: "greaves", label: "Greaves" },
+  { id: "footgear", label: "Footgear" },
+  { id: "mount", label: "Mount" },
+  { id: "accessoryOne", label: "Accessory 1" },
+  { id: "accessoryTwo", label: "Accessory 2" }
+];
+
+function createDefaultHeroEquipment() {
+  return {
+    name: "",
+    className: "",
+    weaponStyle: "dual",
+    slots: {
+      head: "",
+      armour: "",
+      legs: "",
+      greaves: "",
+      footgear: "",
+      mainHand: "",
+      offHand: "",
+      twoHanded: "",
+      mount: "",
+      accessoryOne: "",
+      accessoryTwo: ""
+    },
+    notes: ""
+  };
+}
+
+function escapeHeroValue(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function ensureHeroState(profileName) {
+  if (!profileName || !data[profileName]) return;
+
+  const defaults = createDefaultHeroEquipment();
+  const current = data[profileName].hero || {};
+  data[profileName].hero = {
+    ...defaults,
+    ...current,
+    slots: {
+      ...defaults.slots,
+      ...(current.slots || {})
+    }
+  };
+}
+
+function renderHeroInput(slot) {
+  const hero = data[resourceProfile].hero;
+  return `
+    <label style="display:grid; gap:6px; background:rgba(18,18,18,0.72); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:12px;">
+      <span style="color:#ffe08a; font-weight:bold;">${slot.label}</span>
+      <input
+        value="${escapeHeroValue(hero.slots[slot.id])}"
+        placeholder="Equipped item"
+        onchange="updateHeroEquipmentSlot('${slot.id}', this.value)"
+        style="width:100%; box-sizing:border-box;"
+      >
+    </label>
+  `;
+}
+
+function renderHeroWeaponFields(hero) {
+  if (hero.weaponStyle === "twoHanded") {
+    return `
+      <label style="display:grid; gap:6px; background:rgba(18,18,18,0.72); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:12px;">
+        <span style="color:#ffe08a; font-weight:bold;">Two-Handed Weapon</span>
+        <input
+          value="${escapeHeroValue(hero.slots.twoHanded)}"
+          placeholder="Equipped two-handed weapon"
+          onchange="updateHeroEquipmentSlot('twoHanded', this.value)"
+          style="width:100%; box-sizing:border-box;"
+        >
+      </label>
+    `;
+  }
+
+  return `
+    <label style="display:grid; gap:6px; background:rgba(18,18,18,0.72); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:12px;">
+      <span style="color:#ffe08a; font-weight:bold;">Main-Hand Weapon</span>
+      <input
+        value="${escapeHeroValue(hero.slots.mainHand)}"
+        placeholder="Equipped one-handed weapon"
+        onchange="updateHeroEquipmentSlot('mainHand', this.value)"
+        style="width:100%; box-sizing:border-box;"
+      >
+    </label>
+    <label style="display:grid; gap:6px; background:rgba(18,18,18,0.72); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:12px;">
+      <span style="color:#ffe08a; font-weight:bold;">Off-Hand Weapon</span>
+      <input
+        value="${escapeHeroValue(hero.slots.offHand)}"
+        placeholder="Second one-handed weapon or shield"
+        onchange="updateHeroEquipmentSlot('offHand', this.value)"
+        style="width:100%; box-sizing:border-box;"
+      >
+    </label>
+  `;
+}
+
+function renderHero() {
+  const app = document.getElementById("heroApp");
+  if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+  ensureHeroState(resourceProfile);
+  const hero = data[resourceProfile].hero;
+
+  app.innerHTML = `
+    <div style="display:grid; gap:18px;">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+        <label style="display:grid; gap:6px;">
+          <span style="color:#ffe08a; font-weight:bold;">Hero Name</span>
+          <input value="${escapeHeroValue(hero.name)}" placeholder="Hero name" onchange="updateHeroField('name', this.value)">
+        </label>
+        <label style="display:grid; gap:6px;">
+          <span style="color:#ffe08a; font-weight:bold;">Role / Class</span>
+          <input value="${escapeHeroValue(hero.className)}" placeholder="Warrior, mage, rider..." onchange="updateHeroField('className', this.value)">
+        </label>
+        <label style="display:grid; gap:6px;">
+          <span style="color:#ffe08a; font-weight:bold;">Weapon Setup</span>
+          <select onchange="updateHeroWeaponStyle(this.value)">
+            <option value="dual" ${hero.weaponStyle === "dual" ? "selected" : ""}>Two 1-Handed Weapons</option>
+            <option value="twoHanded" ${hero.weaponStyle === "twoHanded" ? "selected" : ""}>One 2-Handed Weapon</option>
+          </select>
+        </label>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+        ${heroEquipmentSlots.map(renderHeroInput).join("")}
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+        ${renderHeroWeaponFields(hero)}
+      </div>
+
+      <label style="display:grid; gap:6px;">
+        <span style="color:#ffe08a; font-weight:bold;">Hero Notes</span>
+        <textarea
+          placeholder="Abilities, bonuses, wounds, item rules, or reminders"
+          onchange="updateHeroField('notes', this.value)"
+          style="min-height:120px; resize:vertical;"
+        >${escapeHeroValue(hero.notes)}</textarea>
+      </label>
+    </div>
+  `;
+}
+
+function updateHeroField(field, value) {
+  ensureHeroState(resourceProfile);
+  data[resourceProfile].hero[field] = value;
+  saveProfiles();
+}
+
+function updateHeroEquipmentSlot(slotId, value) {
+  ensureHeroState(resourceProfile);
+  data[resourceProfile].hero.slots[slotId] = value;
+  saveProfiles();
+}
+
+function updateHeroWeaponStyle(value) {
+  ensureHeroState(resourceProfile);
+  data[resourceProfile].hero.weaponStyle = value === "twoHanded" ? "twoHanded" : "dual";
+  saveProfiles();
+  renderHero();
+}
+
 
 function renderResources() {
   const app = document.getElementById("app");
@@ -10215,6 +10397,7 @@ function renderHubHome() {
       <button onclick="showView('buildings')" class="hub-choice"><strong>Income</strong><br>Income buildings and collection controls.</button>
       <button onclick="showView('constructionProduction')" class="hub-choice"><strong>Construction & Production</strong><br>Structure costs and unit production tables.</button>
       <button onclick="showView('inventory')" class="hub-choice"><strong>Inventory</strong><br>Potions, relics, and objectives assigned by the GM.</button>
+      <button onclick="showView('hero')" class="hub-choice"><strong>Hero</strong><br>Equipped gear, weapons, mount, and combat notes.</button>
     </div>
   `;
 }
@@ -10232,6 +10415,7 @@ function createProfile() {
         potions: { inventory: [] },
         relics: { inventory: [] },
         objectives: { inventory: [] },
+        hero: createDefaultHeroEquipment(),
         unlocks: { revealed: {}, notes: {}, setupSixChoices: {}, actionBoard: {} },
         hiddenPaths: { paths: {}, claimedPath: null, counters: {} },
         keywords: { selected: {} },
@@ -10326,6 +10510,7 @@ function loadProfile() {
 
     ensureRelicState(resourceProfile);
     ensureObjectiveState(resourceProfile);
+    ensureHeroState(resourceProfile);
 ensureUnlockState(resourceProfile);
 renderRelics();
   renderObjectives();
@@ -10379,6 +10564,10 @@ function showView(view) {
   const inventoryView = document.getElementById("inventoryView");
   if (inventoryView) {
     inventoryView.style.display = view === "inventory" ? "block" : "none";
+  }
+  const heroView = document.getElementById("heroView");
+  if (heroView) {
+    heroView.style.display = view === "hero" ? "block" : "none";
   }
   const unlocksView = document.getElementById("unlocksView");
   if (unlocksView) {
@@ -10458,6 +10647,9 @@ function showView(view) {
 
   if (view === "inventory") {
     renderInventory();
+  }
+  if (view === "hero") {
+    renderHero();
   }
   if (view === "unlocks") {
     renderUnlocks();
