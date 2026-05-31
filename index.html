@@ -11348,16 +11348,7 @@ function manualSaveProfile() {
         return;
     }
 
-    if (data[resourceProfile].resources && Array.isArray(resources)) {
-        data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
-    }
-
-    if (data[resourceProfile][currentFaction]) {
-        data[resourceProfile][currentFaction].sm = sm;
-    }
-
-    localStorage.setItem("skillTreeData", JSON.stringify(data));
-    queueLiveCampaignSave();
+    persistCurrentProfileState();
     updateProfileList();
     syncLandingProfileSelect();
     setSyncStatus(
@@ -11367,12 +11358,37 @@ function manualSaveProfile() {
 }
 
 function saveProfiles(){
-    if(!resourceProfile) return;
+    persistCurrentProfileState();
+}
 
-    data[resourceProfile][currentFaction].sm = sm;
+function persistCurrentProfileState(){
+    if(!resourceProfile || !data[resourceProfile]) return false;
+
+    if (Array.isArray(resources)) {
+        data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
+    }
+
+    if (data[resourceProfile][currentFaction]) {
+        data[resourceProfile][currentFaction].sm = sm;
+    }
+
     localStorage.setItem("skillTreeData", JSON.stringify(data));
     queueLiveCampaignSave();
+    return true;
 }
+
+function autosaveProfile(){
+    persistCurrentProfileState();
+}
+
+window.addEventListener("pagehide", autosaveProfile);
+window.addEventListener("beforeunload", autosaveProfile);
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+        autosaveProfile();
+    }
+});
+setInterval(autosaveProfile, 15000);
 
 
 // PROFILE LIST
