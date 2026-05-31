@@ -3095,6 +3095,7 @@ const defaultResources = [
   { name: "Energy", value: 10, max: 10, color: "#2196F3", icon: "&#9889;" },
   { name: "Metal", value: 0, color: "#9E9E9E", icon: "&#9939;" },
   { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "&#128009;" },
+  { name: "Skill Marks", value: 0, color: "#C084FC", icon: "SM" },
   { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "&#128128;" },
   { name: "Unlock Tokens", value: 0, color: "#14B8A6", icon: "UT" }
 ];
@@ -3910,7 +3911,12 @@ function addResourceByName(name, amount) {
   }
 }
 
-function applyCollectionIncome(incomeText) {
+function getConstructedBuildingLevel(buildingName, constructed = null) {
+  const levels = constructed || data[resourceProfile]?.buildings?.constructed || {};
+  return Number(levels[buildingName] || 0);
+}
+
+function applyCollectionIncome(incomeText, constructed = null) {
   const resourceMap = {
     food: "Food",
     gold: "Gold",
@@ -3923,13 +3929,18 @@ function applyCollectionIncome(incomeText) {
   };
 
   function applyPart(part) {
-    const match = part.match(/^\+(\d+)\s+(.+?)(?:\s+per\s+.+)?$/i);
+    const match = part.match(/^\+(\d+)\s+(.+?)(?:\s+per\s+(.+))?$/i);
     if (!match) return;
 
-    const amount = parseInt(match[1], 10);
+    let amount = parseInt(match[1], 10);
     const resourceName = match[2].trim().toLowerCase();
+    const perBuilding = match[3]?.trim();
     const mappedName = resourceMap[resourceName];
     if (!mappedName) return;
+
+    if (perBuilding) {
+      amount *= getConstructedBuildingLevel(perBuilding, constructed);
+    }
 
     addResourceByName(mappedName, amount);
   }
@@ -8066,7 +8077,7 @@ function renderCollectionChart() {
   >
     <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.building}</td>
     <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.income}</td>
-    <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.limit}</td>
+    <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${getBuildingLimitLabel(row)}</td>
     <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.size}</td>
   </tr>
 `).join("")}
@@ -8779,7 +8790,7 @@ function changeConstructedBuilding(buildingName, amount) {
   const nextCount = Math.max(0, currentCount + amount);
 
   if (amount > 0 && limit !== null && currentCount >= limit) {
-    alert(`${buildingName} is already at its limit of ${limit}.`);
+    alert(`${buildingName} is already at ${getBuildingLimitLabel(row)}.`);
     return;
   }
 
@@ -8799,6 +8810,26 @@ function getBuildingLimit(row) {
 
   const numeric = parseInt(row.limit, 10);
   return Number.isNaN(numeric) ? null : numeric;
+}
+
+function isLeveledBuilding(row) {
+  const limit = getBuildingLimit(row);
+  return limit !== null && limit > 1;
+}
+
+function getBuildingLevelLabel(row) {
+  return isLeveledBuilding(row) ? "Level" : "Built";
+}
+
+function getBuildingLimitLabel(row) {
+  const limit = getBuildingLimit(row);
+  if (limit !== null && limit > 1) return `Max Level ${limit}`;
+  if (limit === 1) return "1 Building";
+  return row?.limit || "-";
+}
+
+function getBuildingCountLabel(row, count) {
+  return isLeveledBuilding(row) ? `Level ${count}` : count;
 }
 
 function toggleBuildingCollection(buildingName) {
@@ -8829,7 +8860,7 @@ function collectCheckedBuildings() {
     if (!collectEnabled[row.building] || count <= 0) return;
 
     for (let i = 0; i < count; i++) {
-      applyCollectionIncome(row.income);
+      applyCollectionIncome(row.income, constructed);
     }
 
     collectedCount += count;
@@ -8862,7 +8893,7 @@ function renderBuildings() {
         <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
           <div>
             <h3 style="margin:0; color:#ffe08a;">Collection Buildings</h3>
-            <p style="margin:4px 0 0 0; color:#bbb;">Check constructed buildings, then collect all checked income at once.</p>
+            <p style="margin:4px 0 0 0; color:#bbb;">Add building levels, check what should collect, then collect all checked income at once. Each level pays the listed income again.</p>
           </div>
           <button onclick="collectCheckedBuildings()">Collect Checked Buildings</button>
         </div>
@@ -8873,7 +8904,7 @@ function renderBuildings() {
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Building</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Source</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Income</th>
-              <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Built</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Level / Built</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Cost</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">HP</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Limit</th>
@@ -8897,14 +8928,14 @@ function renderBuildings() {
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.building}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.source || "Faction"}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.income}</td>
-                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${count}</td>
+                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${getBuildingCountLabel(row, count)}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.cost || "-"}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.hp || "-"}</td>
-                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.limit}</td>
+                <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${getBuildingLimitLabel(row)}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.size}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">
-                  <button onclick="changeConstructedBuilding(${buildingArg}, -1)">-</button>
-                  <button onclick="changeConstructedBuilding(${buildingArg}, 1)" ${atLimit ? "disabled" : ""}>+</button>
+                  <button onclick="changeConstructedBuilding(${buildingArg}, -1)">- ${getBuildingLevelLabel(row)}</button>
+                  <button onclick="changeConstructedBuilding(${buildingArg}, 1)" ${atLimit ? "disabled" : ""}>+ ${getBuildingLevelLabel(row)}</button>
                 </td>
               </tr>
             `;
@@ -8917,13 +8948,23 @@ function renderBuildings() {
 }
 
 function renderProductionTable(title, headers, rows, cells) {
+  function formatProductionCell(row, cell) {
+    if (cell === "count") {
+      const count = parseInt(row.count, 10);
+      if (!Number.isNaN(count) && count > 1) return `Max Level ${count}`;
+      if (!Number.isNaN(count) && count === 1) return "1 Building";
+    }
+
+    return row[cell] || "-";
+  }
+
   return `
     <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px; overflow:auto;">
       <h3 style="margin:0 0 12px 0; color:#ffe08a; text-align:center;">${title}</h3>
       <table style="width:100%; border-collapse:collapse; color:white; min-width:720px;">
         <thead><tr>${headers.map(header => `<th style="text-align:center; padding:8px; border:1px solid rgba(255,255,255,0.22); background:rgba(255,255,255,0.06);">${header}</th>`).join("")}</tr></thead>
         <tbody>
-          ${rows.map(row => `<tr>${cells.map(cell => `<td style="text-align:center; vertical-align:top; padding:8px; border:1px solid rgba(255,255,255,0.18);">${row[cell] || "-"}</td>`).join("")}</tr>`).join("")}
+          ${rows.map(row => `<tr>${cells.map(cell => `<td style="text-align:center; vertical-align:top; padding:8px; border:1px solid rgba(255,255,255,0.18);">${formatProductionCell(row, cell)}</td>`).join("")}</tr>`).join("")}
         </tbody>
       </table>
     </div>
@@ -8949,7 +8990,7 @@ function renderConstructionProduction() {
 
   app.innerHTML = `
     <div style="display:grid; gap:20px;">
-      ${renderProductionTable("Construction Costs & Bonuses", ["Name", "Cost", "Construction Bonus", "HP", "Count", "Size"], tables.construction, ["name", "cost", "bonus", "hp", "count", "size"])}
+      ${renderProductionTable("Construction Costs & Bonuses", ["Name", "Cost", "Construction Bonus", "HP", "Max / Level", "Size"], tables.construction, ["name", "cost", "bonus", "hp", "count", "size"])}
       ${renderProductionTable("Unit & Ability Production", ["Name", "Cost", "Produced"], tables.production, ["name", "cost", "produced"])}
     </div>
   `;
@@ -9079,6 +9120,14 @@ function change(index, amount) {
 
   if (res.value < 0) {
     res.value = 0;
+  }
+
+  if (res.name === "Skill Marks") {
+    sm = Number(res.value || 0);
+    if (resourceProfile && data[resourceProfile]?.[currentFaction]) {
+      data[resourceProfile][currentFaction].sm = sm;
+    }
+    updateSM();
   }
 
   saveResourceProfile();
@@ -10275,6 +10324,7 @@ function loadProfile() {
 
     let profile = data[name][currentFaction];
     sm = profile.sm ?? 0;
+    syncSkillMarksResourceToSm();
 
     applySkills();
     updateUI();
@@ -11159,7 +11209,7 @@ document.querySelectorAll(".capstone").forEach(cap=>{
         if(cap.classList.contains("available")){
             if(sm >= cost){
                 data[resourceProfile][treeId].skills[id] = true;
-                sm -= cost;
+                setCurrentTreeSm(sm - cost);
 
                 
 
@@ -11167,6 +11217,7 @@ document.querySelectorAll(".capstone").forEach(cap=>{
                 applySkills();
                 updateUI();
                 updateSM();
+                renderResources();
 
             } else {
                 alert("Not enough SM!");
@@ -11195,7 +11246,7 @@ document.querySelectorAll(".node").forEach(node=>{
         // REMOVE
         if(node.classList.contains("unlocked")){
             delete skills[id];
-            sm += cost;
+            setCurrentTreeSm(sm + cost);
         }
 
         // ADD
@@ -11203,7 +11254,7 @@ document.querySelectorAll(".node").forEach(node=>{
             if(sm >= cost){
                 let unlocked = skills[id];
                 skills[id] = true;
-                sm -= cost;
+                setCurrentTreeSm(sm - cost);
             }
         }
 
@@ -11211,6 +11262,7 @@ document.querySelectorAll(".node").forEach(node=>{
         applySkills();
         updateUI();
         updateSM();
+        renderResources();
 
         
     });
@@ -11323,6 +11375,31 @@ function updateSM(){
     document.getElementById("smDisplay").innerText = "SM: " + sm;
 }
 
+function getSkillMarksResource(){
+    resources = normalizeResourceList(resources);
+    return resources.find(resource => resource.name === "Skill Marks");
+}
+
+function syncSkillMarksResourceToSm(){
+    const skillMarks = getSkillMarksResource();
+    if (!skillMarks) return;
+
+    skillMarks.value = sm;
+    if (resourceProfile && data[resourceProfile]) {
+        data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
+    }
+}
+
+function setCurrentTreeSm(nextSm){
+    sm = Math.max(0, Number(nextSm) || 0);
+
+    if (resourceProfile && data[resourceProfile]?.[currentFaction]) {
+        data[resourceProfile][currentFaction].sm = sm;
+    }
+
+    syncSkillMarksResourceToSm();
+}
+
 
 
     
@@ -11331,12 +11408,11 @@ function updateSM(){
 function changeSM(amount){
     if(!resourceProfile) return;
 
-    sm += amount;
-
-    if(sm < 0) sm = 0;
+    setCurrentTreeSm(sm + amount);
 
     saveProfiles();
     updateSM();
+    renderResources();
 
 }
 
@@ -11363,6 +11439,8 @@ function saveProfiles(){
 
 function persistCurrentProfileState(){
     if(!resourceProfile || !data[resourceProfile]) return false;
+
+    syncSkillMarksResourceToSm();
 
     if (Array.isArray(resources)) {
         data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
