@@ -9117,10 +9117,7 @@ function change(index, amount) {
   }
 
   if (res.name === "Skill Marks") {
-    sm = Number(res.value || 0);
-    if (resourceProfile && data[resourceProfile]?.[currentFaction]) {
-      data[resourceProfile][currentFaction].sm = sm;
-    }
+    setCurrentTreeSm(res.value);
     updateSM();
   }
 
@@ -10317,8 +10314,7 @@ function loadProfile() {
     loadResourceProfile(name);
 
     let profile = data[name][currentFaction];
-    sm = profile.sm ?? 0;
-    syncSkillMarksResourceToSm();
+    loadSharedSkillMarks();
 
     applySkills();
     updateUI();
@@ -11193,10 +11189,12 @@ document.querySelectorAll(".capstone").forEach(cap=>{
 
         const treeId = cap.closest(".tree")?.id || currentFaction;
         currentFaction = treeId;
-        sm = data[resourceProfile][treeId].sm ?? 0;
+        ensureSkillTreeState(resourceProfile, treeId);
+        sm = getSharedSkillMarks();
 
         let id = cap.dataset.id;
-        let cost = parseInt(cap.dataset.cost);
+        let cost = Number(cap.dataset.cost || 0);
+        if (!Number.isFinite(cost)) return;
 
         if(cap.classList.contains("unlocked")) return;
 
@@ -11231,10 +11229,12 @@ document.querySelectorAll(".node").forEach(node=>{
 
         const treeId = node.closest(".tree")?.id || currentFaction;
         currentFaction = treeId;
-        sm = data[resourceProfile][treeId].sm ?? 0;
+        ensureSkillTreeState(resourceProfile, treeId);
+        sm = getSharedSkillMarks();
 
         let id = node.dataset.id;
-        let cost = parseInt(node.dataset.cost);
+        let cost = Number(node.dataset.cost || 0);
+        if (!Number.isFinite(cost)) return;
         let skills = data[resourceProfile][treeId].skills;
 
         // REMOVE
@@ -11374,6 +11374,12 @@ function getSkillMarksResource(){
     return resources.find(resource => resource.name === "Skill Marks");
 }
 
+function getSharedSkillMarks(){
+    const skillMarks = getSkillMarksResource();
+    if (skillMarks) return Number(skillMarks.value || 0);
+    return Number(sm || 0);
+}
+
 function syncSkillMarksResourceToSm(){
     const skillMarks = getSkillMarksResource();
     if (!skillMarks) return;
@@ -11387,11 +11393,31 @@ function syncSkillMarksResourceToSm(){
 function setCurrentTreeSm(nextSm){
     sm = Math.max(0, Number(nextSm) || 0);
 
-    if (resourceProfile && data[resourceProfile]?.[currentFaction]) {
-        data[resourceProfile][currentFaction].sm = sm;
+    if (resourceProfile && data[resourceProfile]) {
+        Object.keys(skillTreeRootIds).forEach(treeId => {
+            if (data[resourceProfile][treeId]) {
+                data[resourceProfile][treeId].sm = sm;
+            }
+        });
     }
 
     syncSkillMarksResourceToSm();
+}
+
+function loadSharedSkillMarks(){
+    if (!resourceProfile || !data[resourceProfile]) return 0;
+
+    resources = normalizeResourceList(data[resourceProfile].resources || resources);
+    data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
+
+    const skillMarks = getSkillMarksResource();
+    const resourceSm = Number(skillMarks?.value || 0);
+    const legacyTreeSm = Object.keys(skillTreeRootIds).reduce((highest, treeId) => {
+        return Math.max(highest, Number(data[resourceProfile][treeId]?.sm || 0));
+    }, 0);
+
+    setCurrentTreeSm(Math.max(resourceSm, legacyTreeSm));
+    return sm;
 }
 
 
@@ -11402,7 +11428,7 @@ function setCurrentTreeSm(nextSm){
 function changeSM(amount){
     if(!resourceProfile) return;
 
-    setCurrentTreeSm(sm + amount);
+    setCurrentTreeSm(getSharedSkillMarks() + amount);
 
     saveProfiles();
     updateSM();
@@ -11440,9 +11466,7 @@ function persistCurrentProfileState(){
         data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
     }
 
-    if (data[resourceProfile][currentFaction]) {
-        data[resourceProfile][currentFaction].sm = sm;
-    }
+    setCurrentTreeSm(sm);
 
     localStorage.setItem("skillTreeData", JSON.stringify(data));
     queueLiveCampaignSave();
@@ -11486,7 +11510,7 @@ function refreshProfiles() {
 function resetProfile(){
     if(!resourceProfile) return;
 
-    data[resourceProfile][currentFaction].sm = sm;
+    setCurrentTreeSm(sm);
     saveProfiles();
     loadProfile();
 }
@@ -11579,7 +11603,7 @@ function showHubSkillTrees() {
   document.body.className = currentFaction;
 
   if (resourceProfile && data[resourceProfile]) {
-    sm = data[resourceProfile][currentFaction].sm ?? 0;
+    loadSharedSkillMarks();
     applySkills();
     updateSM();
     updateFury();
@@ -15502,6 +15526,7 @@ function getMetalResource() {
 }
 
 function getResourceByName(name) {
+  resources = normalizeResourceList(resources);
   return resources.find(resource => resource.name === name);
 }
 
@@ -15550,6 +15575,7 @@ function getShopItemCostOptions(item) {
 
 function getShopItemFactions(item) {
   if (item.factions) return item.factions;
+  if (Array.isArray(item.faction)) return item.faction;
   if (item.faction) return [item.faction];
   return [];
 }
@@ -15582,6 +15608,8 @@ function renderShop() {
   }
 
   ensureShopState(resourceProfile);
+  resources = normalizeResourceList(resources);
+  data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
 
   const purchases = data[resourceProfile].shop.purchases;
   const gold = getResourceByName("Gold");
@@ -15595,7 +15623,7 @@ function renderShop() {
 
   const shopFaction = getShopFaction();
   const visibleItems = shopItems.filter(item =>
-    getShopItemFactions(item).includes(shopFaction) || item.faction === "All"
+    getShopItemFactions(item).includes(shopFaction) || getShopItemFactions(item).includes("All")
   );
 
   const sectionMeta = {
@@ -15795,16 +15823,34 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
   if (!resourceProfile || !data[resourceProfile]) return;
 
   ensureShopState(resourceProfile);
+  resources = normalizeResourceList(resources);
+  data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
 
   const item = shopItems.find(shopItem => shopItem.id === itemId);
-  if (!item) return;
+  if (!item) {
+    alert("This shop item could not be found. Reload the app and try again.");
+    return;
+  }
 
   const purchases = data[resourceProfile].shop.purchases;
+  if (!item.prereq || purchases[item.prereq]) {
+    // ok
+  } else {
+    alert("Requires previous purchase first.");
+    renderShop();
+    return;
+  }
+
   const usingUnlockToken = costOptionIndex === "unlockToken";
   const cost = usingUnlockToken
     ? { amount: 1, resourceName: "Unlock Tokens", resource: getResourceByName("Unlock Tokens") }
     : getShopItemCostOptions(item)[costOptionIndex] || getShopItemCost(item);
-  if (!cost.free && !cost.resource) return;
+  if (!cost.free && !cost.resource) {
+    alert(`${cost.resourceName || "Required resource"} is missing from this profile. The resource list has been refreshed; try again.`);
+    saveResourceProfile();
+    renderShop();
+    return;
+  }
 
   // Refund if already purchased
   if (purchases[itemId]) {
@@ -15812,7 +15858,12 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
     const refundResource = getResourceByName(purchases[itemId].costResource || cost.resourceName);
 
     if (refundAmount > 0) {
-      if (!refundResource) return;
+      if (!refundResource) {
+        alert(`${purchases[itemId].costResource || cost.resourceName} is missing from this profile. The resource list has been refreshed; try again.`);
+        saveResourceProfile();
+        renderShop();
+        return;
+      }
       refundResource.value += refundAmount;
     }
 
@@ -15834,6 +15885,7 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
 
   if (!cost.free && cost.resource.value < cost.amount) {
     alert(`Not enough ${cost.resourceName}.`);
+    renderShop();
     return;
   }
 
