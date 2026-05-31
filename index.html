@@ -10834,11 +10834,6 @@ function generateCreatureRewards(tier) {
 function generateHostCreature() {
   const tier = getCreatureGeneratorValue("creatureTierSelect", "minor");
   const config = creatureGeneratorTiers[tier] || creatureGeneratorTiers.minor;
-  const behavior = getCreatureGeneratorValue("creatureBehaviorSelect", "hunter");
-  const timing = getCreatureGeneratorValue("creatureTimingSelect", "actionStart");
-  const target = getCreatureGeneratorValue("creatureTargetSelect", "nearest");
-  const spawnReason = getCreatureGeneratorValue("creatureSpawnReasonInput", "").trim();
-  const spawnSource = getCreatureGeneratorValue("creatureSpawnSourceInput", "").trim();
   const spawnCount = Math.max(1, parseInt(getCreatureGeneratorValue("creatureSpawnCountInput", "1"), 10) || 1);
   const sharedName = generateCreatureName(tier);
   const outputDamage = randomBetween(config.outputDamageMin, config.outputDamageMax);
@@ -10853,12 +10848,7 @@ function generateHostCreature() {
     rollCheck: getCreatureRollCheck(outputDamage),
     addedDamage: randomBetween(config.addedDamageMin, config.addedDamageMax),
     attackProfile: generateCreatureAttackProfile(tier),
-    rewards: generateCreatureRewards(tier),
-    behavior,
-    timing,
-    target,
-    spawnReason,
-    spawnSource
+    rewards: generateCreatureRewards(tier)
   };
 
   creatureGeneratorState.generated.unshift(creature);
@@ -10876,9 +10866,6 @@ function removeGeneratedCreature(creatureId) {
 }
 
 function renderGeneratedCreatureCard(creature) {
-  const behavior = creatureGeneratorBehaviors[creature.behavior] || creatureGeneratorBehaviors.hunter;
-  const timing = creatureGeneratorTimings[creature.timing] || creatureGeneratorTimings.actionStart;
-  const target = creatureGeneratorTargets[creature.target] || creatureGeneratorTargets.nearest;
   const tierAccent = {
     minor: "#84c46a",
     major: "#ffcc66",
@@ -10907,14 +10894,18 @@ function renderGeneratedCreatureCard(creature) {
         <p style="margin:0; color:#bbb;">${creature.attackProfile.note}</p>
       </div>
       <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; margin-bottom:10px;">
+        <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Creature Rules:</strong></p>
+        <ul style="margin:0; padding-left:20px; color:#ddd; line-height:1.45;">
+          <li>After being attacked, this creature may attack once each round.</li>
+          <li>At the end of each Phase, during Production cleanup, this creature may move and/or attack once.</li>
+          <li>Priority: attack the faction that attacked it.</li>
+          <li>Only switch focus if adjacent to multiple targets, or if another faction attacks it.</li>
+        </ul>
+      </div>
+      <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; margin-bottom:10px;">
         <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Rewards:</strong></p>
         <ul style="margin:0; padding-left:20px; color:#ddd;">${(creature.rewards || []).map(reward => `<li>${reward}</li>`).join("")}</ul>
       </div>
-      <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Timing:</strong> ${timing}</p>
-      <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Targeting:</strong> ${target}</p>
-      <p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Behavior:</strong> ${behavior.label} - ${behavior.text}</p>
-      ${creature.spawnSource ? `<p style="margin:0 0 6px 0; color:#ddd;"><strong style="color:#ffe08a;">Spawned By:</strong> ${creature.spawnSource}</p>` : ""}
-      ${creature.spawnReason ? `<p style="margin:0; color:#ddd;"><strong style="color:#ffe08a;">Reason:</strong> ${creature.spawnReason}</p>` : ""}
     </div>
   `;
 }
@@ -10934,27 +10925,6 @@ function renderCreatureGenerator() {
         </label>
         <label style="display:block; margin-bottom:10px; color:#ddd;">Spawn Count<br>
           <input id="creatureSpawnCountInput" type="number" min="1" value="1" style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
-        </label>
-        <label style="display:block; margin-bottom:10px; color:#ddd;">Behavior<br>
-          <select id="creatureBehaviorSelect" style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
-            ${Object.entries(creatureGeneratorBehaviors).map(([key, behavior]) => `<option value="${key}">${behavior.label}</option>`).join("")}
-          </select>
-        </label>
-        <label style="display:block; margin-bottom:10px; color:#ddd;">Acts During<br>
-          <select id="creatureTimingSelect" style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
-            ${Object.entries(creatureGeneratorTimings).map(([key, label]) => `<option value="${key}">${label}</option>`).join("")}
-          </select>
-        </label>
-        <label style="display:block; margin-bottom:10px; color:#ddd;">Target Priority<br>
-          <select id="creatureTargetSelect" style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
-            ${Object.entries(creatureGeneratorTargets).map(([key, label]) => `<option value="${key}">${label}</option>`).join("")}
-          </select>
-        </label>
-        <label style="display:block; margin-bottom:10px; color:#ddd;">Spawned By / Source<br>
-          <input id="creatureSpawnSourceInput" placeholder="World Event, Breach, faction, cave..." style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;">
-        </label>
-        <label style="display:block; margin-bottom:14px; color:#ddd;">Spawn Reason<br>
-          <textarea id="creatureSpawnReasonInput" rows="3" placeholder="Why it spawned or special GM note..." style="width:100%; margin-top:5px; padding:8px; background:#191919; color:#f2e6c0; border:1px solid rgba(255,255,255,0.18); border-radius:5px;"></textarea>
         </label>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button type="button" onclick="generateHostCreature()">Generate Creature</button>
@@ -18445,7 +18415,6 @@ function renderTrackers() {
           <h4 style="margin-top:0;">Presence Increases When</h4>
           <ul style="margin:0; padding-left:18px; line-height:1.5;">
             <li>The same cave is explored 3 times: +1</li>
-            <li>A cave creature / guide is killed: +1</li>
             <li>The first World Event is triggered each Mission: +1</li>
             <li>A cave Chest Card is looted by a player: +1</li>
             <li>A cave involving multiple factions is explored: +1</li>
@@ -18457,8 +18426,6 @@ function renderTrackers() {
           <h4 style="margin-top:0;">Presence Decreases When</h4>
           <ul style="margin:0; padding-left:18px; line-height:1.5;">
             <li>A cave is exited early: -1</li>
-            <li>A sacrifice is made willingly: -1</li>
-            <li>A guide is spared or helped: -1</li>
             <li>A Mythological Cave is successful: -2</li>
             <li>A unit dies in the Cave: -1</li>
           </ul>
