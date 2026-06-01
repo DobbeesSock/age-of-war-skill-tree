@@ -9287,6 +9287,8 @@ function renderInventory() {
 }
 
 const heroWeaponSlots = ["mainHand", "offHand", "twoHanded"];
+const heroSpellSlots = ["spellOne", "spellTwo", "spellThree"];
+const heroAccessorySlots = ["accessoryOne", "accessoryTwo"];
 
 const defaultHeroEquipmentCards = [
   {
@@ -9468,10 +9470,790 @@ const defaultHeroEquipmentCards = [
     faction: "any",
     text: "+3 OD. Once per Round: deal 2 damage to all adjacent enemies.",
     rarity: "Mythic"
+  },
+  {
+    id: "armour_reinforced_plate",
+    name: "Reinforced Plate",
+    type: "Armour",
+    slot: "armour",
+    pile: "common",
+    faction: "any",
+    text: "+2 Armour. -2 Movement.",
+    rarity: "Common"
+  },
+  {
+    id: "armour_hardened_leather",
+    name: "Hardened Leather",
+    type: "Armour",
+    slot: "armour",
+    pile: "common",
+    faction: "any",
+    text: "+1 Armour. +2 Movement.",
+    rarity: "Common"
+  },
+  {
+    id: "armour_dragon_scale",
+    name: "Dragon Scale Armour",
+    type: "Armour",
+    slot: "armour",
+    pile: "rare",
+    faction: "any",
+    text: "+3 Armour. Immune to Fire.",
+    rarity: "Rare"
+  },
+  {
+    id: "armour_shadow_weave",
+    name: "Shadow Weave",
+    type: "Armour",
+    slot: "armour",
+    pile: "rare",
+    faction: "any",
+    text: "+2 Armour. Immune to Ambush.",
+    rarity: "Rare"
+  },
+  {
+    id: "armour_stoneward_plate",
+    name: "Stoneward Plate",
+    type: "Armour",
+    slot: "armour",
+    pile: "legendary",
+    faction: "any",
+    text: "+4 Armour. Immune to Breakdown.",
+    rarity: "Legendary"
+  },
+  {
+    id: "armour_ancient_titan_plate",
+    name: "Ancient Titan Plate",
+    type: "Armour",
+    slot: "armour",
+    pile: "mythic",
+    faction: "any",
+    text: "+5 Armour. Immune to Fire, Frost, and Poison.",
+    rarity: "Mythic"
+  },
+  {
+    id: "armour_dwarf_forge_plate",
+    name: "Dwarf Forge Plate",
+    type: "Armour",
+    slot: "armour",
+    pile: "rare",
+    faction: "dwarves",
+    text: "+3 Armour. Immune to Breakdown.",
+    rarity: "Rare"
+  },
+  {
+    id: "armour_elven_chainweave",
+    name: "Elven Chainweave",
+    type: "Armour",
+    slot: "armour",
+    pile: "rare",
+    faction: "elves",
+    text: "+2 Armour. +1 RC.",
+    rarity: "Rare"
+  },
+  {
+    id: "armour_crusader_plate",
+    name: "Crusader Plate",
+    type: "Armour",
+    slot: "armour",
+    pile: "rare",
+    faction: "men",
+    text: "+3 Armour. Immune to Terror.",
+    rarity: "Rare"
+  },
+  {
+    id: "armour_shadow_cloak_armour",
+    name: "Shadow Cloak Armour",
+    type: "Armour",
+    slot: "armour",
+    pile: "legendary",
+    faction: "order",
+    text: "+2 Armour. Immune to Ambush. Gain Stealth (1).",
+    rarity: "Legendary"
+  },
+  {
+    id: "armour_barbarian_hide",
+    name: "Barbarian Hide",
+    type: "Armour",
+    slot: "armour",
+    pile: "rare",
+    faction: "barbarians",
+    text: "+2 Armour. +1 OD.",
+    rarity: "Rare"
+  },
+  {
+    id: "armour_armour_of_ages",
+    name: "Armour of Ages",
+    type: "Armour",
+    slot: "armour",
+    pile: "mythic",
+    faction: "any",
+    text: "+6 Armour. Immune to Fire, Frost, Shock, Breakdown, Poison, and Terror.",
+    rarity: "Mythic"
+  },
+  {
+    id: "shield_tower_shield",
+    name: "Tower Shield",
+    type: "Shield",
+    slot: "offHand",
+    pile: "common",
+    faction: "any",
+    text: "+2 Armour.",
+    rarity: "Common"
+  },
+  {
+    id: "shield_spiked_shield",
+    name: "Spiked Shield",
+    type: "Shield",
+    slot: "offHand",
+    pile: "common",
+    faction: "any",
+    text: "+1 Armour. +1 Retaliate.",
+    rarity: "Common"
+  },
+  {
+    id: "shield_banner_shield",
+    name: "Banner Shield",
+    type: "Shield",
+    slot: "offHand",
+    pile: "rare",
+    faction: "any",
+    text: "+1 Armour. Adjacent allies gain +1 RC.",
+    rarity: "Rare"
+  },
+  {
+    id: "shield_bulwark_of_ages",
+    name: "Bulwark of Ages",
+    type: "Shield",
+    slot: "offHand",
+    pile: "legendary",
+    faction: "any",
+    text: "+1 Armour. Adjacent allies gain +1 Armour.",
+    rarity: "Legendary"
+  },
+  {
+    id: "shield_shield_of_the_last_stand",
+    name: "Shield of the Last Stand",
+    type: "Shield",
+    slot: "offHand",
+    pile: "rare",
+    faction: "any",
+    text: "+1 Armour. When below 50% HP: +1 Retaliate.",
+    rarity: "Rare"
+  },
+  {
+    id: "shield_wallbreaker_shield",
+    name: "Wallbreaker Shield",
+    type: "Shield",
+    slot: "offHand",
+    pile: "rare",
+    faction: "any",
+    text: "+1 Armour. Double damage to Structures.",
+    rarity: "Rare"
+  },
+  {
+    id: "shield_reflector_shield",
+    name: "Reflector Shield",
+    type: "Shield",
+    slot: "offHand",
+    pile: "rare",
+    faction: "any",
+    text: "+1 Armour. Once per Round: Reflect 1 damage.",
+    rarity: "Rare"
+  },
+  {
+    id: "shield_guardian_shield",
+    name: "Guardian Shield",
+    type: "Shield",
+    slot: "offHand",
+    pile: "legendary",
+    faction: "any",
+    text: "+2 Armour. Adjacent allies have Cover (1).",
+    rarity: "Legendary"
+  },
+  {
+    id: "shield_aegis_of_kings",
+    name: "Aegis of Kings",
+    type: "Shield",
+    slot: "offHand",
+    pile: "mythic",
+    faction: "any",
+    text: "+3 Armour. Adjacent allies gain +2 Armour and +1 RC.",
+    rarity: "Mythic"
+  },
+  {
+    id: "shield_shield_of_echoes",
+    name: "Shield of Echoes",
+    type: "Shield",
+    slot: "offHand",
+    pile: "mythic",
+    faction: "any",
+    text: "+2 Armour. Enemy attacks against you suffer -1 RC.",
+    rarity: "Mythic"
+  },
+  {
+    id: "helmet_war_helm",
+    name: "War Helm",
+    type: "Helmet",
+    slot: "head",
+    pile: "common",
+    faction: "any",
+    text: "+1 OD.",
+    rarity: "Common"
+  },
+  {
+    id: "helmet_iron_visor",
+    name: "Iron Visor",
+    type: "Helmet",
+    slot: "head",
+    pile: "common",
+    faction: "any",
+    text: "+1 Armour.",
+    rarity: "Common"
+  },
+  {
+    id: "helmet_crown_of_command",
+    name: "Crown of Command",
+    type: "Helmet",
+    slot: "head",
+    pile: "rare",
+    faction: "any",
+    text: "Adjacent allies gain +1 Movement.",
+    rarity: "Rare"
+  },
+  {
+    id: "helmet_helm_of_the_seer",
+    name: "Helm of the Seer",
+    type: "Helmet",
+    slot: "head",
+    pile: "rare",
+    faction: "any",
+    text: "May reroll 1 Battle Table result per Round.",
+    rarity: "Rare"
+  },
+  {
+    id: "helmet_deathmask",
+    name: "Deathmask",
+    type: "Helmet",
+    slot: "head",
+    pile: "legendary",
+    faction: "any",
+    text: "Enemies suffer -1 RC when attacking this Hero.",
+    rarity: "Legendary"
+  },
+  {
+    id: "helmet_crown_of_ages",
+    name: "Crown of Ages",
+    type: "Helmet",
+    slot: "head",
+    pile: "legendary",
+    faction: "any",
+    text: "Adjacent allies gain +1 OD and +1 RC.",
+    rarity: "Legendary"
+  },
+  {
+    id: "helmet_skull_helm",
+    name: "Skull Helm",
+    type: "Helmet",
+    slot: "head",
+    pile: "rare",
+    faction: "any",
+    text: "Gain +1 Retaliate.",
+    rarity: "Rare"
+  },
+  {
+    id: "helmet_helm_of_focus",
+    name: "Helm of Focus",
+    type: "Helmet",
+    slot: "head",
+    pile: "rare",
+    faction: "any",
+    text: "+1 RC.",
+    rarity: "Rare"
+  },
+  {
+    id: "helmet_veiled_mask",
+    name: "Veiled Mask",
+    type: "Helmet",
+    slot: "head",
+    pile: "legendary",
+    faction: "any",
+    text: "Immune to Ambush.",
+    rarity: "Legendary"
+  },
+  {
+    id: "helmet_dragonbone_helm",
+    name: "Dragonbone Helm",
+    type: "Helmet",
+    slot: "head",
+    pile: "legendary",
+    faction: "any",
+    text: "+2 Armour. Immune to Fire.",
+    rarity: "Legendary"
+  },
+  {
+    id: "helmet_helm_of_the_first_king",
+    name: "Helm of the First King",
+    type: "Helmet",
+    slot: "head",
+    pile: "mythic",
+    faction: "any",
+    text: "Adjacent allies gain +1 OD, +1 RC and +1 Movement.",
+    rarity: "Mythic"
+  },
+  {
+    id: "helmet_mask_of_eternity",
+    name: "Mask of Eternity",
+    type: "Helmet",
+    slot: "head",
+    pile: "mythic",
+    faction: "any",
+    text: "Once per Mission: Ignore all damage from one attack.",
+    rarity: "Mythic"
+  },
+  {
+    id: "greaves_iron_greaves",
+    name: "Iron Greaves",
+    type: "Greaves",
+    slot: "greaves",
+    pile: "common",
+    faction: "any",
+    text: "+2 Movement.",
+    rarity: "Common"
+  },
+  {
+    id: "greaves_reinforced_sabatons",
+    name: "Reinforced Sabatons",
+    type: "Greaves",
+    slot: "greaves",
+    pile: "common",
+    faction: "any",
+    text: "+1 Armour. +2 Movement.",
+    rarity: "Common"
+  },
+  {
+    id: "greaves_dwarven_stonegreaves",
+    name: "Dwarven Stonegreaves",
+    type: "Greaves",
+    slot: "greaves",
+    pile: "rare",
+    faction: "dwarves",
+    text: "+2 Armour. +3 Movement.",
+    rarity: "Rare"
+  },
+  {
+    id: "greaves_boots_of_the_hunt",
+    name: "Boots of the Hunt",
+    type: "Greaves",
+    slot: "greaves",
+    pile: "rare",
+    faction: "any",
+    text: "+5 Movement. Gain High Ground.",
+    rarity: "Rare"
+  },
+  {
+    id: "greaves_phantom_steps",
+    name: "Phantom Steps",
+    type: "Greaves",
+    slot: "greaves",
+    pile: "legendary",
+    faction: "any",
+    text: "+5 Movement. Move through enemy units.",
+    rarity: "Legendary"
+  },
+  {
+    id: "greaves_ironstride_greaves",
+    name: "Ironstride Greaves",
+    type: "Greaves",
+    slot: "greaves",
+    pile: "rare",
+    faction: "any",
+    text: "+3 Movement. Ignore difficult terrain.",
+    rarity: "Rare"
+  },
+  {
+    id: "greaves_elven_striders",
+    name: "Elven Striders",
+    type: "Greaves",
+    slot: "greaves",
+    pile: "rare",
+    faction: "elves",
+    text: "+4 Movement. Ignore Forest movement penalties.",
+    rarity: "Rare"
+  },
+  {
+    id: "greaves_windrunner_greaves",
+    name: "Windrunner Greaves",
+    type: "Greaves",
+    slot: "greaves",
+    pile: "rare",
+    faction: "any",
+    text: "+4 Movement. +1 RC.",
+    rarity: "Rare"
+  },
+  {
+    id: "greaves_greaves_of_the_bear",
+    name: "Greaves of the Bear",
+    type: "Greaves",
+    slot: "greaves",
+    pile: "legendary",
+    faction: "any",
+    text: "+3 Armour. +4 Movement. Gain Trample.",
+    rarity: "Legendary"
+  },
+  {
+    id: "greaves_celestial_striders",
+    name: "Celestial Striders",
+    type: "Greaves",
+    slot: "greaves",
+    pile: "legendary",
+    faction: "any",
+    text: "+6 Movement. Fly (Ignore terrain and units).",
+    rarity: "Legendary"
+  },
+  {
+    id: "greaves_titans_march",
+    name: "Titan's March",
+    type: "Greaves",
+    slot: "greaves",
+    pile: "mythic",
+    faction: "any",
+    text: "+4 Armour. +6 Movement. Enemies adjacent suffer 1 damage per Round.",
+    rarity: "Mythic"
+  },
+  {
+    id: "greaves_veilwalkers",
+    name: "Veilwalkers",
+    type: "Greaves",
+    slot: "greaves",
+    pile: "mythic",
+    faction: "order",
+    text: "+6 Movement. Move through all units and structures.",
+    rarity: "Mythic"
+  },
+  {
+    id: "spell_frost_nova",
+    name: "Frost Nova",
+    type: "Spell",
+    slot: heroSpellSlots,
+    pile: "common",
+    faction: "any",
+    text: "Range 1-4. Target all adjacent enemies. Gain: Frost (1).",
+    rarity: "Common"
+  },
+  {
+    id: "spell_flame_strike",
+    name: "Flame Strike",
+    type: "Spell",
+    slot: heroSpellSlots,
+    pile: "common",
+    faction: "any",
+    text: "Range 2-6. Target 1 enemy area within range. Deal 3 damage.",
+    rarity: "Common"
+  },
+  {
+    id: "spell_stone_skin",
+    name: "Stone Skin",
+    type: "Spell",
+    slot: heroSpellSlots,
+    pile: "common",
+    faction: "any",
+    text: "Gain: +2 Armour until your next Round.",
+    rarity: "Common"
+  },
+  {
+    id: "spell_chain_lightning",
+    name: "Chain Lightning",
+    type: "Spell",
+    slot: heroSpellSlots,
+    pile: "rare",
+    faction: "any",
+    text: "Range 1-4. Jump to 2 additional enemies. Deal 2 damage to each.",
+    rarity: "Rare"
+  },
+  {
+    id: "spell_healing_radiance",
+    name: "Healing Radiance",
+    type: "Spell",
+    slot: heroSpellSlots,
+    pile: "rare",
+    faction: "any",
+    text: "Range 0-3. Target all allies within range. Restore 3 HP.",
+    rarity: "Rare"
+  },
+  {
+    id: "spell_meteor",
+    name: "Meteor",
+    type: "Spell",
+    slot: heroSpellSlots,
+    pile: "legendary",
+    faction: "any",
+    text: "Range 0-8. Choose a space within range. Everything adjacent suffers 3 damage. Once per Mission.",
+    rarity: "Legendary"
+  },
+  {
+    id: "spell_shadow_step",
+    name: "Shadow Step",
+    type: "Spell",
+    slot: heroSpellSlots,
+    pile: "rare",
+    faction: "any",
+    text: "Range 0-6. Move up to 6 spaces. Gain Stealth (1).",
+    rarity: "Rare"
+  },
+  {
+    id: "spell_thunder_clap",
+    name: "Thunder Clap",
+    type: "Spell",
+    slot: heroSpellSlots,
+    pile: "rare",
+    faction: "any",
+    text: "Range 1. Target all adjacent enemies. Deal 2 damage. Stun (1).",
+    rarity: "Rare"
+  },
+  {
+    id: "spell_curse_of_weakness",
+    name: "Curse of Weakness",
+    type: "Spell",
+    slot: heroSpellSlots,
+    pile: "rare",
+    faction: "any",
+    text: "Range 1-4. Target 1 enemy. -2 OD until next Round.",
+    rarity: "Rare"
+  },
+  {
+    id: "spell_invigorating_blessing",
+    name: "Invigorating Blessing",
+    type: "Spell",
+    slot: heroSpellSlots,
+    pile: "legendary",
+    faction: "any",
+    text: "Range 0-3. Target all allies within range. +2 OD and +2 Movement until next Round.",
+    rarity: "Legendary"
+  },
+  {
+    id: "spell_time_warp",
+    name: "Time Warp",
+    type: "Spell",
+    slot: heroSpellSlots,
+    pile: "legendary",
+    faction: "any",
+    text: "Choose 1 ally. Take an extra Turn with that unit. Once per Mission.",
+    rarity: "Legendary"
+  },
+  {
+    id: "spell_void_eruption",
+    name: "Void Eruption",
+    type: "Spell",
+    slot: heroSpellSlots,
+    pile: "mythic",
+    faction: "any",
+    text: "Range 1-5. Target all enemies within range. Deal 4 damage. Gain Weakness (1). Once per Mission.",
+    rarity: "Mythic"
+  },
+  {
+    id: "talisman_of_fury",
+    name: "Talisman of Fury",
+    type: "Talisman",
+    slot: heroAccessorySlots,
+    pile: "legendary",
+    faction: "any",
+    text: "+3 Retaliate. +1 RC.",
+    rarity: "Legendary"
+  },
+  {
+    id: "talisman_of_endurance",
+    name: "Talisman of Endurance",
+    type: "Talisman",
+    slot: heroAccessorySlots,
+    pile: "legendary",
+    faction: "any",
+    text: "+3 Armour. +5 HP.",
+    rarity: "Legendary"
+  },
+  {
+    id: "talisman_of_the_hunter",
+    name: "Talisman of the Hunter",
+    type: "Talisman",
+    slot: heroAccessorySlots,
+    pile: "rare",
+    faction: "any",
+    text: "+2 Movement. Gain High Ground.",
+    rarity: "Rare"
+  },
+  {
+    id: "talisman_of_shadows",
+    name: "Talisman of Shadows",
+    type: "Talisman",
+    slot: heroAccessorySlots,
+    pile: "mythic",
+    faction: "any",
+    text: "+1 RC. Gain Stealth (1).",
+    rarity: "Mythic"
+  },
+  {
+    id: "talisman_of_rejuvenation",
+    name: "Talisman of Rejuvenation",
+    type: "Talisman",
+    slot: heroAccessorySlots,
+    pile: "rare",
+    faction: "any",
+    text: "Restore 3 HP. Once per Mission.",
+    rarity: "Rare"
+  },
+  {
+    id: "talisman_of_accuracy",
+    name: "Talisman of Accuracy",
+    type: "Talisman",
+    slot: heroAccessorySlots,
+    pile: "rare",
+    faction: "any",
+    text: "+10% Hit Chance. +1 Retaliate.",
+    rarity: "Rare"
+  },
+  {
+    id: "talisman_of_protection",
+    name: "Talisman of Protection",
+    type: "Talisman",
+    slot: heroAccessorySlots,
+    pile: "legendary",
+    faction: "any",
+    text: "+2 Armour. Enemies suffer -1 RC when attacking you.",
+    rarity: "Legendary"
+  },
+  {
+    id: "talisman_of_the_mind",
+    name: "Talisman of the Mind",
+    type: "Talisman",
+    slot: heroAccessorySlots,
+    pile: "mythic",
+    faction: "any",
+    text: "+2 RC. Ignore all damage from your next attack.",
+    rarity: "Mythic"
+  },
+  {
+    id: "talisman_of_swiftness",
+    name: "Talisman of Swiftness",
+    type: "Talisman",
+    slot: heroAccessorySlots,
+    pile: "rare",
+    faction: "any",
+    text: "+2 Movement. Ignore difficult terrain once per Mission.",
+    rarity: "Rare"
+  },
+  {
+    id: "talisman_of_dominion",
+    name: "Talisman of Dominion",
+    type: "Talisman",
+    slot: heroAccessorySlots,
+    pile: "legendary",
+    faction: "any",
+    text: "+1 OD. Adjacent allies gain +1 OD and +1 RC.",
+    rarity: "Legendary"
+  },
+  {
+    id: "banner_of_war",
+    name: "Banner of War",
+    type: "Banner",
+    slot: heroAccessorySlots,
+    pile: "legendary",
+    faction: "orcs",
+    text: "Adjacent allies: +1 OD.",
+    rarity: "Legendary"
+  },
+  {
+    id: "banner_of_defiance",
+    name: "Banner of Defiance",
+    type: "Banner",
+    slot: heroAccessorySlots,
+    pile: "rare",
+    faction: "order",
+    text: "Adjacent allies: +1 Armour.",
+    rarity: "Rare"
+  },
+  {
+    id: "banner_of_conquest",
+    name: "Banner of Conquest",
+    type: "Banner",
+    slot: heroAccessorySlots,
+    pile: "rare",
+    faction: "elves",
+    text: "Whenever a Structure falls: Gain 2 Gold.",
+    rarity: "Rare"
+  },
+  {
+    id: "banner_of_the_horde",
+    name: "Banner of the Horde",
+    type: "Banner",
+    slot: heroAccessorySlots,
+    pile: "rare",
+    faction: "orcs",
+    text: "Shadow Orcs only. Adjacent Orc units: +1 RC.",
+    rarity: "Rare"
+  },
+  {
+    id: "banner_of_fury",
+    name: "Banner of Fury",
+    type: "Banner",
+    slot: heroAccessorySlots,
+    pile: "legendary",
+    faction: "barbarians",
+    text: "Once per Round, when you destroy a unit: Adjacent allies gain +1 OD.",
+    rarity: "Legendary"
+  },
+  {
+    id: "banner_of_fortitude",
+    name: "Banner of Fortitude",
+    type: "Banner",
+    slot: heroAccessorySlots,
+    pile: "rare",
+    faction: "dwarves",
+    text: "Adjacent allies: +1 Armour and +5 HP.",
+    rarity: "Rare"
+  },
+  {
+    id: "banner_of_the_bear",
+    name: "Banner of the Bear",
+    type: "Banner",
+    slot: heroAccessorySlots,
+    pile: "rare",
+    faction: "barbarians",
+    text: "Adjacent allies: Gain Trample and +1 HP.",
+    rarity: "Rare"
+  },
+  {
+    id: "banner_of_swiftness",
+    name: "Banner of Swiftness",
+    type: "Banner",
+    slot: heroAccessorySlots,
+    pile: "rare",
+    faction: "any",
+    text: "Adjacent allies: +1 Movement. Flying units gain +1 OD.",
+    rarity: "Rare"
+  },
+  {
+    id: "banner_of_darkness",
+    name: "Banner of Darkness",
+    type: "Banner",
+    slot: heroAccessorySlots,
+    pile: "mythic",
+    faction: "order",
+    text: "Adjacent allies: Gain Stealth (1). +1 RC.",
+    rarity: "Mythic"
+  },
+  {
+    id: "banner_of_the_ancestors",
+    name: "Banner of the Ancestors",
+    type: "Banner",
+    slot: heroAccessorySlots,
+    pile: "legendary",
+    faction: "elves",
+    text: "Once per Mission: Fully restore 1 adjacent ally's HP.",
+    rarity: "Legendary"
   }
 ];
 
-const heroEquipmentDeckVersion = 2;
+const heroEquipmentDeckVersion = 9;
 
 const heroEquipmentPiles = [
   { id: "common", label: "Common" },
