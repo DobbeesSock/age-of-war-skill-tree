@@ -260,6 +260,177 @@ h1 {
   color: #fff2b2;
 }
 
+.hero-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(280px, 420px) minmax(260px, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.hero-paperdoll {
+  min-height: 640px;
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(0,0,0,0.15)),
+    radial-gradient(circle at center 28%, rgba(212,175,55,0.16), transparent 40%),
+    rgba(12,12,12,0.86);
+  border: 1px solid rgba(212,175,55,0.35);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hero-figure {
+  position: absolute;
+  inset: 70px 56px 70px;
+}
+
+.hero-part {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(210,210,210,0.18);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: inset 0 0 18px rgba(255,255,255,0.05);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hero-part.equipped {
+  background: linear-gradient(180deg, rgba(212,175,55,0.86), rgba(112,82,22,0.92));
+  border-color: rgba(255,224,138,0.9);
+  box-shadow: 0 0 18px rgba(212,175,55,0.38), inset 0 0 18px rgba(255,255,255,0.12);
+}
+
+.hero-head {
+  top: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+}
+
+.hero-armour {
+  top: 90px;
+  width: 122px;
+  height: 172px;
+  border-radius: 52px 52px 22px 22px;
+}
+
+.hero-arm {
+  top: 112px;
+  width: 38px;
+  height: 170px;
+  border-radius: 22px;
+}
+
+.hero-arm.left {
+  left: calc(50% - 94px);
+}
+
+.hero-arm.right {
+  left: calc(50% + 94px);
+}
+
+.hero-legs {
+  top: 282px;
+  width: 100px;
+  height: 142px;
+  border-radius: 18px 18px 36px 36px;
+}
+
+.hero-greaves {
+  top: 408px;
+  width: 92px;
+  height: 92px;
+  border-radius: 20px;
+}
+
+.hero-footgear {
+  top: 512px;
+  width: 130px;
+  height: 34px;
+  border-radius: 18px;
+}
+
+.hero-weapon {
+  position: absolute;
+  top: 150px;
+  width: 28px;
+  height: 190px;
+  background: rgba(210,210,210,0.16);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+}
+
+.hero-weapon.left {
+  left: 18px;
+  transform: rotate(-12deg);
+}
+
+.hero-weapon.right {
+  right: 18px;
+  transform: rotate(12deg);
+}
+
+.hero-weapon.two-handed {
+  left: 50%;
+  top: 92px;
+  height: 360px;
+  transform: translateX(92px) rotate(20deg);
+}
+
+.hero-weapon.equipped {
+  background: linear-gradient(180deg, rgba(170,205,255,0.88), rgba(68,93,137,0.94));
+  border-color: rgba(210,232,255,0.9);
+  box-shadow: 0 0 16px rgba(120,170,255,0.35);
+}
+
+.hero-mount-platform {
+  position: absolute;
+  left: 46px;
+  right: 46px;
+  bottom: 22px;
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  color: #d8c48a;
+  border: 1px dashed rgba(212,175,55,0.45);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.25);
+}
+
+.hero-mount-platform.equipped {
+  color: #fff2b2;
+  border-style: solid;
+  background: rgba(85,62,18,0.65);
+}
+
+.hero-equip-card {
+  display: grid;
+  gap: 7px;
+  background: rgba(18,18,18,0.72);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.hero-equip-card span {
+  color: #ffe08a;
+  font-weight: bold;
+}
+
+.hero-equip-card small {
+  color: #cfc4a0;
+}
+
+@media (max-width: 980px) {
+  .hero-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-paperdoll {
+    min-height: 560px;
+  }
+}
+
 .keyword-chip.hidden-path-pull {
   border-color: rgba(128, 201, 80, 0.62);
   box-shadow: 0 0 8px rgba(88, 190, 60, 0.28), inset 0 0 12px rgba(80, 130, 40, 0.12);
@@ -9029,15 +9200,38 @@ function renderInventory() {
   `;
 }
 
+const heroCardCatalog = {
+  head: [],
+  armour: [],
+  legs: [],
+  greaves: [],
+  footgear: [],
+  mainHand: [],
+  offHand: [],
+  twoHanded: [],
+  mount: [],
+  spellOne: [],
+  spellTwo: [],
+  spellThree: [],
+  accessoryOne: [],
+  accessoryTwo: []
+};
+
 const heroEquipmentSlots = [
-  { id: "head", label: "Head" },
-  { id: "armour", label: "Armour" },
-  { id: "legs", label: "Legs" },
-  { id: "greaves", label: "Greaves" },
-  { id: "footgear", label: "Footgear" },
-  { id: "mount", label: "Mount" },
-  { id: "accessoryOne", label: "Accessory 1" },
-  { id: "accessoryTwo", label: "Accessory 2" }
+  { id: "head", label: "Head", hint: "Helms, crowns, masks, hoods" },
+  { id: "armour", label: "Armour", hint: "Chest pieces and robes" },
+  { id: "legs", label: "Legs", hint: "Leg armour and garments" },
+  { id: "greaves", label: "Greaves", hint: "Shin and knee protection" },
+  { id: "footgear", label: "Footgear", hint: "Boots, sandals, sabatons" }
+];
+
+const heroUtilitySlots = [
+  { id: "mount", label: "Mount", hint: "Horses, beasts, vehicles" },
+  { id: "spellOne", label: "Spell 1", hint: "Prepared spell or power" },
+  { id: "spellTwo", label: "Spell 2", hint: "Prepared spell or power" },
+  { id: "spellThree", label: "Spell 3", hint: "Prepared spell or power" },
+  { id: "accessoryOne", label: "Accessory 1", hint: "Rings, charms, relic gear" },
+  { id: "accessoryTwo", label: "Accessory 2", hint: "Rings, charms, relic gear" }
 ];
 
 function createDefaultHeroEquipment() {
@@ -9055,6 +9249,9 @@ function createDefaultHeroEquipment() {
       offHand: "",
       twoHanded: "",
       mount: "",
+      spellOne: "",
+      spellTwo: "",
+      spellThree: "",
       accessoryOne: "",
       accessoryTwo: ""
     },
@@ -9085,55 +9282,80 @@ function ensureHeroState(profileName) {
   };
 }
 
-function renderHeroInput(slot) {
+function renderHeroSelect(slot) {
   const hero = data[resourceProfile].hero;
+  const cards = heroCardCatalog[slot.id] || [];
+  const currentValue = hero.slots[slot.id] || "";
+  const hasCustomValue = currentValue && !cards.some(card => card.id === currentValue || card.name === currentValue);
+
   return `
-    <label style="display:grid; gap:6px; background:rgba(18,18,18,0.72); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:12px;">
-      <span style="color:#ffe08a; font-weight:bold;">${slot.label}</span>
+    <div class="hero-equip-card">
+      <span>${slot.label}</span>
+      <select onchange="updateHeroEquipmentSlot('${slot.id}', this.value)">
+        <option value="">No card equipped</option>
+        ${cards.map(card => {
+          const value = card.id || card.name;
+          return `<option value="${escapeHeroValue(value)}" ${currentValue === value ? "selected" : ""}>${escapeHeroValue(card.name || value)}</option>`;
+        }).join("")}
+        ${hasCustomValue ? `<option value="${escapeHeroValue(currentValue)}" selected>${escapeHeroValue(currentValue)}</option>` : ""}
+      </select>
       <input
-        value="${escapeHeroValue(hero.slots[slot.id])}"
-        placeholder="Equipped item"
+        value="${escapeHeroValue(currentValue)}"
+        placeholder="Temporary custom item"
         onchange="updateHeroEquipmentSlot('${slot.id}', this.value)"
-        style="width:100%; box-sizing:border-box;"
       >
-    </label>
+      <small>${slot.hint}</small>
+    </div>
   `;
 }
 
-function renderHeroWeaponFields(hero) {
+function renderHeroWeaponFields() {
+  const hero = data[resourceProfile].hero;
+
   if (hero.weaponStyle === "twoHanded") {
-    return `
-      <label style="display:grid; gap:6px; background:rgba(18,18,18,0.72); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:12px;">
-        <span style="color:#ffe08a; font-weight:bold;">Two-Handed Weapon</span>
-        <input
-          value="${escapeHeroValue(hero.slots.twoHanded)}"
-          placeholder="Equipped two-handed weapon"
-          onchange="updateHeroEquipmentSlot('twoHanded', this.value)"
-          style="width:100%; box-sizing:border-box;"
-        >
-      </label>
-    `;
+    return renderHeroSelect({ id: "twoHanded", label: "Two-Handed Weapon", hint: "Large weapon card" });
   }
 
   return `
-    <label style="display:grid; gap:6px; background:rgba(18,18,18,0.72); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:12px;">
-      <span style="color:#ffe08a; font-weight:bold;">Main-Hand Weapon</span>
-      <input
-        value="${escapeHeroValue(hero.slots.mainHand)}"
-        placeholder="Equipped one-handed weapon"
-        onchange="updateHeroEquipmentSlot('mainHand', this.value)"
-        style="width:100%; box-sizing:border-box;"
-      >
-    </label>
-    <label style="display:grid; gap:6px; background:rgba(18,18,18,0.72); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:12px;">
-      <span style="color:#ffe08a; font-weight:bold;">Off-Hand Weapon</span>
-      <input
-        value="${escapeHeroValue(hero.slots.offHand)}"
-        placeholder="Second one-handed weapon or shield"
-        onchange="updateHeroEquipmentSlot('offHand', this.value)"
-        style="width:100%; box-sizing:border-box;"
-      >
-    </label>
+    ${renderHeroSelect({ id: "mainHand", label: "Main-Hand Weapon", hint: "One-handed weapon card" })}
+    ${renderHeroSelect({ id: "offHand", label: "Off-Hand Weapon", hint: "Second one-handed weapon or shield" })}
+  `;
+}
+
+function isHeroSlotEquipped(hero, slotId) {
+  return Boolean(hero?.slots?.[slotId]);
+}
+
+function renderHeroPaperDoll(hero) {
+  const weaponEquipped = hero.weaponStyle === "twoHanded"
+    ? isHeroSlotEquipped(hero, "twoHanded")
+    : isHeroSlotEquipped(hero, "mainHand") || isHeroSlotEquipped(hero, "offHand");
+
+  return `
+    <div class="hero-paperdoll">
+      <div style="position:absolute; top:18px; left:18px; right:18px; display:flex; justify-content:space-between; gap:10px; color:#ffe08a; font-weight:bold;">
+        <span>${escapeHeroValue(hero.name || "Unnamed Hero")}</span>
+        <span>${escapeHeroValue(hero.className || "No Role")}</span>
+      </div>
+      <div class="hero-figure">
+        <div class="hero-part hero-head ${isHeroSlotEquipped(hero, "head") ? "equipped" : ""}" title="Head"></div>
+        <div class="hero-part hero-armour ${isHeroSlotEquipped(hero, "armour") ? "equipped" : ""}" title="Armour"></div>
+        <div class="hero-part hero-arm left ${isHeroSlotEquipped(hero, "armour") ? "equipped" : ""}" title="Armour"></div>
+        <div class="hero-part hero-arm right ${isHeroSlotEquipped(hero, "armour") ? "equipped" : ""}" title="Armour"></div>
+        <div class="hero-part hero-legs ${isHeroSlotEquipped(hero, "legs") ? "equipped" : ""}" title="Legs"></div>
+        <div class="hero-part hero-greaves ${isHeroSlotEquipped(hero, "greaves") ? "equipped" : ""}" title="Greaves"></div>
+        <div class="hero-part hero-footgear ${isHeroSlotEquipped(hero, "footgear") ? "equipped" : ""}" title="Footgear"></div>
+        ${hero.weaponStyle === "twoHanded" ? `
+          <div class="hero-weapon two-handed ${weaponEquipped ? "equipped" : ""}" title="Two-Handed Weapon"></div>
+        ` : `
+          <div class="hero-weapon left ${isHeroSlotEquipped(hero, "mainHand") ? "equipped" : ""}" title="Main-Hand Weapon"></div>
+          <div class="hero-weapon right ${isHeroSlotEquipped(hero, "offHand") ? "equipped" : ""}" title="Off-Hand Weapon"></div>
+        `}
+      </div>
+      <div class="hero-mount-platform ${isHeroSlotEquipped(hero, "mount") ? "equipped" : ""}">
+        ${escapeHeroValue(hero.slots.mount || "No Mount Equipped")}
+      </div>
+    </div>
   `;
 }
 
@@ -9164,12 +9386,15 @@ function renderHero() {
         </label>
       </div>
 
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
-        ${heroEquipmentSlots.map(renderHeroInput).join("")}
-      </div>
-
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
-        ${renderHeroWeaponFields(hero)}
+      <div class="hero-layout">
+        <div style="display:grid; gap:12px;">
+          ${heroEquipmentSlots.map(renderHeroSelect).join("")}
+        </div>
+        ${renderHeroPaperDoll(hero)}
+        <div style="display:grid; gap:12px;">
+          ${renderHeroWeaponFields()}
+          ${heroUtilitySlots.map(renderHeroSelect).join("")}
+        </div>
       </div>
 
       <label style="display:grid; gap:6px;">
@@ -9188,12 +9413,14 @@ function updateHeroField(field, value) {
   ensureHeroState(resourceProfile);
   data[resourceProfile].hero[field] = value;
   saveProfiles();
+  renderHero();
 }
 
 function updateHeroEquipmentSlot(slotId, value) {
   ensureHeroState(resourceProfile);
   data[resourceProfile].hero.slots[slotId] = value;
   saveProfiles();
+  renderHero();
 }
 
 function updateHeroWeaponStyle(value) {
