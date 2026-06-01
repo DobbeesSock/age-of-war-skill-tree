@@ -141,6 +141,20 @@ h1 {
     color: gold;
 }
 
+.hero-equipment-pile {
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.hero-equipment-pile::before {
+    background: rgba(10, 10, 10, 0.46);
+}
+
+.hero-equipment-pile summary {
+    min-height: 170px;
+}
+
 #relicsView .potion-zone {
     position: relative;
     background: url("https://raw.githubusercontent.com/DobbeesSock/age-of-war-skill-tree/main/images/Relic%20Background.png?v=1") no-repeat center center;
@@ -10961,8 +10975,9 @@ function renderHeroEquipmentDeck() {
         const visiblePileCards = visibleCards.filter(entry => entry.pile.id === pile.id);
         const eligiblePileCount = pileCards.filter(card => !targetProfile || heroCardCanGoToProfile(card, targetProfile)).length;
         const openAttr = query && visiblePileCards.length ? "open" : "";
+        const pileBackgroundStyle = pile.backImage ? `background-image:url('${pile.backImage}');` : "";
         return `
-          <details class="relic-zone" ${openAttr} style="padding:0;">
+          <details class="relic-zone hero-equipment-pile" ${openAttr} style="padding:0; ${pileBackgroundStyle}">
             <summary style="cursor:pointer; list-style:none; padding:16px; display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
               <span>
                 <strong style="display:block; color:#ffe08a; font-size:22px;">${pile.label}</strong>
