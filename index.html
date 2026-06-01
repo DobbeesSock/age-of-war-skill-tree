@@ -9289,6 +9289,7 @@ function renderInventory() {
 const heroWeaponSlots = ["mainHand", "offHand", "twoHanded"];
 const heroSpellSlots = ["spellOne", "spellTwo", "spellThree"];
 const heroAccessorySlots = ["accessoryOne", "accessoryTwo"];
+const heroRuneSlots = ["mainHand", "offHand", "twoHanded", "armour", "head"];
 
 const defaultHeroEquipmentCards = [
   {
@@ -10250,12 +10251,133 @@ const defaultHeroEquipmentCards = [
     faction: "elves",
     text: "Once per Mission: Fully restore 1 adjacent ally's HP.",
     rarity: "Legendary"
+  },
+  {
+    id: "rune_of_fire",
+    name: "Rune of Fire",
+    type: "Rune",
+    slot: heroRuneSlots,
+    pile: "rare",
+    faction: "any",
+    text: "Socket into Weapons, Armour, Shields, and Helms. Weapon gains Fire. Attacks deal +1 damage.",
+    rarity: "Rare"
+  },
+  {
+    id: "rune_of_frost",
+    name: "Rune of Frost",
+    type: "Rune",
+    slot: heroRuneSlots,
+    pile: "rare",
+    faction: "any",
+    text: "Socket into Weapons, Armour, Shields, and Helms. Weapon gains Frost. Attacks Slow the target.",
+    rarity: "Rare"
+  },
+  {
+    id: "rune_of_shadow",
+    name: "Rune of Shadow",
+    type: "Rune",
+    slot: heroRuneSlots,
+    pile: "mythic",
+    faction: "any",
+    text: "Socket into Weapons, Armour, Shields, and Helms. Weapon gains Shadow. Attacks ignore Evasion (25%).",
+    rarity: "Mythic"
+  },
+  {
+    id: "rune_of_vitality",
+    name: "Rune of Vitality",
+    type: "Rune",
+    slot: heroRuneSlots,
+    pile: "rare",
+    faction: "any",
+    text: "Socket into Weapons, Armour, Shields, and Helms. +2 HP. Regenerate 1 HP each Round.",
+    rarity: "Rare"
+  },
+  {
+    id: "rune_of_swiftness",
+    name: "Rune of Swiftness",
+    type: "Rune",
+    slot: heroRuneSlots,
+    pile: "rare",
+    faction: "any",
+    text: "Socket into Weapons, Armour, Shields, and Helms. +2 Movement. Increases Charge distance.",
+    rarity: "Rare"
+  },
+  {
+    id: "rune_of_fortitude",
+    name: "Rune of Fortitude",
+    type: "Rune",
+    slot: heroRuneSlots,
+    pile: "rare",
+    faction: "any",
+    text: "Socket into Weapons, Armour, Shields, and Helms. +2 Armour. Reduces damage taken by 5%.",
+    rarity: "Rare"
+  },
+  {
+    id: "rune_of_piercing",
+    name: "Rune of Piercing",
+    type: "Rune",
+    slot: heroRuneSlots,
+    pile: "mythic",
+    faction: "any",
+    text: "Socket into Weapons, Armour, Shields, and Helms. Attacks ignore Armour. Deal +1 damage.",
+    rarity: "Mythic"
+  },
+  {
+    id: "rune_of_the_bear",
+    name: "Rune of the Bear",
+    type: "Rune",
+    slot: heroRuneSlots,
+    pile: "mythic",
+    faction: "any",
+    text: "Socket into Weapons, Armour, Shields, and Helms. +3 HP. Gain +1 Armour while above 50% HP.",
+    rarity: "Mythic"
+  },
+  {
+    id: "rune_of_the_eagle",
+    name: "Rune of the Eagle",
+    type: "Rune",
+    slot: heroRuneSlots,
+    pile: "mythic",
+    faction: "any",
+    text: "Socket into Weapons, Armour, Shields, and Helms. +1 Vision Range. Increases Sight and Scout range.",
+    rarity: "Mythic"
+  },
+  {
+    id: "rune_of_blood",
+    name: "Rune of Blood",
+    type: "Rune",
+    slot: heroRuneSlots,
+    pile: "mythic",
+    faction: "any",
+    text: "Socket into Weapons, Armour, Shields, and Helms. Killing a unit heals 5 HP. Deal +1 damage to injured targets.",
+    rarity: "Mythic"
+  },
+  {
+    id: "rune_of_warding",
+    name: "Rune of Warding",
+    type: "Rune",
+    slot: heroRuneSlots,
+    pile: "mythic",
+    faction: "any",
+    text: "Socket into Weapons, Armour, Shields, and Helms. +10% Magic Resistance. Reduces duration of negative effects by 20%.",
+    rarity: "Mythic"
+  },
+  {
+    id: "rune_of_the_ancients",
+    name: "Rune of the Ancients",
+    type: "Rune",
+    slot: heroRuneSlots,
+    pile: "legendary",
+    faction: "any",
+    text: "Socket into Weapons, Armour, Shields, and Helms. All Stats +1. Gain 5% Experience Bonus.",
+    rarity: "Legendary"
   }
 ];
 
-const heroEquipmentDeckVersion = 9;
+const heroEquipmentDeckVersion = 11;
 
 const heroEquipmentPiles = [
+  { id: "basic", label: "Basic" },
   { id: "common", label: "Common" },
   { id: "rare", label: "Rare" },
   { id: "legendary", label: "Legendary" },
@@ -10354,6 +10476,7 @@ function ensureHeroState(profileName) {
 
 function getHeroEquipmentPile(card) {
   const rawPile = String(card?.pile || card?.rarity || card?.type || "common").toLowerCase();
+  if (rawPile.includes("basic")) return "basic";
   if (rawPile.includes("faction")) return "factionSpecific";
   if (rawPile.includes("curs")) return "cursed";
   if (rawPile.includes("title")) return "titles";
@@ -10836,15 +10959,20 @@ function renderHeroEquipmentDeck() {
       ${heroEquipmentPiles.map(pile => {
         const pileCards = getHeroEquipmentDeckList(sharedState, pile.id);
         const visiblePileCards = visibleCards.filter(entry => entry.pile.id === pile.id);
+        const eligiblePileCount = pileCards.filter(card => !targetProfile || heroCardCanGoToProfile(card, targetProfile)).length;
         const openAttr = query && visiblePileCards.length ? "open" : "";
         return `
           <details class="relic-zone" ${openAttr} style="padding:0;">
-            <summary style="cursor:pointer; list-style:none; padding:16px; display:flex; justify-content:space-between; gap:12px; align-items:center;">
+            <summary style="cursor:pointer; list-style:none; padding:16px; display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
               <span>
                 <strong style="display:block; color:#ffe08a; font-size:22px;">${pile.label}</strong>
                 <small style="color:#bbb;">${visiblePileCards.length} shown / ${pileCards.length} in pile</small>
               </span>
-              <span style="width:68px; height:88px; border-radius:8px; border:1px solid rgba(255,255,255,0.18); background:linear-gradient(145deg, rgba(212,175,55,0.25), rgba(0,0,0,0.5)); display:grid; place-items:center; color:#ffe08a; font-weight:bold; box-shadow:8px 8px 0 rgba(0,0,0,0.22), 14px 14px 0 rgba(255,255,255,0.05);">${pileCards.length}</span>
+              <span style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end;">
+                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); giveRandomHeroEquipmentFromPile('${pile.id}')" ${eligiblePileCount === 0 ? "disabled" : ""}>Give ${pile.label} to Player</button>
+                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); shuffleHeroEquipmentPile('${pile.id}')" ${pileCards.length < 2 ? "disabled" : ""}>Shuffle Deck</button>
+                <span style="width:68px; height:88px; border-radius:8px; border:1px solid rgba(255,255,255,0.18); background:linear-gradient(145deg, rgba(212,175,55,0.25), rgba(0,0,0,0.5)); display:grid; place-items:center; color:#ffe08a; font-weight:bold; box-shadow:8px 8px 0 rgba(0,0,0,0.22), 14px 14px 0 rgba(255,255,255,0.05);">${pileCards.length}</span>
+              </span>
             </summary>
             <div style="padding:0 16px 16px 16px;">
               <p style="margin-top:0; color:#bbb;">Search by name, slot, effect, rarity, or faction. Faction-specific cards only show for matching target profiles.</p>
@@ -10859,6 +10987,34 @@ function renderHeroEquipmentDeck() {
       </div>
     </div>
   `;
+}
+
+function giveRandomHeroEquipmentFromPile(pileId, targetProfile = getGmTargetProfile("gmHeroEquipmentTargetSelect")) {
+  if (!targetProfile) return;
+  ensureHeroEquipmentState(targetProfile);
+
+  const deck = getHeroEquipmentDeckList(data.sharedHeroEquipment, pileId);
+  const eligibleCards = deck
+    .map((card, index) => ({ card, index }))
+    .filter(entry => heroCardCanGoToProfile(entry.card, targetProfile));
+
+  if (!eligibleCards.length) {
+    alert(`No ${getHeroEquipmentPileLabel(pileId)} cards are available for this player.`);
+    return;
+  }
+
+  const randomPick = eligibleCards[Math.floor(Math.random() * eligibleCards.length)];
+  sendHeroEquipmentCard(pileId, randomPick.index, targetProfile);
+}
+
+function shuffleHeroEquipmentPile(pileId) {
+  if (!resourceProfile) return;
+  ensureHeroEquipmentState(resourceProfile);
+
+  shuffleArray(getHeroEquipmentDeckList(data.sharedHeroEquipment, pileId));
+
+  saveProfiles();
+  renderHeroEquipmentDeck();
 }
 
 function sendHeroEquipmentCard(pileId, deckIndex, targetProfile = getGmTargetProfile("gmHeroEquipmentTargetSelect")) {
