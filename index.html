@@ -3143,6 +3143,18 @@ body.elves {
 <div id="heroEquipmentView" style="display:none;">
   <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
     <label style="color:white;">Give to: <select id="gmHeroEquipmentTargetSelect"></select></label>
+    <label style="color:white;">Hero Cave Roll:
+      <select id="heroCaveRollSelect" onchange="drawHeroCaveRewardsFromRoll()" style="min-width:90px;">
+        <option value="">Roll</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+      </select>
+    </label>
+    <button onclick="rollHeroCaveReward()">Roll Hero Cave Reward</button>
     <input id="heroEquipmentSearch" type="search" placeholder="Search hero equipment..." oninput="renderHeroEquipmentDeck()" style="min-width:260px;">
     <button onclick="shuffleHeroEquipmentDiscardIntoDeck()">Shuffle Discard Into Deck</button>
     <button onclick="resetHeroEquipmentDeck()">Reset Hero Equipment</button>
@@ -9459,7 +9471,7 @@ const defaultHeroEquipmentCards = [
   }
 ];
 
-const heroEquipmentDeckVersion = 1;
+const heroEquipmentDeckVersion = 2;
 
 const heroEquipmentPiles = [
   { id: "common", label: "Common" },
@@ -9467,7 +9479,13 @@ const heroEquipmentPiles = [
   { id: "legendary", label: "Legendary" },
   { id: "mythic", label: "Mythic" },
   { id: "armourSets", label: "Armour Sets" },
-  { id: "trophies", label: "Trophies" }
+  { id: "trophies", label: "Trophies" },
+  { id: "titles", label: "Titles" },
+  { id: "mounts", label: "Mounts" },
+  { id: "companions", label: "Companions" },
+  { id: "remnants", label: "Remnants" },
+  { id: "factionSpecific", label: "Faction Specific Equipment" },
+  { id: "cursed", label: "Cursed Equipment" }
 ];
 
 const heroCardCatalog = {
@@ -9554,6 +9572,12 @@ function ensureHeroState(profileName) {
 
 function getHeroEquipmentPile(card) {
   const rawPile = String(card?.pile || card?.rarity || card?.type || "common").toLowerCase();
+  if (rawPile.includes("faction")) return "factionSpecific";
+  if (rawPile.includes("curs")) return "cursed";
+  if (rawPile.includes("title")) return "titles";
+  if (rawPile.includes("mount")) return "mounts";
+  if (rawPile.includes("companion")) return "companions";
+  if (rawPile.includes("remnant")) return "remnants";
   if (rawPile.includes("mythic")) return "mythic";
   if (rawPile.includes("legendary")) return "legendary";
   if (rawPile.includes("rare")) return "rare";
@@ -9902,6 +9926,98 @@ function renderHeroEquipmentDiscardPile(cards) {
   `;
 }
 
+let heroCaveRewardState = {
+  roll: null,
+  options: []
+};
+
+function getHeroEquipmentDeckEntries(sharedState = data.sharedHeroEquipment) {
+  if (!sharedState) return [];
+
+  return heroEquipmentPiles.flatMap(pile =>
+    getHeroEquipmentDeckList(sharedState, pile.id).map((card, index) => ({ card, index, pile }))
+  );
+}
+
+function getHeroCaveDrawCount(roll) {
+  const result = Number(roll);
+  if (result >= 1 && result <= 4) return 1;
+  if (result === 5) return 2;
+  if (result === 6) return 3;
+  return 0;
+}
+
+function getHeroCaveRewardText(roll) {
+  const count = getHeroCaveDrawCount(roll);
+  if (count === 1) return "1-4: reveal 1 random Hero Cave reward.";
+  if (count === 2) return "5: reveal 2 Hero Cave rewards and choose 1.";
+  if (count === 3) return "6: reveal 3 Hero Cave rewards and choose 1.";
+  return "Roll 1D6 for the hero entering the cave.";
+}
+
+function drawHeroCaveRewardsFromRoll() {
+  const select = document.getElementById("heroCaveRollSelect");
+  const roll = Number(select?.value || 0);
+  drawHeroCaveRewards(roll);
+}
+
+function rollHeroCaveReward() {
+  const roll = randomBetween(1, 6);
+  const select = document.getElementById("heroCaveRollSelect");
+  if (select) select.value = String(roll);
+  drawHeroCaveRewards(roll);
+}
+
+function drawHeroCaveRewards(roll) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+
+  ensureHeroEquipmentState(resourceProfile);
+  const targetProfile = getGmTargetProfile("gmHeroEquipmentTargetSelect");
+  const drawCount = getHeroCaveDrawCount(roll);
+
+  if (!drawCount) {
+    heroCaveRewardState = { roll: null, options: [] };
+    renderHeroEquipmentDeck();
+    return;
+  }
+
+  const candidates = getHeroEquipmentDeckEntries()
+    .filter(entry => !targetProfile || heroCardCanGoToProfile(entry.card, targetProfile));
+  const shuffled = [...candidates];
+  shuffleArray(shuffled);
+
+  heroCaveRewardState = {
+    roll,
+    options: shuffled.slice(0, drawCount)
+  };
+
+  renderHeroEquipmentDeck();
+}
+
+function renderHeroCaveRewardRandomizer() {
+  const roll = heroCaveRewardState.roll;
+  const options = heroCaveRewardState.options || [];
+
+  return `
+    <div class="relic-zone" style="grid-column:1 / -1;">
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+        <div>
+          <h2 style="margin-top:0;">Hero Cave Reward</h2>
+          <p style="margin:0; color:#bbb; line-height:1.45;">${getHeroCaveRewardText(roll)}</p>
+        </div>
+        ${roll ? `<strong style="color:#ffe08a; font-size:20px;">Rolled ${roll}</strong>` : ""}
+      </div>
+      ${options.length ? `
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; margin-top:14px;">
+          ${options.map(entry => renderHeroEquipmentCard(entry.card, "deck", entry.index, entry.pile.id)).join("")}
+        </div>
+      ` : `
+        <p style="color:#ddd; margin-bottom:0;">Choose a D6 result or roll to reveal the Hero Cave reward option${getHeroCaveDrawCount(roll) > 1 ? "s" : ""}.</p>
+      `}
+    </div>
+  `;
+}
+
 function renderHeroEquipmentDeck() {
   const app = document.getElementById("heroEquipmentApp");
   if (!app || !resourceProfile || !data[resourceProfile]) return;
@@ -9913,9 +10029,7 @@ function renderHeroEquipmentDeck() {
   const query = (searchInput?.value || "").trim().toLowerCase();
   const sharedState = data.sharedHeroEquipment;
   const targetProfile = getGmTargetProfile("gmHeroEquipmentTargetSelect");
-  const allDeckCards = heroEquipmentPiles.flatMap(pile =>
-    getHeroEquipmentDeckList(sharedState, pile.id).map((card, index) => ({ card, index, pile }))
-  );
+  const allDeckCards = getHeroEquipmentDeckEntries(sharedState);
 
   const visibleCards = allDeckCards
     .filter(entry => {
@@ -9936,15 +10050,25 @@ function renderHeroEquipmentDeck() {
 
   app.innerHTML = `
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; align-items:start;">
+      ${renderHeroCaveRewardRandomizer()}
       ${heroEquipmentPiles.map(pile => {
         const pileCards = getHeroEquipmentDeckList(sharedState, pile.id);
         const visiblePileCards = visibleCards.filter(entry => entry.pile.id === pile.id);
+        const openAttr = query && visiblePileCards.length ? "open" : "";
         return `
-          <div class="relic-zone">
-            <h2>${pile.label} (${pileCards.length})</h2>
-            <p style="margin-top:0; color:#bbb;">Search by name, slot, effect, rarity, or faction. Faction-specific cards only show for matching target profiles.</p>
-            ${visiblePileCards.map(entry => renderHeroEquipmentCard(entry.card, "deck", entry.index, pile.id)).join("") || "<p>No cards in this pile match this search/target.</p>"}
-          </div>
+          <details class="relic-zone" ${openAttr} style="padding:0;">
+            <summary style="cursor:pointer; list-style:none; padding:16px; display:flex; justify-content:space-between; gap:12px; align-items:center;">
+              <span>
+                <strong style="display:block; color:#ffe08a; font-size:22px;">${pile.label}</strong>
+                <small style="color:#bbb;">${visiblePileCards.length} shown / ${pileCards.length} in pile</small>
+              </span>
+              <span style="width:68px; height:88px; border-radius:8px; border:1px solid rgba(255,255,255,0.18); background:linear-gradient(145deg, rgba(212,175,55,0.25), rgba(0,0,0,0.5)); display:grid; place-items:center; color:#ffe08a; font-weight:bold; box-shadow:8px 8px 0 rgba(0,0,0,0.22), 14px 14px 0 rgba(255,255,255,0.05);">${pileCards.length}</span>
+            </summary>
+            <div style="padding:0 16px 16px 16px;">
+              <p style="margin-top:0; color:#bbb;">Search by name, slot, effect, rarity, or faction. Faction-specific cards only show for matching target profiles.</p>
+              ${visiblePileCards.map(entry => renderHeroEquipmentCard(entry.card, "deck", entry.index, pile.id)).join("") || "<p>No cards in this pile match this search/target.</p>"}
+            </div>
+          </details>
         `;
       }).join("")}
       <div class="relic-zone">
@@ -9971,6 +10095,8 @@ function sendHeroEquipmentCard(pileId, deckIndex, targetProfile = getGmTargetPro
   }
 
   data[targetProfile].heroEquipment.inventory.push({ ...card, pile: pileId });
+  heroCaveRewardState.options = (heroCaveRewardState.options || [])
+    .filter(entry => !(entry.pile.id === pileId && entry.index === deckIndex));
 
   saveProfiles();
   renderHeroEquipmentDeck();
