@@ -10377,19 +10377,19 @@ const defaultHeroEquipmentCards = [
 const heroEquipmentDeckVersion = 11;
 
 const heroEquipmentPiles = [
-  { id: "basic", label: "Basic" },
-  { id: "common", label: "Common" },
-  { id: "rare", label: "Rare" },
-  { id: "legendary", label: "Legendary" },
-  { id: "mythic", label: "Mythic" },
-  { id: "armourSets", label: "Armour Sets" },
-  { id: "trophies", label: "Trophies" },
-  { id: "titles", label: "Titles" },
-  { id: "mounts", label: "Mounts" },
-  { id: "companions", label: "Companions" },
-  { id: "remnants", label: "Remnants" },
+  { id: "basic", label: "Basic", backImage: "assets/hero-cards/basic-back.png" },
+  { id: "common", label: "Common", backImage: "assets/hero-cards/common-back.png" },
+  { id: "rare", label: "Rare", backImage: "assets/hero-cards/rare-back.png" },
+  { id: "legendary", label: "Legendary", backImage: "assets/hero-cards/legendary-back.png" },
+  { id: "mythic", label: "Mythic", backImage: "assets/hero-cards/mythic-back.png" },
+  { id: "armourSets", label: "Armour Sets", backImage: "assets/hero-cards/armour-sets-back.png" },
+  { id: "trophies", label: "Trophies", backImage: "assets/hero-cards/trophies-back.png" },
+  { id: "titles", label: "Titles", backImage: "assets/hero-cards/titles-back.png" },
+  { id: "mounts", label: "Mounts", backImage: "assets/hero-cards/mounts-back.png" },
+  { id: "companions", label: "Companions", backImage: "assets/hero-cards/companions-back.png" },
+  { id: "remnants", label: "Remnants", backImage: "assets/hero-cards/remnants-back.png" },
   { id: "factionSpecific", label: "Faction Specific Equipment" },
-  { id: "cursed", label: "Cursed Equipment" }
+  { id: "cursed", label: "Cursed Equipment", backImage: "assets/hero-cards/cursed-back.png" }
 ];
 
 const heroCardCatalog = {
@@ -10971,7 +10971,10 @@ function renderHeroEquipmentDeck() {
               <span style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end;">
                 <button type="button" onclick="event.preventDefault(); event.stopPropagation(); giveRandomHeroEquipmentFromPile('${pile.id}')" ${eligiblePileCount === 0 ? "disabled" : ""}>Give ${pile.label} to Player</button>
                 <button type="button" onclick="event.preventDefault(); event.stopPropagation(); shuffleHeroEquipmentPile('${pile.id}')" ${pileCards.length < 2 ? "disabled" : ""}>Shuffle Deck</button>
-                <span style="width:68px; height:88px; border-radius:8px; border:1px solid rgba(255,255,255,0.18); background:linear-gradient(145deg, rgba(212,175,55,0.25), rgba(0,0,0,0.5)); display:grid; place-items:center; color:#ffe08a; font-weight:bold; box-shadow:8px 8px 0 rgba(0,0,0,0.22), 14px 14px 0 rgba(255,255,255,0.05);">${pileCards.length}</span>
+                <span style="position:relative; width:74px; height:104px; border-radius:8px; border:1px solid rgba(255,255,255,0.18); background:linear-gradient(145deg, rgba(212,175,55,0.25), rgba(0,0,0,0.5)); display:grid; place-items:center; color:#ffe08a; font-weight:bold; overflow:hidden; box-shadow:8px 8px 0 rgba(0,0,0,0.22), 14px 14px 0 rgba(255,255,255,0.05);">
+                  ${pile.backImage ? `<img src="${pile.backImage}" alt="${pile.label} deck back" style="width:100%; height:100%; object-fit:cover; display:block;">` : ""}
+                  <span style="position:absolute; right:5px; bottom:5px; min-width:24px; padding:3px 6px; border-radius:999px; background:rgba(0,0,0,0.78); border:1px solid rgba(255,224,138,0.55); color:#ffe08a; font-size:13px; line-height:1; text-align:center;">${pileCards.length}</span>
+                </span>
               </span>
             </summary>
             <div style="padding:0 16px 16px 16px;">
