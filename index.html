@@ -1758,6 +1758,7 @@ body.elves {
   <button onclick="showView('mythologicalCaves')">Mythological Caves</button>
   <button onclick="showView('potions')">Potion Deck</button>
   <button onclick="showView('relics')">Relic Deck</button>
+  <button onclick="showView('heroEquipment')">Hero Equipment</button>
   <button onclick="showView('objectives')">Objective Deck</button>
 
 
@@ -3139,6 +3140,17 @@ body.elves {
   <div id="relicsApp"></div>
 </div>
 
+<div id="heroEquipmentView" style="display:none;">
+  <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <label style="color:white;">Give to: <select id="gmHeroEquipmentTargetSelect"></select></label>
+    <input id="heroEquipmentSearch" type="search" placeholder="Search hero equipment..." oninput="renderHeroEquipmentDeck()" style="min-width:260px;">
+    <button onclick="shuffleHeroEquipmentDiscardIntoDeck()">Shuffle Discard Into Deck</button>
+    <button onclick="resetHeroEquipmentDeck()">Reset Hero Equipment</button>
+  </div>
+
+  <div id="heroEquipmentApp"></div>
+</div>
+
 <div id="objectivesView" style="display:none;">
   <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
     <label style="color:white;">Give to: <select id="gmObjectiveTargetSelect"></select></label>
@@ -4151,17 +4163,58 @@ function collectBuildingIncome(incomeText) {
   renderBuildings();
 }
 
+function getRelicCollectionIncome(card) {
+  if (!card) return "";
+  if (card.collectionIncome) return card.collectionIncome;
+
+  const text = card.text || "";
+  const match = text.match(/\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)\s+for\s+Collection/i);
+  return match ? `+${match[1]} ${match[2]}` : "";
+}
+
+function getOwnedRelicCollectionRows() {
+  if (!resourceProfile || !data[resourceProfile]) return [];
+
+  ensureRelicState(resourceProfile);
+  return (data[resourceProfile].relics.inventory || [])
+    .map((card, index) => ({
+      building: card.name || `Relic ${index + 1}`,
+      rowKey: `relic:${card.id || card.name || index}:${index}`,
+      income: getRelicCollectionIncome(card),
+      limit: "Owned",
+      size: "-",
+      source: "Relic",
+      cost: "Inventory",
+      hp: "-",
+      type: "relic"
+    }))
+    .filter(row => row.income);
+}
+
 function getBuildingTrackerRows() {
   const hub = getCurrentHub();
   const factionRows = (collectionTables[hub.family] || []).map(row => ({
     ...row,
+    rowKey: `building:${row.building}`,
     source: "Faction",
     cost: row.cost || "-",
     hp: row.hp || "-",
+    type: "building",
     ability: row.ability || ""
   }));
 
-  return factionRows.concat(blueprintBuildingCards, chestBuildingCards);
+  const blueprintRows = blueprintBuildingCards.map(row => ({
+    ...row,
+    rowKey: `blueprint:${row.building}`,
+    type: "building"
+  }));
+  const chestRows = chestBuildingCards.map(row => ({
+    ...row,
+    rowKey: `chest:${row.building}`,
+    type: "building"
+  }));
+
+  return factionRows.concat(blueprintRows, chestRows, getOwnedRelicCollectionRows());
 }
 
 const factionAbilityCharts = {
@@ -9022,6 +9075,14 @@ function toggleBuildingCollection(buildingName) {
   renderBuildings();
 }
 
+function getIncomeRowKey(row) {
+  return row.rowKey || row.building;
+}
+
+function getIncomeRowCount(row, constructed) {
+  return row.type === "relic" ? 1 : Number(constructed[row.building] || 0);
+}
+
 function collectCheckedBuildings() {
   if (!resourceProfile || !data[resourceProfile]) return;
 
@@ -9035,8 +9096,9 @@ function collectCheckedBuildings() {
   let collectedCount = 0;
 
   rows.forEach(row => {
-    const count = constructed[row.building] || 0;
-    if (!collectEnabled[row.building] || count <= 0) return;
+    const rowKey = getIncomeRowKey(row);
+    const count = getIncomeRowCount(row, constructed);
+    if (!collectEnabled[rowKey] || count <= 0) return;
 
     for (let i = 0; i < count; i++) {
       applyCollectionIncome(row.income, constructed);
@@ -9046,7 +9108,7 @@ function collectCheckedBuildings() {
   });
 
   if (collectedCount === 0) {
-    alert("No checked constructed buildings to collect from.");
+    alert("No checked income sources to collect from.");
     return;
   }
 
@@ -9072,15 +9134,15 @@ function renderBuildings() {
         <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
           <div>
             <h3 style="margin:0; color:#ffe08a;">Collection Buildings</h3>
-            <p style="margin:4px 0 0 0; color:#bbb;">Add building levels, check what should collect, then collect all checked income at once. Each level pays the listed income again.</p>
+            <p style="margin:4px 0 0 0; color:#bbb;">Add building levels, check buildings or owned relics, then collect all checked income at once. Each building level pays the listed income again.</p>
           </div>
-          <button onclick="collectCheckedBuildings()">Collect Checked Buildings</button>
+          <button onclick="collectCheckedBuildings()">Collect Checked Income</button>
         </div>
         <table style="width:100%; border-collapse:collapse; color:white;">
           <thead>
             <tr>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Collect</th>
-              <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Building</th>
+              <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Income Source</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Source</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Income</th>
               <th style="text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,0.15);">Level / Built</th>
@@ -9093,16 +9155,19 @@ function renderBuildings() {
           </thead>
           <tbody>
             ${collectionRows.map(row => {
-              const count = constructed[row.building] || 0;
-              const checked = collectEnabled[row.building] ? "checked" : "";
+              const rowKey = getIncomeRowKey(row);
+              const count = getIncomeRowCount(row, constructed);
+              const checked = collectEnabled[rowKey] ? "checked" : "";
               const buildingArg = JSON.stringify(row.building).replace(/"/g, "&quot;");
+              const collectionArg = JSON.stringify(rowKey).replace(/"/g, "&quot;");
               const limit = getBuildingLimit(row);
               const atLimit = limit !== null && count >= limit;
+              const isRelic = row.type === "relic";
 
               return `
               <tr>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">
-                  <input type="checkbox" ${checked} onchange="toggleBuildingCollection(${buildingArg})">
+                  <input type="checkbox" ${checked} onchange="toggleBuildingCollection(${collectionArg})">
                 </td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.building}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.source || "Faction"}</td>
@@ -9113,8 +9178,10 @@ function renderBuildings() {
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${getBuildingLimitLabel(row)}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.size}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">
-                  <button onclick="changeConstructedBuilding(${buildingArg}, -1)">- ${getBuildingLevelLabel(row)}</button>
-                  <button onclick="changeConstructedBuilding(${buildingArg}, 1)" ${atLimit ? "disabled" : ""}>+ ${getBuildingLevelLabel(row)}</button>
+                  ${isRelic ? "<span style=\"color:#bbb;\">Owned relic</span>" : `
+                    <button onclick="changeConstructedBuilding(${buildingArg}, -1)">- ${getBuildingLevelLabel(row)}</button>
+                    <button onclick="changeConstructedBuilding(${buildingArg}, 1)" ${atLimit ? "disabled" : ""}>+ ${getBuildingLevelLabel(row)}</button>
+                  `}
                 </td>
               </tr>
             `;
@@ -9175,10 +9242,12 @@ function renderInventory() {
   ensurePotionState(resourceProfile);
   ensureRelicState(resourceProfile);
   ensureObjectiveState(resourceProfile);
+  ensureHeroEquipmentState(resourceProfile);
 
   const potions = data[resourceProfile].potions.inventory;
   const relics = data[resourceProfile].relics.inventory;
   const objectives = data[resourceProfile].objectives.inventory;
+  const heroEquipment = data[resourceProfile].heroEquipment.inventory;
 
   app.innerHTML = `
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; align-items:start;">
@@ -9196,9 +9265,210 @@ function renderInventory() {
         <h2>Objectives (${objectives.length})</h2>
         ${objectives.map((card, index) => renderObjectiveCard(card, "inventory", index)).join("") || "<p>No objectives in inventory.</p>"}
       </div>
+
+      <div class="relic-zone">
+        <h2>Hero Equipment (${heroEquipment.length})</h2>
+        ${heroEquipment.map((card, index) => renderHeroEquipmentCard(card, "inventory", index)).join("") || "<p>No hero equipment in inventory.</p>"}
+      </div>
     </div>
   `;
 }
+
+const heroWeaponSlots = ["mainHand", "offHand", "twoHanded"];
+
+const defaultHeroEquipmentCards = [
+  {
+    id: "weapon_iron_longsword",
+    name: "Iron Longsword",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "common",
+    faction: "any",
+    text: "+1 OD.",
+    rarity: "Common"
+  },
+  {
+    id: "weapon_giant_slayer",
+    name: "Giant Slayer",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "rare",
+    faction: "any",
+    text: "+2 OD vs Elites & Commanders.",
+    rarity: "Rare"
+  },
+  {
+    id: "weapon_blood_drinker",
+    name: "Blood Drinker",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "legendary",
+    faction: "any",
+    text: "Whenever you destroy a unit: Heal 2.",
+    rarity: "Legendary"
+  },
+  {
+    id: "weapon_veilpiercer",
+    name: "Veilpiercer",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "mythic",
+    faction: "any",
+    text: "Attacks ignore target's Armour.",
+    rarity: "Mythic"
+  },
+  {
+    id: "weapon_gorefathers_fang",
+    name: "Gorefather's Fang",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "mythic",
+    faction: "any",
+    text: "+3 OD. Whenever you destroy a Commander: Heal to Full.",
+    rarity: "Mythic"
+  },
+  {
+    id: "weapon_hunters_spear",
+    name: "Hunter's Spear",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "common",
+    faction: "any",
+    text: "+1 RC. Range 1-4.",
+    rarity: "Common"
+  },
+  {
+    id: "weapon_stormblade",
+    name: "Stormblade",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "rare",
+    faction: "any",
+    text: "+1 OD. Attacks gain Shock.",
+    rarity: "Rare"
+  },
+  {
+    id: "weapon_the_executioner",
+    name: "The Executioner",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "legendary",
+    faction: "any",
+    text: "+2 OD. Double damage vs damaged units.",
+    rarity: "Legendary"
+  },
+  {
+    id: "weapon_worbgutter",
+    name: "Worbgutter",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "rare",
+    faction: "any",
+    text: "+2 OD. Critical hits deal.",
+    rarity: "Rare"
+  },
+  {
+    id: "weapon_rune_carver",
+    name: "Rune Carver",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "rare",
+    faction: "any",
+    text: "+1 OD. Ignore Armour on Structures.",
+    rarity: "Rare"
+  },
+  {
+    id: "weapon_drakebone_maul",
+    name: "Drakebone Maul",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "legendary",
+    faction: "any",
+    text: "+2 OD. Stuns target on Critical Hit.",
+    rarity: "Legendary"
+  },
+  {
+    id: "weapon_shadowbite",
+    name: "Shadowbite",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "rare",
+    faction: "any",
+    text: "+1 OD. Gain Ambush.",
+    rarity: "Rare"
+  },
+  {
+    id: "weapon_sundering_mace",
+    name: "Sundering Mace",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "legendary",
+    faction: "any",
+    text: "+2 OD. Knockback 2 on successful hit.",
+    rarity: "Legendary"
+  },
+  {
+    id: "weapon_blade_of_oaths",
+    name: "Blade of Oaths",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "rare",
+    faction: "any",
+    text: "+1 OD. Adjacent allies gain +1 OD this Phase.",
+    rarity: "Rare"
+  },
+  {
+    id: "weapon_serpents_tongue",
+    name: "Serpent's Tongue",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "legendary",
+    faction: "any",
+    text: "+1 OD. Poison target 2.",
+    rarity: "Legendary"
+  },
+  {
+    id: "weapon_gravebreaker",
+    name: "Gravebreaker",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "rare",
+    faction: "any",
+    text: "+1 OD. Double damage vs Undead.",
+    rarity: "Rare"
+  },
+  {
+    id: "weapon_blood_razor",
+    name: "Blood Razor",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "legendary",
+    faction: "any",
+    text: "+2 OD. Whenever you kill, gain 1 Fury.",
+    rarity: "Legendary"
+  },
+  {
+    id: "weapon_eternal_cleaver",
+    name: "Eternal Cleaver",
+    type: "Weapon",
+    slot: heroWeaponSlots,
+    pile: "mythic",
+    faction: "any",
+    text: "+3 OD. Once per Round: deal 2 damage to all adjacent enemies.",
+    rarity: "Mythic"
+  }
+];
+
+const heroEquipmentDeckVersion = 1;
+
+const heroEquipmentPiles = [
+  { id: "common", label: "Common" },
+  { id: "rare", label: "Rare" },
+  { id: "legendary", label: "Legendary" },
+  { id: "mythic", label: "Mythic" },
+  { id: "armourSets", label: "Armour Sets" },
+  { id: "trophies", label: "Trophies" }
+];
 
 const heroCardCatalog = {
   head: [],
@@ -9282,9 +9552,149 @@ function ensureHeroState(profileName) {
   };
 }
 
+function getHeroEquipmentPile(card) {
+  const rawPile = String(card?.pile || card?.rarity || card?.type || "common").toLowerCase();
+  if (rawPile.includes("mythic")) return "mythic";
+  if (rawPile.includes("legendary")) return "legendary";
+  if (rawPile.includes("rare")) return "rare";
+  if (rawPile.includes("armour") || rawPile.includes("armor") || rawPile.includes("set")) return "armourSets";
+  if (rawPile.includes("troph")) return "trophies";
+  return "common";
+}
+
+function makeHeroEquipmentDecks() {
+  const decks = Object.fromEntries(heroEquipmentPiles.map(pile => [pile.id, []]));
+  defaultHeroEquipmentCards.forEach(card => {
+    const pileId = getHeroEquipmentPile(card);
+    decks[pileId].push({ ...card, pile: pileId });
+  });
+  return decks;
+}
+
+function getHeroEquipmentDeckList(sharedState, pileId) {
+  if (!sharedState.decks) sharedState.decks = makeHeroEquipmentDecks();
+  if (!Array.isArray(sharedState.decks[pileId])) sharedState.decks[pileId] = [];
+  return sharedState.decks[pileId];
+}
+
+function getExistingHeroEquipmentIds() {
+  const sharedState = data.sharedHeroEquipment || {};
+  const ids = new Set();
+
+  Object.values(sharedState.decks || {}).forEach(deck => {
+    (deck || []).forEach(card => {
+      if (card?.id) ids.add(card.id);
+    });
+  });
+
+  (sharedState.discard || []).forEach(card => {
+    if (card?.id) ids.add(card.id);
+  });
+
+  Object.keys(data).forEach(profileName => {
+    if (isSharedDataKey(profileName)) return;
+    (data[profileName]?.heroEquipment?.inventory || []).forEach(card => {
+      if (card?.id) ids.add(card.id);
+    });
+  });
+
+  return ids;
+}
+
+function updateHeroEquipmentDeckVersion() {
+  if (!data.sharedHeroEquipment) return;
+  if (data.sharedHeroEquipment.version === heroEquipmentDeckVersion) return;
+
+  const existingIds = getExistingHeroEquipmentIds();
+  defaultHeroEquipmentCards.forEach(card => {
+    if (existingIds.has(card.id)) return;
+    const pileId = getHeroEquipmentPile(card);
+    getHeroEquipmentDeckList(data.sharedHeroEquipment, pileId).push({ ...card, pile: pileId });
+    existingIds.add(card.id);
+  });
+
+  data.sharedHeroEquipment.version = heroEquipmentDeckVersion;
+}
+
+function ensureHeroEquipmentState(profileName) {
+  if (!data.sharedHeroEquipment) {
+    data.sharedHeroEquipment = {
+      version: heroEquipmentDeckVersion,
+      decks: makeHeroEquipmentDecks(),
+      discard: []
+    };
+  }
+
+  if (!data.sharedHeroEquipment.decks) {
+    data.sharedHeroEquipment.decks = makeHeroEquipmentDecks();
+  }
+
+  if (Array.isArray(data.sharedHeroEquipment.deck) && data.sharedHeroEquipment.deck.length > 0) {
+    data.sharedHeroEquipment.deck.forEach(card => {
+      const pileId = getHeroEquipmentPile(card);
+      getHeroEquipmentDeckList(data.sharedHeroEquipment, pileId).push({ ...card, pile: pileId });
+    });
+    data.sharedHeroEquipment.deck = [];
+  }
+
+  if (!Array.isArray(data.sharedHeroEquipment.discard)) {
+    data.sharedHeroEquipment.discard = [];
+  }
+
+  heroEquipmentPiles.forEach(pile => {
+    getHeroEquipmentDeckList(data.sharedHeroEquipment, pile.id);
+  });
+
+  updateHeroEquipmentDeckVersion();
+
+  if (!profileName || !data[profileName]) return;
+
+  if (!data[profileName].heroEquipment) {
+    data[profileName].heroEquipment = { inventory: [] };
+  } else {
+    data[profileName].heroEquipment = {
+      inventory: data[profileName].heroEquipment.inventory || []
+    };
+  }
+}
+
+function getHeroCardSlot(card) {
+  return card?.slot || card?.equipmentSlot || "";
+}
+
+function getHeroCardFaction(card) {
+  return String(card?.faction || card?.factionKey || "any").toLowerCase();
+}
+
+function heroCardCanGoToProfile(card, profileName) {
+  if (!card || !profileName || !data[profileName]) return false;
+  const cardFaction = getHeroCardFaction(card);
+  if (!cardFaction || cardFaction === "any" || cardFaction === "all") return true;
+
+  const profileFaction = String(data[profileName].hubFaction || "").toLowerCase();
+  return cardFaction === profileFaction;
+}
+
+function heroCardMatchesSlot(card, slotId) {
+  const slot = getHeroCardSlot(card);
+  if (Array.isArray(slot)) return slot.includes(slotId);
+  return slot === slotId;
+}
+
+function getOwnedHeroEquipmentForSlot(slotId) {
+  if (!resourceProfile || !data[resourceProfile]) return [];
+  ensureHeroEquipmentState(resourceProfile);
+
+  return (data[resourceProfile].heroEquipment.inventory || [])
+    .filter(card => heroCardMatchesSlot(card, slotId));
+}
+
 function renderHeroSelect(slot) {
   const hero = data[resourceProfile].hero;
-  const cards = heroCardCatalog[slot.id] || [];
+  const cards = [
+    ...(heroCardCatalog[slot.id] || []),
+    ...getOwnedHeroEquipmentForSlot(slot.id)
+  ];
   const currentValue = hero.slots[slot.id] || "";
   const hasCustomValue = currentValue && !cards.some(card => card.id === currentValue || card.name === currentValue);
 
@@ -9364,7 +9774,9 @@ function renderHero() {
   if (!app || !resourceProfile || !data[resourceProfile]) return;
 
   ensureHeroState(resourceProfile);
+  ensureHeroEquipmentState(resourceProfile);
   const hero = data[resourceProfile].hero;
+  const ownedCards = data[resourceProfile].heroEquipment.inventory || [];
 
   app.innerHTML = `
     <div style="display:grid; gap:18px;">
@@ -9405,6 +9817,11 @@ function renderHero() {
           style="min-height:120px; resize:vertical;"
         >${escapeHeroValue(hero.notes)}</textarea>
       </label>
+
+      <div class="relic-zone">
+        <h2>Owned Hero Cards (${ownedCards.length})</h2>
+        ${ownedCards.map((card, index) => renderHeroEquipmentCard(card, "hero", index)).join("") || "<p>No hero cards earned yet.</p>"}
+      </div>
     </div>
   `;
 }
@@ -9428,6 +9845,218 @@ function updateHeroWeaponStyle(value) {
   data[resourceProfile].hero.weaponStyle = value === "twoHanded" ? "twoHanded" : "dual";
   saveProfiles();
   renderHero();
+}
+
+function getHeroEquipmentSlotLabel(card) {
+  const slot = getHeroCardSlot(card);
+  if (Array.isArray(slot)) return slot.join(", ");
+  return slot || "Any";
+}
+
+function getHeroEquipmentPileLabel(cardOrPileId) {
+  const pileId = typeof cardOrPileId === "string" ? cardOrPileId : getHeroEquipmentPile(cardOrPileId);
+  return heroEquipmentPiles.find(pile => pile.id === pileId)?.label || "Common";
+}
+
+function renderHeroEquipmentCard(card, zone, index, pileId = "") {
+  const faction = card.faction && card.faction !== "any" ? card.faction : "Any Hero";
+  let buttons = "";
+
+  if (zone === "deck") {
+    buttons = `<button onclick="sendHeroEquipmentCard('${pileId}', ${index})">Send to Player</button>`;
+  } else if (zone === "inventory" || zone === "hero") {
+    buttons = `
+      <button onclick="discardHeroEquipment(${index})">Discard</button>
+      <button onclick="returnHeroEquipmentToDeck(${index})">Return to GM Deck</button>
+    `;
+  }
+
+  return `
+    <div class="relic-card ${zone}">
+      <small>${escapeHeroValue(getHeroEquipmentPileLabel(card))} - ${escapeHeroValue(card.type || "Hero Equipment")} - ${escapeHeroValue(faction)}</small>
+      <h3>${escapeHeroValue(card.name || "Unnamed Hero Card")}</h3>
+      ${card.frontImage ? `<img src="${card.frontImage}" alt="${escapeHeroValue(card.name)}" style="width:100%; border-radius:8px; margin:8px 0;">` : ""}
+      <p><strong>Slot:</strong> ${escapeHeroValue(getHeroEquipmentSlotLabel(card))}</p>
+      <p><strong>Effect:</strong> ${escapeHeroValue(card.text || card.effect || "Card rules coming soon.")}</p>
+      ${card.rarity ? `<p><strong>Rarity:</strong> ${escapeHeroValue(card.rarity)}</p>` : ""}
+      <div class="potion-actions">${buttons}</div>
+    </div>
+  `;
+}
+
+function renderHeroEquipmentDiscardPile(cards) {
+  if (!cards.length) return "<p>No discarded hero equipment.</p>";
+
+  const previewCard = cards[cards.length - 1];
+  return `
+    <div class="relic-card discard">
+      <small>Shared Discard</small>
+      <h3>Hero Equipment Discard</h3>
+      ${previewCard?.frontImage ? `<img src="${previewCard.frontImage}" alt="Hero equipment discard preview" style="width:100%; border-radius:8px; margin:8px 0;">` : ""}
+      <p><strong>${cards.length}</strong> card${cards.length === 1 ? "" : "s"} discarded</p>
+      <p style="color:#bbb;"><strong>Top:</strong> ${previewCard ? escapeHeroValue(previewCard.name) : "-"}</p>
+      <div class="potion-actions">
+        <button onclick="shuffleHeroEquipmentDiscardIntoDeck()">Shuffle Discard Into Deck</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderHeroEquipmentDeck() {
+  const app = document.getElementById("heroEquipmentApp");
+  if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+  renderGmTargetOptions("gmHeroEquipmentTargetSelect");
+  ensureHeroEquipmentState(resourceProfile);
+
+  const searchInput = document.getElementById("heroEquipmentSearch");
+  const query = (searchInput?.value || "").trim().toLowerCase();
+  const sharedState = data.sharedHeroEquipment;
+  const targetProfile = getGmTargetProfile("gmHeroEquipmentTargetSelect");
+  const allDeckCards = heroEquipmentPiles.flatMap(pile =>
+    getHeroEquipmentDeckList(sharedState, pile.id).map((card, index) => ({ card, index, pile }))
+  );
+
+  const visibleCards = allDeckCards
+    .filter(entry => {
+      const haystack = [
+        entry.card.name,
+        entry.card.type,
+        entry.card.text,
+        entry.card.effect,
+        getHeroEquipmentSlotLabel(entry.card),
+        entry.card.faction,
+        entry.card.rarity,
+        entry.pile.label
+      ].join(" ").toLowerCase();
+      const matchesSearch = !query || haystack.includes(query);
+      const canSend = !targetProfile || heroCardCanGoToProfile(entry.card, targetProfile);
+      return matchesSearch && canSend;
+    });
+
+  app.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; align-items:start;">
+      ${heroEquipmentPiles.map(pile => {
+        const pileCards = getHeroEquipmentDeckList(sharedState, pile.id);
+        const visiblePileCards = visibleCards.filter(entry => entry.pile.id === pile.id);
+        return `
+          <div class="relic-zone">
+            <h2>${pile.label} (${pileCards.length})</h2>
+            <p style="margin-top:0; color:#bbb;">Search by name, slot, effect, rarity, or faction. Faction-specific cards only show for matching target profiles.</p>
+            ${visiblePileCards.map(entry => renderHeroEquipmentCard(entry.card, "deck", entry.index, pile.id)).join("") || "<p>No cards in this pile match this search/target.</p>"}
+          </div>
+        `;
+      }).join("")}
+      <div class="relic-zone">
+        <h2>Discard (${sharedState.discard.length})</h2>
+        ${renderHeroEquipmentDiscardPile(sharedState.discard)}
+      </div>
+    </div>
+  `;
+}
+
+function sendHeroEquipmentCard(pileId, deckIndex, targetProfile = getGmTargetProfile("gmHeroEquipmentTargetSelect")) {
+  if (!targetProfile) return;
+  ensureHeroEquipmentState(targetProfile);
+
+  const sharedState = data.sharedHeroEquipment;
+  const deck = getHeroEquipmentDeckList(sharedState, pileId);
+  const card = deck.splice(deckIndex, 1)[0];
+  if (!card) return;
+
+  if (!heroCardCanGoToProfile(card, targetProfile)) {
+    deck.splice(deckIndex, 0, card);
+    alert("That card is faction-specific and cannot be sent to this profile.");
+    return;
+  }
+
+  data[targetProfile].heroEquipment.inventory.push({ ...card, pile: pileId });
+
+  saveProfiles();
+  renderHeroEquipmentDeck();
+  renderInventory();
+  renderHero();
+}
+
+function unequipHeroEquipmentCard(card) {
+  if (!resourceProfile || !data[resourceProfile] || !card) return;
+  ensureHeroState(resourceProfile);
+
+  const values = [card.id, card.name].filter(Boolean);
+  Object.keys(data[resourceProfile].hero.slots || {}).forEach(slotId => {
+    if (values.includes(data[resourceProfile].hero.slots[slotId])) {
+      data[resourceProfile].hero.slots[slotId] = "";
+    }
+  });
+}
+
+function discardHeroEquipment(index) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  ensureHeroEquipmentState(resourceProfile);
+
+  const card = data[resourceProfile].heroEquipment.inventory.splice(index, 1)[0];
+  if (!card) return;
+
+  unequipHeroEquipmentCard(card);
+  data.sharedHeroEquipment.discard.push({ ...card, pile: getHeroEquipmentPile(card) });
+
+  saveProfiles();
+  renderHero();
+  renderInventory();
+  renderHeroEquipmentDeck();
+}
+
+function returnHeroEquipmentToDeck(index) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  ensureHeroEquipmentState(resourceProfile);
+
+  const card = data[resourceProfile].heroEquipment.inventory.splice(index, 1)[0];
+  if (!card) return;
+
+  unequipHeroEquipmentCard(card);
+  const pileId = getHeroEquipmentPile(card);
+  getHeroEquipmentDeckList(data.sharedHeroEquipment, pileId).push({ ...card, pile: pileId });
+
+  saveProfiles();
+  renderHero();
+  renderInventory();
+  renderHeroEquipmentDeck();
+}
+
+function shuffleHeroEquipmentDiscardIntoDeck() {
+  if (!resourceProfile) return;
+  ensureHeroEquipmentState(resourceProfile);
+
+  data.sharedHeroEquipment.discard.forEach(card => {
+    const pileId = getHeroEquipmentPile(card);
+    getHeroEquipmentDeckList(data.sharedHeroEquipment, pileId).push({ ...card, pile: pileId });
+  });
+  data.sharedHeroEquipment.discard = [];
+  heroEquipmentPiles.forEach(pile => shuffleArray(getHeroEquipmentDeckList(data.sharedHeroEquipment, pile.id)));
+
+  saveProfiles();
+  renderHeroEquipmentDeck();
+}
+
+function resetHeroEquipmentDeck() {
+  if (!resourceProfile) return;
+
+  data.sharedHeroEquipment = {
+    version: heroEquipmentDeckVersion,
+    decks: makeHeroEquipmentDecks(),
+    discard: []
+  };
+
+  Object.keys(data).forEach(key => {
+    if (data[key] && data[key].heroEquipment && data[key].heroEquipment.inventory) {
+      data[key].heroEquipment.inventory = [];
+    }
+  });
+
+  saveProfiles();
+  renderHeroEquipmentDeck();
+  renderHero();
+  renderInventory();
 }
 
 
@@ -9601,13 +10230,20 @@ function newProfile() {
     createProfile();
 }
 
+function isSharedDataKey(name) {
+    return name === "sharedPotions" ||
+        name === "sharedRelics" ||
+        name === "sharedObjectives" ||
+        name === "sharedHeroEquipment";
+}
+
 
 function updateProfileList() {
     const select = document.getElementById("resourceProfileSelect");
     select.innerHTML = "";
 
     for (let name in data) {
-        if (name === "sharedPotions" || name === "sharedRelics" || name === "sharedObjectives") continue;
+        if (isSharedDataKey(name)) continue;
 
 
         const option = document.createElement("option");
@@ -10379,7 +11015,7 @@ function syncLandingProfileSelect() {
   select.innerHTML = "";
 
   Object.keys(data).forEach(name => {
-    if (name === "sharedPotions" || name === "sharedRelics" || name === "sharedObjectives") return;
+    if (isSharedDataKey(name)) return;
 
     const option = document.createElement("option");
     option.value = name;
@@ -10643,6 +11279,7 @@ function createProfile() {
         relics: { inventory: [] },
         objectives: { inventory: [] },
         hero: createDefaultHeroEquipment(),
+        heroEquipment: { inventory: [] },
         unlocks: { revealed: {}, notes: {}, setupSixChoices: {}, actionBoard: {} },
         hiddenPaths: { paths: {}, claimedPath: null, counters: {} },
         keywords: { selected: {} },
@@ -10710,7 +11347,7 @@ function loadProfile() {
     let select = document.getElementById("skillProfileSelect");
     let name = select.value;
 
-    if (!name || name === "sharedPotions" || name === "sharedRelics" || name === "sharedObjectives" || !data[name] || !data[name][currentFaction]) return;
+    if (!name || isSharedDataKey(name) || !data[name] || !data[name][currentFaction]) return;
 
 
     resourceProfile = name;
@@ -10738,6 +11375,7 @@ function loadProfile() {
     ensureRelicState(resourceProfile);
     ensureObjectiveState(resourceProfile);
     ensureHeroState(resourceProfile);
+    ensureHeroEquipmentState(resourceProfile);
 ensureUnlockState(resourceProfile);
 renderRelics();
   renderObjectives();
@@ -10806,6 +11444,11 @@ function showView(view) {
 
   document.getElementById("relicsView").style.display =
     view === "relics" && isHostMode ? "block" : "none";
+
+  const heroEquipmentView = document.getElementById("heroEquipmentView");
+  if (heroEquipmentView) {
+    heroEquipmentView.style.display = view === "heroEquipment" && isHostMode ? "block" : "none";
+  }
 
   const objectivesView = document.getElementById("objectivesView");
   if (objectivesView) {
@@ -10877,6 +11520,9 @@ function showView(view) {
   }
   if (view === "hero") {
     renderHero();
+  }
+  if (view === "heroEquipment" && isHostMode) {
+    renderHeroEquipmentDeck();
   }
   if (view === "unlocks") {
     renderUnlocks();
@@ -11912,7 +12558,7 @@ function refreshProfiles() {
     select.innerHTML = "";
 
     for (let name in data) {
-        if (name === "sharedPotions" || name === "sharedRelics" || name === "sharedObjectives") continue;
+        if (isSharedDataKey(name)) continue;
 
 
         let opt = document.createElement("option");
@@ -14309,6 +14955,7 @@ const relicCards = [
     name: "Permanent Relic - Gold Collection",
     type: "Permanent Relics",
     text: "+1 Gold for Collection or +6 Metal",
+    collectionIncome: "+1 Gold",
     usage: "Always Active",
     sellValue: "+6 Metal",
     startsUnlocked: false,
@@ -14330,6 +14977,7 @@ const relicCards = [
     name: "Permanent Relic - Food Collection",
     type: "Permanent Relics",
     text: "+1 Food for Collection or +6 Metal",
+    collectionIncome: "+1 Food",
     usage: "Always Active",
     sellValue: "+6 Metal",
     startsUnlocked: false,
@@ -14340,6 +14988,7 @@ const relicCards = [
     name: "Permanent Relic - Energy Collection",
     type: "Permanent Relics",
     text: "+1 Energy for Collection or +6 Metal",
+    collectionIncome: "+1 Energy",
     usage: "Always Active",
     sellValue: "+6 Metal",
     startsUnlocked: false,
@@ -17929,7 +18578,7 @@ function renderGmTargetOptions(selectId) {
     select.innerHTML = "";
 
     Object.keys(data).forEach(name => {
-        if (name === "sharedPotions" || name === "sharedRelics" || name === "sharedObjectives") return;
+        if (isSharedDataKey(name)) return;
         if (!data[name] || !data[name].resources) return;
 
         const option = document.createElement("option");
@@ -18434,6 +19083,7 @@ const playerRelicState = data[resourceProfile].relics;
     renderRelics();
   renderObjectives();
 renderInventory();
+renderBuildings();
 }
 
 function gainRandomRelic(targetProfile = getGmTargetProfile("gmRelicTargetSelect")) {
@@ -18454,6 +19104,7 @@ function gainRandomRelic(targetProfile = getGmTargetProfile("gmRelicTargetSelect
     renderRelics();
   renderObjectives();
 renderInventory();
+renderBuildings();
 }
 
 function gainRandomRelicByType(type, targetProfile = getGmTargetProfile("gmRelicTargetSelect")) {
@@ -18477,6 +19128,7 @@ function gainRandomRelicByType(type, targetProfile = getGmTargetProfile("gmRelic
     renderRelics();
   renderObjectives();
 renderInventory();
+renderBuildings();
 }
 
 function shuffleRelicDeck() {
@@ -18507,6 +19159,7 @@ const playerRelicState = data[resourceProfile].relics;
     renderRelics();
   renderObjectives();
 renderInventory();
+renderBuildings();
 }
 
 
@@ -18524,6 +19177,7 @@ const sharedRelicState = data.sharedRelics;
     saveProfiles();
     renderRelics();
   renderObjectives();
+renderBuildings();
 }
 
 function resetRelics() {
@@ -18544,6 +19198,7 @@ function resetRelics() {
     saveProfiles();
     renderRelics();
   renderObjectives();
+renderBuildings();
 }
 
 
