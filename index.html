@@ -9409,11 +9409,57 @@ const factionHeroEquipmentCards = [
   makeHeroEquipmentCard("faction_men_wildwood_shield", "Wildwood Shield", "Shield", "offHand", "factionSpecific", "+1 Armour. Ignore difficult terrain once per Mission.", "Rare", "men")
 ];
 
+const remnantHeroCards = [
+  makeHeroEquipmentCard("remnant_nature", "Remnants of Nature", "Remnant", heroAccessorySlots, "remnants", "Found in Forests, Groves and Ancient Places. Used in crafting Armour, Talismans and Nature Items.", "Remnant"),
+  makeHeroEquipmentCard("remnant_order", "Remnants of Order", "Remnant", heroAccessorySlots, "remnants", "Found in Keeps, Temples and Ruins of Man. Used in crafting Weapons, Shields and Banners.", "Remnant"),
+  makeHeroEquipmentCard("remnant_shadow", "Remnants of Shadow", "Remnant", heroAccessorySlots, "remnants", "Found in Caves, Dark Places and Corrupted Sites. Used in crafting Spells, Runes and Cursed Items.", "Remnant"),
+  makeHeroEquipmentCard("remnant_war", "Remnants of War", "Remnant", heroAccessorySlots, "remnants", "Found on Battlefields, Wastes and War Camps. Used in crafting Weapons, Armour and Trophies.", "Remnant"),
+  makeHeroEquipmentCard("remnant_ancients", "Remnants of the Ancients", "Remnant", heroAccessorySlots, "remnants", "Found in Lost Tombs, Pyramids and Sunken Cities. Used in crafting Legendary Items, Sets and Unique Relics.", "Remnant"),
+  makeHeroEquipmentCard("remnant_void", "Remnants of the Void", "Remnant", heroAccessorySlots, "remnants", "Found in Rifts, Catacombs and Otherworldly Places. Used in crafting Mythic Items and Reality-warping Relics.", "Remnant"),
+  makeHeroEquipmentCard("remnant_recipe_heart_of_the_wilds", "Heart of the Wilds", "Remnant Recipe", heroAccessorySlots, "remnants", "Recipe: 3 Remnants of Nature. +2 HP. Regenerate 1 HP each Round.", "Remnant"),
+  makeHeroEquipmentCard("remnant_recipe_blade_of_justice", "Blade of Justice", "Remnant Recipe", heroWeaponSlots, "remnants", "Recipe: 3 Remnants of Order. +3 OD. Attacks ignore Cover (1).", "Remnant"),
+  makeHeroEquipmentCard("remnant_recipe_veilpiercer", "Veilpiercer", "Remnant Recipe", heroWeaponSlots, "remnants", "Recipe: 5 Remnants of Shadow. +2 OD and +1 RC. Attacks ignore Armour. On Kill: Gain Stealth (1).", "Remnant"),
+  makeHeroEquipmentCard("remnant_recipe_bloodforged_warmaul", "Bloodforged Warmaul", "Remnant Recipe", heroWeaponSlots, "remnants", "Recipe: 5 Remnants of War. +4 OD. Attacks gain Cleave (1). Gain +1 OD for each enemy adjacent to your target.", "Remnant"),
+  makeHeroEquipmentCard("remnant_recipe_crown_of_the_first_king", "Crown of the First King", "Remnant Recipe", "head", "remnants", "Recipe: 8 Remnants of the Ancients. +1 Leadership. Allies within 2 gain +1 OD and +1 Armour.", "Remnant"),
+  makeHeroEquipmentCard("remnant_recipe_eye_of_oblivion", "Eye of Oblivion", "Remnant Recipe", heroAccessorySlots, "remnants", "Recipe: 8 Remnants of the Void. +2 RC. Enemy Spells cost +1 RC to cast on you.", "Remnant")
+];
+
+const mountHeroCards = [
+  makeHeroEquipmentCard("mount_warhorse", "Warhorse", "Mount", "mount", "mounts", "+4 Movement.", "Common"),
+  makeHeroEquipmentCard("mount_dire_wolf", "Dire Wolf", "Mount", "mount", "mounts", "+6 Movement. Gain Trample.", "Common"),
+  makeHeroEquipmentCard("mount_great_elk", "Great Elk", "Mount", "mount", "mounts", "+15 Movement. Adjacent allies gain +1 Movement.", "Rare"),
+  makeHeroEquipmentCard("mount_shadow_panther", "Shadow Panther", "Mount", "mount", "mounts", "+16 Movement. Gain Ambush.", "Rare", "order"),
+  makeHeroEquipmentCard("mount_cave_drake", "Cave Drake", "Mount", "mount", "mounts", "Flying. Move 12.", "Rare", "men"),
+  makeHeroEquipmentCard("mount_war_bear", "War Bear", "Mount", "mount", "mounts", "+7 Movement. Gain Trample.", "Rare"),
+  makeHeroEquipmentCard("mount_goat_rider", "Goat Rider", "Mount", "mount", "mounts", "+15 Movement. Ignore Elevation.", "Legendary", "dwarves"),
+  makeHeroEquipmentCard("mount_staglord_saddle", "Staglord Saddle", "Mount", "mount", "mounts", "+14 Movement. Adjacent allies gain +2 Movement.", "Legendary", "elves"),
+  makeHeroEquipmentCard("mount_siege_mammoth", "Siege Mammoth", "Mount", "mount", "mounts", "+10 Movement. Target 2. Double damage to Structures.", "Legendary", "barbarians"),
+  makeHeroEquipmentCard("mount_ancient_dragon", "Ancient Dragon", "Mount", "mount", "mounts", "Flying. Move 16. Target 2.", "Mythic", "order"),
+  makeHeroEquipmentCard("mount_frost_wyrm", "Frost Wyrm", "Mount", "mount", "mounts", "Flying. Move 14. Immune to Frost.", "Mythic", "men"),
+  makeHeroEquipmentCard("mount_world_serpent", "World Serpent", "Mount", "mount", "mounts", "Move 18. Target 3. May move through water and ignore Rivers.", "Mythic")
+];
+
+const companionHeroCards = [
+  makeHeroEquipmentCard("companion_war_hound", "War Hound", "Companion", heroAccessorySlots, "companions", "Move 12. Adjacent enemies: -1 Evade.", "Rare"),
+  makeHeroEquipmentCard("companion_falcon", "Falcon", "Companion", heroAccessorySlots, "companions", "Once per Phase: Reveal any hidden unit within 8.", "Rare"),
+  makeHeroEquipmentCard("companion_goblin_squire", "Goblin Squire", "Companion", heroAccessorySlots, "companions", "Gain +1 Gold during Production.", "Common"),
+  makeHeroEquipmentCard("companion_ancient_raven", "Ancient Raven", "Companion", heroAccessorySlots, "companions", "Whenever you complete a Cave: Draw 1 Equipment card.", "Rare"),
+  makeHeroEquipmentCard("companion_dire_wolf", "Dire Wolf", "Companion", heroAccessorySlots, "companions", "Gain +1 Armour. Move 14.", "Uncommon"),
+  makeHeroEquipmentCard("companion_boar_of_the_hills", "Boar of the Hills", "Companion", heroAccessorySlots, "companions", "Gain +2 HP. Move 10.", "Common"),
+  makeHeroEquipmentCard("companion_desert_scout", "Desert Scout", "Companion", heroAccessorySlots, "companions", "Once per Mission: Reveal the next 3 cards of your Exploration deck.", "Rare"),
+  makeHeroEquipmentCard("companion_spirit_hound", "Spirit Hound", "Companion", heroAccessorySlots, "companions", "Move 14. When an enemy adjacent dies: Gain 1 RC.", "Mythic"),
+  makeHeroEquipmentCard("companion_stone_golem", "Stone Golem", "Companion", heroAccessorySlots, "companions", "Gain +2 Armour. Adjacent allies gain +1 Armour.", "Rare"),
+  makeHeroEquipmentCard("companion_battle_mage_initiate", "Battle Mage Initiate", "Companion", heroAccessorySlots, "companions", "Once per Round: You may add +1 RC to your next Spell.", "Uncommon")
+];
+
 const defaultHeroEquipmentCards = [
   ...basicHeroWeaponCards,
   ...commonHeroWeaponCards,
   ...commonHeroRangedWeaponCards,
   ...factionHeroEquipmentCards,
+  ...remnantHeroCards,
+  ...mountHeroCards,
+  ...companionHeroCards,
   {
     id: "weapon_iron_longsword",
     name: "Iron Longsword",
@@ -10496,7 +10542,7 @@ const defaultHeroEquipmentCards = [
   }
 ];
 
-const heroEquipmentDeckVersion = 14;
+const heroEquipmentDeckVersion = 15;
 
 const heroEquipmentPiles = [
   { id: "basic", label: "Basic", backImage: "assets/hero-cards/basic-back.png" },
