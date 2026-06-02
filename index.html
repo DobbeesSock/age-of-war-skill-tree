@@ -9388,10 +9388,32 @@ const commonHeroRangedWeaponCards = [
   makeHeroEquipmentCard("common_ranged_mens_long_rifle", "Men's Long Rifle", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "+2 Range. Ignore Cover (1).", "Common", "men")
 ];
 
+const factionHeroEquipmentCards = [
+  makeHeroEquipmentCard("faction_orc_brutal_choppa", "Brutal Choppa", "Weapon", heroWeaponSlots, "factionSpecific", "+2 Retaliate. Enemies suffer -1 RC.", "Common", "orcs"),
+  makeHeroEquipmentCard("faction_orc_ironhide_armour", "Ironhide Armour", "Armour", "armour", "factionSpecific", "+2 Armour. Gain +1 Armour per Shadow Orc ally.", "Common", "orcs"),
+  makeHeroEquipmentCard("faction_orc_bonecrusher_shield", "Bonecrusher Shield", "Shield", "offHand", "factionSpecific", "+1 Armour. Deal 1 damage to attackers.", "Rare", "orcs"),
+  makeHeroEquipmentCard("faction_dwarf_stonecleaver", "Stonecleaver", "Weapon", heroWeaponSlots, "factionSpecific", "+1 Armour. +1 Retaliate.", "Common", "dwarves"),
+  makeHeroEquipmentCard("faction_dwarf_holdfast_plate", "Holdfast Plate", "Armour", "armour", "factionSpecific", "+3 Armour. Adjacent allies gain +1 Armour.", "Rare", "dwarves"),
+  makeHeroEquipmentCard("faction_dwarf_thunderwall_shield", "Thunderwall Shield", "Shield", "offHand", "factionSpecific", "+2 Armour. Once per Round: Ignore 1 damage.", "Rare", "dwarves"),
+  makeHeroEquipmentCard("faction_elf_moonglade_bow", "Moonglade Bow", "Ranged Weapon", heroWeaponSlots, "factionSpecific", "+2 RC. Ranged attacks ignore Cover (1).", "Rare", "elves"),
+  makeHeroEquipmentCard("faction_elf_whisperleaf_robes", "Whisperleaf Robes", "Armour", "armour", "factionSpecific", "+1 Armour. Gain Stealth (1) once per Mission.", "Rare", "elves"),
+  makeHeroEquipmentCard("faction_elf_gladeward_shield", "Gladeward Shield", "Shield", "offHand", "factionSpecific", "+1 Armour. Adjacent Elven allies gain +1 RC.", "Rare", "elves"),
+  makeHeroEquipmentCard("faction_order_silverward_blade", "Silverward Blade", "Weapon", heroWeaponSlots, "factionSpecific", "+2 Retaliate. Enemies suffer -1 RC.", "Rare", "order"),
+  makeHeroEquipmentCard("faction_order_silverplate_armour", "Silverplate Armour", "Armour", "armour", "factionSpecific", "+2 Armour. Allies within 2 spaces gain +1 RC.", "Rare", "order"),
+  makeHeroEquipmentCard("faction_order_aegis_of_order", "Aegis of Order", "Shield", "offHand", "factionSpecific", "+2 Armour. Once per Round: Cancel 1 RC, mutation, or negative effect.", "Rare", "order"),
+  makeHeroEquipmentCard("faction_barbarian_rageclaw_axe", "Rageclaw Axe", "Weapon", heroWeaponSlots, "factionSpecific", "+3 Retaliate. Move through all enemy units.", "Rare", "barbarians"),
+  makeHeroEquipmentCard("faction_barbarian_warfury_armour", "Warfury Armour", "Armour", "armour", "factionSpecific", "+2 Armour. Enemies adjacent suffer 1 damage per Round.", "Rare", "barbarians"),
+  makeHeroEquipmentCard("faction_barbarian_totem_shield", "Totem Shield", "Shield", "offHand", "factionSpecific", "+1 Armour. Gain +1 Retaliate for each Barbarian ally adjacent.", "Common", "barbarians"),
+  makeHeroEquipmentCard("faction_men_hunters_spear", "Hunter's Spear", "Weapon", heroWeaponSlots, "factionSpecific", "+1 RC. Restore 1 RC when you deal damage.", "Common", "men"),
+  makeHeroEquipmentCard("faction_men_tribal_leathers", "Tribal Leathers", "Armour", "armour", "factionSpecific", "+1 Armour. Once per Mission: Restore 1 HP when you deal damage.", "Rare", "men"),
+  makeHeroEquipmentCard("faction_men_wildwood_shield", "Wildwood Shield", "Shield", "offHand", "factionSpecific", "+1 Armour. Ignore difficult terrain once per Mission.", "Rare", "men")
+];
+
 const defaultHeroEquipmentCards = [
   ...basicHeroWeaponCards,
   ...commonHeroWeaponCards,
   ...commonHeroRangedWeaponCards,
+  ...factionHeroEquipmentCards,
   {
     id: "weapon_iron_longsword",
     name: "Iron Longsword",
@@ -10474,7 +10496,7 @@ const defaultHeroEquipmentCards = [
   }
 ];
 
-const heroEquipmentDeckVersion = 13;
+const heroEquipmentDeckVersion = 14;
 
 const heroEquipmentPiles = [
   { id: "basic", label: "Basic", backImage: "assets/hero-cards/basic-back.png" },
