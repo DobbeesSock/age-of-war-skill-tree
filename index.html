@@ -9304,8 +9304,94 @@ const heroWeaponSlots = ["mainHand", "offHand", "twoHanded"];
 const heroSpellSlots = ["spellOne", "spellTwo", "spellThree"];
 const heroAccessorySlots = ["accessoryOne", "accessoryTwo"];
 const heroRuneSlots = ["mainHand", "offHand", "twoHanded", "armour", "head"];
+const heroOneHandedWeaponSlots = ["mainHand", "offHand"];
+
+function makeHeroEquipmentCard(id, name, type, slot, pile, text, rarity = "Common", faction = "any") {
+  return {
+    id,
+    name,
+    type,
+    slot,
+    pile,
+    faction,
+    text,
+    rarity
+  };
+}
+
+const basicHeroWeaponCards = [
+  makeHeroEquipmentCard("basic_weapon_rusted_sword", "Rusted Sword", "One-Handed Weapon", heroOneHandedWeaponSlots, "basic", "No effect.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_worn_spear", "Worn Spear", "One-Handed Weapon", heroOneHandedWeaponSlots, "basic", "+1 RC against Creatures.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_cracked_club", "Cracked Club", "One-Handed Weapon", heroOneHandedWeaponSlots, "basic", "+1 damage against Structures.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_hunters_knife", "Hunter's Knife", "One-Handed Weapon", heroOneHandedWeaponSlots, "basic", "+1 Movement.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_old_hatchet", "Old Hatchet", "One-Handed Weapon", heroOneHandedWeaponSlots, "basic", "Once per Phase: Re-roll 1 attack die.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_bent_falchion", "Bent Falchion", "One-Handed Weapon", heroOneHandedWeaponSlots, "basic", "+1 RC while attacking alone.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_spiked_mace", "Spiked Mace", "One-Handed Weapon", heroOneHandedWeaponSlots, "basic", "Attacks gain Breakdown on a natural 6.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_hand_axe", "Hand Axe", "One-Handed Weapon", heroOneHandedWeaponSlots, "basic", "Gain +2 Movement when Charging.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_great_cleaver", "Great Cleaver", "Two-Handed Weapon", "twoHanded", "basic", "+1 RC.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_long_pike", "Long Pike", "Two-Handed Weapon", "twoHanded", "basic", "+1 RC against Riders and Large Units.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_woodcutters_axe", "Woodcutter's Axe", "Two-Handed Weapon", "twoHanded", "basic", "+1 damage against Structures.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_chain_flail", "Chain Flail", "Two-Handed Weapon", "twoHanded", "basic", "Attacks gain Breakdown on 5-6.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_war_maul", "War Maul", "Two-Handed Weapon", "twoHanded", "basic", "+1 damage against Armoured targets.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_reaper_scythe", "Reaper Scythe", "Two-Handed Weapon", "twoHanded", "basic", "When destroying a unit: Move 2.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_tribal_poleaxe", "Tribal Poleaxe", "Two-Handed Weapon", "twoHanded", "basic", "+1 RC while adjacent to 2 or more enemies.", "Basic"),
+  makeHeroEquipmentCard("basic_weapon_iron_greatsword", "Iron Greatsword", "Two-Handed Weapon", "twoHanded", "basic", "Once per Phase: Gain +1 RC to one attack.", "Basic")
+];
+
+const commonHeroWeaponCards = [
+  makeHeroEquipmentCard("common_weapon_rustfang_sword", "Rustfang Sword", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "+1 RC."),
+  makeHeroEquipmentCard("common_weapon_iron_hatchet", "Iron Hatchet", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "+1 damage against Structures."),
+  makeHeroEquipmentCard("common_weapon_soldiers_mace", "Soldier's Mace", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "Attacks gain Breakdown on a natural 6."),
+  makeHeroEquipmentCard("common_weapon_hunting_spear", "Hunting Spear", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "+1 RC against Creatures."),
+  makeHeroEquipmentCard("common_weapon_notched_falchion", "Notched Falchion", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "Once per Phase: Re-roll 1 attack die."),
+  makeHeroEquipmentCard("common_weapon_bone_knife", "Bone Knife", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "+1 RC while attacking alone."),
+  makeHeroEquipmentCard("common_weapon_forge_hammer", "Forge Hammer", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "+1 damage against Walls."),
+  makeHeroEquipmentCard("common_weapon_raider_axe", "Raider Axe", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "Gain +2 Movement when Charging."),
+  makeHeroEquipmentCard("common_weapon_great_cleaver", "Great Cleaver", "Two-Handed Weapon", "twoHanded", "common", "+1 RC."),
+  makeHeroEquipmentCard("common_weapon_long_pike", "Long Pike", "Two-Handed Weapon", "twoHanded", "common", "+1 RC against Riders and Large Units."),
+  makeHeroEquipmentCard("common_weapon_woodcutters_axe", "Woodcutter's Axe", "Two-Handed Weapon", "twoHanded", "common", "+1 damage against Structures."),
+  makeHeroEquipmentCard("common_weapon_chain_flail", "Chain Flail", "Two-Handed Weapon", "twoHanded", "common", "Attacks gain Breakdown on 5-6."),
+  makeHeroEquipmentCard("common_weapon_war_maul", "War Maul", "Two-Handed Weapon", "twoHanded", "common", "+1 damage against Armoured targets."),
+  makeHeroEquipmentCard("common_weapon_reaper_scythe", "Reaper Scythe", "Two-Handed Weapon", "twoHanded", "common", "When destroying a unit: Move 2."),
+  makeHeroEquipmentCard("common_weapon_tribal_poleaxe", "Tribal Poleaxe", "Two-Handed Weapon", "twoHanded", "common", "+1 RC while adjacent to 2 or more enemies."),
+  makeHeroEquipmentCard("common_weapon_iron_greatsword", "Iron Greatsword", "Two-Handed Weapon", "twoHanded", "common", "Once per Phase: Gain +1 RC to one attack."),
+  makeHeroEquipmentCard("common_weapon_orc_chopper", "Orc Chopper", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "+1 RC against damaged units.", "Common", "orcs"),
+  makeHeroEquipmentCard("common_weapon_dwarven_pick", "Dwarven Pick", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "+1 damage against Structures.", "Common", "dwarves"),
+  makeHeroEquipmentCard("common_weapon_elven_longblade", "Elven Longblade", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "+1 Movement.", "Common", "elves"),
+  makeHeroEquipmentCard("common_weapon_order_arming_sword", "Order Arming Sword", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "Once per Round: ignore 1 negative modifier.", "Common", "order"),
+  makeHeroEquipmentCard("common_weapon_barbarian_bone_axe", "Barbarian Bone Axe", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "+1 RC if below half HP.", "Common", "barbarians"),
+  makeHeroEquipmentCard("common_weapon_mens_vanguard_spear", "Men's Vanguard Spear", "One-Handed Weapon", heroOneHandedWeaponSlots, "common", "Adjacent allies gain +1 Movement while Charging.", "Common", "men")
+];
+
+const commonHeroRangedWeaponCards = [
+  makeHeroEquipmentCard("common_ranged_hunters_crossbow", "Hunter's Crossbow", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "+1 RC. Range +2."),
+  makeHeroEquipmentCard("common_ranged_repeater_crossbow", "Repeater Crossbow", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "Attack the same target twice. Second attack gains no modifiers."),
+  makeHeroEquipmentCard("common_ranged_throwing_axes", "Throwing Axes", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "+1 RC while attacking damaged enemies."),
+  makeHeroEquipmentCard("common_ranged_sling_of_stones", "Sling of Stones", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "On 6: Target gains Breakdown."),
+  makeHeroEquipmentCard("common_ranged_bone_darts", "Bone Darts", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "Attacks gain Lesion."),
+  makeHeroEquipmentCard("common_ranged_rangers_handbow", "Ranger's Handbow", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "+2 Movement after attacking."),
+  makeHeroEquipmentCard("common_ranged_fire_flask_launcher", "Fire Flask Launcher", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "Attacks gain Fire."),
+  makeHeroEquipmentCard("common_ranged_falconers_javelin", "Falconer's Javelin", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "+1 RC against Flying units."),
+  makeHeroEquipmentCard("common_ranged_longbow", "Longbow", "Two-Handed Ranged Weapon", "twoHanded", "common", "+2 Range."),
+  makeHeroEquipmentCard("common_ranged_warbow", "Warbow", "Two-Handed Ranged Weapon", "twoHanded", "common", "+1 RC."),
+  makeHeroEquipmentCard("common_ranged_great_crossbow", "Great Crossbow", "Two-Handed Ranged Weapon", "twoHanded", "common", "+1 Damage."),
+  makeHeroEquipmentCard("common_ranged_elkhorn_bow", "Elkhorn Bow", "Two-Handed Ranged Weapon", "twoHanded", "common", "Ignore Cover (1)."),
+  makeHeroEquipmentCard("common_ranged_siege_arbalest", "Siege Arbalest", "Two-Handed Ranged Weapon", "twoHanded", "common", "Double damage against Structures."),
+  makeHeroEquipmentCard("common_ranged_ravenfeather_bow", "Ravenfeather Bow", "Two-Handed Ranged Weapon", "twoHanded", "common", "Re-roll 1 attack die each Phase."),
+  makeHeroEquipmentCard("common_ranged_beast_hunter_bow", "Beast Hunter Bow", "Two-Handed Ranged Weapon", "twoHanded", "common", "+1 RC against Creatures."),
+  makeHeroEquipmentCard("common_ranged_stormshot_launcher", "Stormshot Launcher", "Two-Handed Ranged Weapon", "twoHanded", "common", "Target all enemies adjacent to the primary target."),
+  makeHeroEquipmentCard("common_ranged_orc_skullbow", "Orc Skullbow", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "+1 RC against damaged units.", "Common", "orcs"),
+  makeHeroEquipmentCard("common_ranged_dwarven_boltcaster", "Dwarven Boltcaster", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "Ignore Armour (1).", "Common", "dwarves"),
+  makeHeroEquipmentCard("common_ranged_elven_moonbow", "Elven Moonbow", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "+1 RC. +1 Range.", "Common", "elves"),
+  makeHeroEquipmentCard("common_ranged_order_purifier_crossbow", "Order Purifier Crossbow", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "+1 RC against Undead, Corrupted, and Demonic enemies.", "Common", "order"),
+  makeHeroEquipmentCard("common_ranged_barbarian_harpoon_thrower", "Barbarian Harpoon Thrower", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "Pull target 1 space toward you.", "Common", "barbarians"),
+  makeHeroEquipmentCard("common_ranged_mens_long_rifle", "Men's Long Rifle", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "+2 Range. Ignore Cover (1).", "Common", "men")
+];
 
 const defaultHeroEquipmentCards = [
+  ...basicHeroWeaponCards,
+  ...commonHeroWeaponCards,
+  ...commonHeroRangedWeaponCards,
   {
     id: "weapon_iron_longsword",
     name: "Iron Longsword",
@@ -10388,7 +10474,7 @@ const defaultHeroEquipmentCards = [
   }
 ];
 
-const heroEquipmentDeckVersion = 11;
+const heroEquipmentDeckVersion = 12;
 
 const heroEquipmentPiles = [
   { id: "basic", label: "Basic", backImage: "assets/hero-cards/basic-back.png" },
