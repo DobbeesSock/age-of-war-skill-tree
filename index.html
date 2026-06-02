@@ -211,6 +211,83 @@ h1 {
     border-left-color: #c96b6b;
 }
 
+.relic-card.hero-equipment-card-face {
+    --hero-card-accent: #d4af37;
+    --hero-card-art: none;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--hero-card-accent), #ffffff 18%);
+    border-left: 6px solid var(--hero-card-accent);
+    box-shadow:
+        inset 0 0 0 1px rgba(0,0,0,0.85),
+        inset 0 0 0 3px color-mix(in srgb, var(--hero-card-accent), transparent 72%),
+        0 0 18px color-mix(in srgb, var(--hero-card-accent), transparent 82%);
+    background:
+        linear-gradient(180deg, rgba(42,34,22,0.94), rgba(9,10,10,0.96)),
+        radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--hero-card-accent), transparent 78%), transparent 58%);
+}
+
+.relic-card.hero-equipment-card-face::before {
+    background:
+        linear-gradient(180deg, rgba(0,0,0,0.28), rgba(0,0,0,0.78)),
+        radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--hero-card-accent), transparent 74%), transparent 54%);
+}
+
+.relic-card.hero-equipment-card-face::after {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    z-index: 0;
+    border-radius: 7px;
+    background-image: var(--hero-card-art);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.18;
+    filter: saturate(0.95) contrast(1.08);
+    pointer-events: none;
+}
+
+.relic-card.hero-equipment-card-face > * {
+    z-index: 2;
+}
+
+.relic-card.hero-equipment-card-face small {
+    color: color-mix(in srgb, var(--hero-card-accent), #fff 34%);
+    letter-spacing: 0;
+}
+
+.relic-card.hero-equipment-card-face h3 {
+    color: #fff2b8;
+    text-shadow: 0 1px 0 #000, 0 0 10px color-mix(in srgb, var(--hero-card-accent), transparent 54%);
+}
+
+.relic-card.hero-equipment-card-face p {
+    color: #f2ead2;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.85);
+}
+
+.relic-card.hero-equipment-card-face .potion-actions:empty {
+    display: none;
+}
+
+.hero-pile-basic { --hero-card-accent: #bbb3a2; }
+.hero-pile-common { --hero-card-accent: #d0c2a2; }
+.hero-pile-rare { --hero-card-accent: #45a6ff; }
+.hero-pile-legendary { --hero-card-accent: #ff9d23; }
+.hero-pile-mythic { --hero-card-accent: #bf62ff; }
+.hero-pile-armourSets { --hero-card-accent: #f08f2f; }
+.hero-pile-trophies { --hero-card-accent: #c94232; }
+.hero-pile-titles { --hero-card-accent: #5db7ff; }
+.hero-pile-mounts { --hero-card-accent: #d4af37; }
+.hero-pile-companions { --hero-card-accent: #4fc6ff; }
+.hero-pile-remnants { --hero-card-accent: #5bc2d6; }
+.hero-pile-cursed { --hero-card-accent: #ef4b31; }
+.hero-pile-factionSpecificOrcs { --hero-card-accent: #c43f2f; }
+.hero-pile-factionSpecificDwarves { --hero-card-accent: #d89631; }
+.hero-pile-factionSpecificElves { --hero-card-accent: #65c84b; }
+.hero-pile-factionSpecificMen { --hero-card-accent: #4fa3df; }
+.hero-pile-factionSpecificOrder { --hero-card-accent: #a66bff; }
+.hero-pile-factionSpecificBarbarians { --hero-card-accent: #e26a26; }
+
 #keywordsApp {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -11144,8 +11221,19 @@ function getHeroEquipmentPileLabel(cardOrPileId) {
   return heroEquipmentPiles.find(pile => pile.id === pileId)?.label || "Common";
 }
 
+function getHeroEquipmentPileBackImage(pileId) {
+  return heroEquipmentPiles.find(pile => pile.id === pileId)?.backImage || "";
+}
+
+function getHeroEquipmentPileClass(pileId) {
+  return `hero-pile-${String(pileId || "common").replace(/[^a-zA-Z0-9]/g, "")}`;
+}
+
 function renderHeroEquipmentCard(card, zone, index, pileId = "") {
   const faction = card.faction && card.faction !== "any" ? card.faction : "Any Hero";
+  const resolvedPileId = pileId || getHeroEquipmentPile(card);
+  const pileBackImage = getHeroEquipmentPileBackImage(resolvedPileId);
+  const pileBackStyle = pileBackImage ? ` style="--hero-card-art:url('${escapeHeroValue(pileBackImage)}');"` : "";
   let buttons = "";
 
   if (zone === "deck") {
@@ -11158,7 +11246,7 @@ function renderHeroEquipmentCard(card, zone, index, pileId = "") {
   }
 
   return `
-    <div class="relic-card ${zone}">
+    <div class="relic-card ${zone} hero-equipment-card-face ${getHeroEquipmentPileClass(resolvedPileId)}"${pileBackStyle}>
       <small>${escapeHeroValue(getHeroEquipmentPileLabel(card))} - ${escapeHeroValue(card.type || "Hero Equipment")} - ${escapeHeroValue(faction)}</small>
       <h3>${escapeHeroValue(card.name || "Unnamed Hero Card")}</h3>
       ${card.frontImage ? `<img src="${card.frontImage}" alt="${escapeHeroValue(card.name)}" style="width:100%; border-radius:8px; margin:8px 0;">` : ""}
