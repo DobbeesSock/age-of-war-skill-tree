@@ -9452,6 +9452,72 @@ const companionHeroCards = [
   makeHeroEquipmentCard("companion_battle_mage_initiate", "Battle Mage Initiate", "Companion", heroAccessorySlots, "companions", "Once per Round: You may add +1 RC to your next Spell.", "Uncommon")
 ];
 
+const titleHeroCards = [
+  makeHeroEquipmentCard("title_dragonslayer", "Dragonslayer", "Title", heroAccessorySlots, "titles", "Requirement: Slay a Dragon. Reward: +1 OD against Dragons. Permanent.", "Epic"),
+  makeHeroEquipmentCard("title_cave_delver", "Cave Delver", "Title", heroAccessorySlots, "titles", "Requirement: Complete 5 Caves. Reward: +2 Movement in Caves. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_warlord", "Warlord", "Title", heroAccessorySlots, "titles", "Requirement: Destroy 25 enemy units. Reward: Adjacent allies gain +1 OD. Permanent.", "Epic"),
+  makeHeroEquipmentCard("title_tyrant", "Tyrant", "Title", heroAccessorySlots, "titles", "Requirement: Destroy 5 enemy Structures. Reward: Gain +2 RC against Structures. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_keeper_of_secrets", "Keeper of Secrets", "Title", heroAccessorySlots, "titles", "Requirement: Discover 20 Secrets. Reward: +1 RC. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_master_of_the_wild", "Master of the Wild", "Title", heroAccessorySlots, "titles", "Requirement: Tame or control 15 Beasts. Reward: Beasts under your control gain +10% HP. Permanent.", "Epic"),
+  makeHeroEquipmentCard("title_explorer", "Explorer", "Title", heroAccessorySlots, "titles", "Requirement: Reveal 50% of the map. Reward: +1 Movement. Permanent.", "Common"),
+  makeHeroEquipmentCard("title_wealthy", "Wealthy", "Title", heroAccessorySlots, "titles", "Requirement: Accumulate 5000 Gold. Reward: +10% Gold income. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_unbroken", "Unbroken", "Title", heroAccessorySlots, "titles", "Requirement: Win a battle with your Hero at 1 HP or less. Reward: Max HP +1. Permanent.", "Epic"),
+  makeHeroEquipmentCard("title_justiciar", "Justiciar", "Title", heroAccessorySlots, "titles", "Requirement: Punish 50 evil acts (raids, ambushes, or atrocities). Reward: Gain +1 Retaliate. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_conqueror", "Conqueror", "Title", heroAccessorySlots, "titles", "Requirement: Own or capture 20 Settlements. Reward: All settlements you own generate +5 Gold.", "Epic"),
+  makeHeroEquipmentCard("title_survivor", "Survivor", "Title", heroAccessorySlots, "titles", "Requirement: Survive 20 Turns in a single campaign. Reward: Heal 5 HP at the start of each Production Phase. Permanent.", "Common")
+];
+
+const trophyHeroCards = [
+  makeHeroEquipmentCard("trophy_troll_skull", "Troll Skull", "Trophy", heroAccessorySlots, "trophies", "Gain +1 Armour.", "Minor"),
+  makeHeroEquipmentCard("trophy_dire_wolf_pelt", "Dire Wolf Pelt", "Trophy", heroAccessorySlots, "trophies", "Gain +2 HP.", "Minor"),
+  makeHeroEquipmentCard("trophy_harpy_talon", "Harpy Talon", "Trophy", heroAccessorySlots, "trophies", "Gain +1 Movement.", "Minor"),
+  makeHeroEquipmentCard("trophy_ogre_gauntlet", "Ogre Gauntlet", "Trophy", heroAccessorySlots, "trophies", "Gain +2 Armour. Deal +1 damage to units with >3 HP.", "Major"),
+  makeHeroEquipmentCard("trophy_basilisk_eye", "Basilisk Eye", "Trophy", heroAccessorySlots, "trophies", "Gain Stealth (1). +1 RC.", "Major"),
+  makeHeroEquipmentCard("trophy_ancient_ent_heart", "Ancient Ent Heart", "Trophy", heroAccessorySlots, "trophies", "Restore 5 HP. Once per Mission.", "Major"),
+  makeHeroEquipmentCard("trophy_dragon_fang", "Dragon Fang", "Trophy", heroAccessorySlots, "trophies", "Gain +1 RC. Attacks gain Fire.", "Greater"),
+  makeHeroEquipmentCard("trophy_giant_heart", "Giant Heart", "Trophy", heroAccessorySlots, "trophies", "Gain +4 HP. Gain +1 Armour.", "Greater"),
+  makeHeroEquipmentCard("trophy_lich_crown", "Lich Crown", "Trophy", "head", "trophies", "Gain +2 RC. Enemy spells cost +1 RC to cast on you.", "Greater"),
+  makeHeroEquipmentCard("trophy_world_boss_trophy", "World Boss Trophy", "Trophy", heroAccessorySlots, "trophies", "Adjacent allies: +1 Movement and +1 OD.", "World"),
+  makeHeroEquipmentCard("trophy_fallen_heros_blade", "Fallen Hero's Blade", "Trophy", heroWeaponSlots, "trophies", "Gain +2 OD. When you slay a Hero: Restore 2 HP.", "Hero"),
+  makeHeroEquipmentCard("trophy_crown_of_a_king", "Crown of a King", "Trophy", "head", "trophies", "Adjacent allies: +1 Armour and +1 RC.", "Hero")
+];
+
+const armourSetHeroCards = [
+  makeHeroEquipmentCard("set_gorefather_blood_crown", "Blood Crown", "Gorefather Set Helmet", "head", "armourSets", "+2 OD. +1 RC. Set: Gorefather.", "Set"),
+  makeHeroEquipmentCard("set_gorefather_chain_of_conquest", "Chain of Conquest", "Gorefather Set Armour", "armour", "armourSets", "+2 Armour. +2 HP. Set: Gorefather.", "Set"),
+  makeHeroEquipmentCard("set_gorefather_fang", "Gorefather's Fang", "Gorefather Set Weapon", heroWeaponSlots, "armourSets", "+3 OD. Heal 2 when you destroy a unit. Set: Gorefather.", "Set"),
+  makeHeroEquipmentCard("set_ancient_king_royal_plate", "Royal Plate", "Ancient King Set Armour", "armour", "armourSets", "+3 Armour. +2 HP. Set: Ancient King.", "Set"),
+  makeHeroEquipmentCard("set_ancient_king_kings_blade", "King's Blade", "Ancient King Set Weapon", heroWeaponSlots, "armourSets", "+2 OD. +1 RC. Set: Ancient King.", "Set"),
+  makeHeroEquipmentCard("set_ancient_king_crown_of_kings", "Crown of Kings", "Ancient King Set Helmet", "head", "armourSets", "+2 OD. +1 Leadership. Set: Ancient King.", "Set"),
+  makeHeroEquipmentCard("set_mountain_king_anvil_crown", "Anvil Crown", "Mountain King Set Helmet", "head", "armourSets", "+2 Armour. +1 RC. Set: Mountain King.", "Set"),
+  makeHeroEquipmentCard("set_mountain_king_forge_plate", "Forge Plate", "Mountain King Set Armour", "armour", "armourSets", "+3 Armour. +3 HP. Set: Mountain King.", "Set"),
+  makeHeroEquipmentCard("set_mountain_king_hammer_of_the_deep", "Hammer of the Deep", "Mountain King Set Weapon", heroWeaponSlots, "armourSets", "+3 OD. Crushing Blow (1). Set: Mountain King.", "Set"),
+  makeHeroEquipmentCard("set_stormcaller_helm", "Stormcaller Helm", "Stormcaller Set Helmet", "head", "armourSets", "+2 OD. +1 RC. Set: Stormcaller.", "Set"),
+  makeHeroEquipmentCard("set_stormcaller_tempest_robes", "Tempest Robes", "Stormcaller Set Armour", "armour", "armourSets", "+2 Armour. +2 Movement. Set: Stormcaller.", "Set"),
+  makeHeroEquipmentCard("set_stormcaller_lightning_spire", "Lightning Spire", "Stormcaller Set Weapon", heroWeaponSlots, "armourSets", "+3 RC. Chain Lightning (1). Set: Stormcaller.", "Set"),
+  makeHeroEquipmentCard("set_shadowstalker_veil_hood", "Veil Hood", "Shadowstalker Set Helmet", "head", "armourSets", "+1 Stealth. +1 Evasion. Set: Shadowstalker.", "Set"),
+  makeHeroEquipmentCard("set_shadowstalker_nightstalker_leather", "Nightstalker Leather", "Shadowstalker Set Armour", "armour", "armourSets", "+2 Armour. +1 Movement. Set: Shadowstalker.", "Set"),
+  makeHeroEquipmentCard("set_shadowstalker_duskblade", "Duskblade", "Shadowstalker Set Weapon", heroWeaponSlots, "armourSets", "+2 OD. Backstab (1). Set: Shadowstalker.", "Set"),
+  makeHeroEquipmentCard("set_tribal_champion_bear_totem", "Bear Totem", "Tribal Champion Set Helmet", "head", "armourSets", "+2 HP. +1 Armour. Set: Tribal Champion.", "Set"),
+  makeHeroEquipmentCard("set_tribal_champion_spirit_hide", "Spirit Hide", "Tribal Champion Set Armour", "armour", "armourSets", "+2 Armour. +1 RC. Set: Tribal Champion.", "Set"),
+  makeHeroEquipmentCard("set_tribal_champion_spear_of_the_wild", "Spear of the Wild", "Tribal Champion Set Weapon", heroWeaponSlots, "armourSets", "+2 OD. +1 Movement. Set: Tribal Champion.", "Set")
+];
+
+const cursedHeroEquipmentCards = [
+  makeHeroEquipmentCard("cursed_godfathers_fang", "Godfather's Fang", "Cursed Weapon", heroWeaponSlots, "cursed", "+3 OD. Whenever you destroy a unit: Heal 2 HP. Curse: Lose 1 HP during Production Phase.", "Epic"),
+  makeHeroEquipmentCard("cursed_crown_of_madness", "Crown of Madness", "Cursed Helmet", "head", "cursed", "Adjacent allies: +1 OD. Curse: Adjacent allies suffer -1 Armour.", "Epic"),
+  makeHeroEquipmentCard("cursed_whispering_blade", "Whispering Blade", "Cursed Weapon", heroWeaponSlots, "cursed", "Attacks ignore Armour. Gain Stealth (1). Curse: Your Hero suffers Terror.", "Epic"),
+  makeHeroEquipmentCard("cursed_heartbound_armour", "Heartbound Armour", "Cursed Armour", "armour", "cursed", "+3 Armour. +2 HP. Curse: You cannot Heal. Lose 2 HP during Production.", "Legendary"),
+  makeHeroEquipmentCard("cursed_blood_drenched_pauldrons", "Blood-Drenched Pauldrons", "Cursed Armour", "armour", "cursed", "+2 OD. +10% Lifesteal. Curse: Heal 50% less from all sources.", "Epic"),
+  makeHeroEquipmentCard("cursed_eye_of_the_betrayer", "Eye of the Betrayer", "Cursed Talisman", heroAccessorySlots, "cursed", "+2 RC. Reveal Stealthed units within 6. Curse: Your allies deal 10% less damage to you.", "Epic"),
+  makeHeroEquipmentCard("cursed_the_hungering_belt", "The Hungering Belt", "Cursed Armour", "armour", "cursed", "+2 Armour. +4 HP. Gain +1 HP whenever you kill a unit. Curse: If you do not kill a unit in a Battle, lose 2 HP.", "Legendary"),
+  makeHeroEquipmentCard("cursed_shackles_of_agony", "Shackles of Agony", "Cursed Armour", "armour", "cursed", "Enemies within 2: -1 Movement and -1 RC. Curse: You are Slowed (-2 Movement).", "Epic"),
+  makeHeroEquipmentCard("cursed_deathbringers_helm", "Deathbringer's Helm", "Cursed Helmet", "head", "cursed", "+2 OD. +1 RC. Curse: Whenever a friendly unit dies, gain Terror.", "Epic"),
+  makeHeroEquipmentCard("cursed_soulharvesters_scythe", "Soulharvester's Scythe", "Cursed Weapon", heroWeaponSlots, "cursed", "+4 OD. Attacks heal 25% of damage dealt. Curse: After each Battle, lose 1 random unit.", "Legendary"),
+  makeHeroEquipmentCard("cursed_veil_of_despair", "Veil of Despair", "Cursed Armour", "armour", "cursed", "Gain Stealth (2). Immune to Terror. Curse: You cannot benefit from Leadership auras.", "Epic"),
+  makeHeroEquipmentCard("cursed_blade_of_ruin", "Blade of Ruin", "Cursed Weapon", heroWeaponSlots, "cursed", "+5 OD. Attacks deal Cleave (1). Curse: Your Structures take 10% more damage from all sources.", "Legendary")
+];
+
 const defaultHeroEquipmentCards = [
   ...basicHeroWeaponCards,
   ...commonHeroWeaponCards,
@@ -9460,6 +9526,10 @@ const defaultHeroEquipmentCards = [
   ...remnantHeroCards,
   ...mountHeroCards,
   ...companionHeroCards,
+  ...titleHeroCards,
+  ...trophyHeroCards,
+  ...armourSetHeroCards,
+  ...cursedHeroEquipmentCards,
   {
     id: "weapon_iron_longsword",
     name: "Iron Longsword",
@@ -10542,7 +10612,7 @@ const defaultHeroEquipmentCards = [
   }
 ];
 
-const heroEquipmentDeckVersion = 15;
+const heroEquipmentDeckVersion = 16;
 
 const heroEquipmentPiles = [
   { id: "basic", label: "Basic", backImage: "assets/hero-cards/basic-back.png" },
