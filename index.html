@@ -420,10 +420,23 @@ h1 {
 .hero-equip-card {
   display: grid;
   gap: 7px;
+  grid-template-columns: minmax(0, 1fr);
   background: rgba(18,18,18,0.72);
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 8px;
   padding: 12px;
+}
+
+.hero-equip-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 0.9fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.hero-equip-controls {
+  display: grid;
+  gap: 7px;
 }
 
 .hero-equip-card span {
@@ -435,8 +448,39 @@ h1 {
   color: #cfc4a0;
 }
 
+.hero-equipped-preview .relic-card {
+  padding: 10px;
+  border-left-width: 4px;
+}
+
+.hero-equipped-preview .relic-card h3 {
+  font-size: 16px;
+}
+
+.hero-equipped-preview .relic-card p,
+.hero-equipped-preview .relic-card small {
+  font-size: 12px;
+}
+
+.hero-equipped-empty {
+  min-height: 100%;
+  border: 1px dashed rgba(255,255,255,0.16);
+  border-radius: 8px;
+  padding: 10px;
+  color: #b9ad8b;
+  background: rgba(0,0,0,0.18);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 12px;
+}
+
 @media (max-width: 980px) {
   .hero-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-equip-body {
     grid-template-columns: 1fr;
   }
 
@@ -10895,32 +10939,68 @@ function getOwnedHeroEquipmentForSlot(slotId) {
     .filter(card => heroCardMatchesSlot(card, slotId));
 }
 
+function getHeroSlotCards(slotId) {
+  return [
+    ...(heroCardCatalog[slotId] || []),
+    ...getOwnedHeroEquipmentForSlot(slotId)
+  ];
+}
+
+function findHeroSlotCard(slotId, value) {
+  if (!value) return null;
+  return getHeroSlotCards(slotId)
+    .find(card => card.id === value || card.name === value) || null;
+}
+
+function renderHeroEquippedPreview(slotId, value, hasCustomValue) {
+  const selectedCard = findHeroSlotCard(slotId, value);
+
+  if (selectedCard) {
+    return `<div class="hero-equipped-preview">${renderHeroEquipmentCard(selectedCard, "equipped", 0)}</div>`;
+  }
+
+  if (hasCustomValue) {
+    return `
+      <div class="hero-equipped-empty">
+        <div>
+          <strong>${escapeHeroValue(value)}</strong><br>
+          Temporary custom item
+        </div>
+      </div>
+    `;
+  }
+
+  return `<div class="hero-equipped-empty">No equipped card</div>`;
+}
+
 function renderHeroSelect(slot) {
   const hero = data[resourceProfile].hero;
-  const cards = [
-    ...(heroCardCatalog[slot.id] || []),
-    ...getOwnedHeroEquipmentForSlot(slot.id)
-  ];
+  const cards = getHeroSlotCards(slot.id);
   const currentValue = hero.slots[slot.id] || "";
   const hasCustomValue = currentValue && !cards.some(card => card.id === currentValue || card.name === currentValue);
 
   return `
     <div class="hero-equip-card">
       <span>${slot.label}</span>
-      <select onchange="updateHeroEquipmentSlot('${slot.id}', this.value)">
-        <option value="">No card equipped</option>
-        ${cards.map(card => {
-          const value = card.id || card.name;
-          return `<option value="${escapeHeroValue(value)}" ${currentValue === value ? "selected" : ""}>${escapeHeroValue(card.name || value)}</option>`;
-        }).join("")}
-        ${hasCustomValue ? `<option value="${escapeHeroValue(currentValue)}" selected>${escapeHeroValue(currentValue)}</option>` : ""}
-      </select>
-      <input
-        value="${escapeHeroValue(currentValue)}"
-        placeholder="Temporary custom item"
-        onchange="updateHeroEquipmentSlot('${slot.id}', this.value)"
-      >
-      <small>${slot.hint}</small>
+      <div class="hero-equip-body">
+        <div class="hero-equip-controls">
+          <select onchange="updateHeroEquipmentSlot('${slot.id}', this.value)">
+            <option value="">No card equipped</option>
+            ${cards.map(card => {
+              const value = card.id || card.name;
+              return `<option value="${escapeHeroValue(value)}" ${currentValue === value ? "selected" : ""}>${escapeHeroValue(card.name || value)}</option>`;
+            }).join("")}
+            ${hasCustomValue ? `<option value="${escapeHeroValue(currentValue)}" selected>${escapeHeroValue(currentValue)}</option>` : ""}
+          </select>
+          <input
+            value="${escapeHeroValue(currentValue)}"
+            placeholder="Temporary custom item"
+            onchange="updateHeroEquipmentSlot('${slot.id}', this.value)"
+          >
+          <small>${slot.hint}</small>
+        </div>
+        ${renderHeroEquippedPreview(slot.id, currentValue, hasCustomValue)}
+      </div>
     </div>
   `;
 }
