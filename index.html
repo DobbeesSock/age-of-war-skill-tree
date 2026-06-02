@@ -10474,7 +10474,7 @@ const defaultHeroEquipmentCards = [
   }
 ];
 
-const heroEquipmentDeckVersion = 12;
+const heroEquipmentDeckVersion = 13;
 
 const heroEquipmentPiles = [
   { id: "basic", label: "Basic", backImage: "assets/hero-cards/basic-back.png" },
@@ -10488,7 +10488,12 @@ const heroEquipmentPiles = [
   { id: "mounts", label: "Mounts", backImage: "assets/hero-cards/mounts-back.png" },
   { id: "companions", label: "Companions", backImage: "assets/hero-cards/companions-back.png" },
   { id: "remnants", label: "Remnants", backImage: "assets/hero-cards/remnants-back.png" },
-  { id: "factionSpecific", label: "Faction Specific Equipment" },
+  { id: "factionSpecificOrcs", label: "Orc Faction Equipment", backImage: "assets/hero-cards/shadow-orc-back.png" },
+  { id: "factionSpecificDwarves", label: "Dwarf Faction Equipment", backImage: "assets/hero-cards/dwarves-back.png" },
+  { id: "factionSpecificElves", label: "Elf Faction Equipment", backImage: "assets/hero-cards/high-elves-back.png" },
+  { id: "factionSpecificMen", label: "Men Faction Equipment", backImage: "assets/hero-cards/tribes-of-men-back.png" },
+  { id: "factionSpecificOrder", label: "Order Faction Equipment", backImage: "assets/hero-cards/order-back.png" },
+  { id: "factionSpecificBarbarians", label: "Barbarian Faction Equipment", backImage: "assets/hero-cards/barbarian-back.png" },
   { id: "cursed", label: "Cursed Equipment", backImage: "assets/hero-cards/cursed-back.png" }
 ];
 
@@ -10574,10 +10579,27 @@ function ensureHeroState(profileName) {
   };
 }
 
+function getHeroFactionSpecificPileId(faction) {
+  const normalizedFaction = String(faction || "").toLowerCase();
+  if (normalizedFaction === "orcs" || normalizedFaction === "orc") return "factionSpecificOrcs";
+  if (normalizedFaction === "dwarves" || normalizedFaction === "dwarf") return "factionSpecificDwarves";
+  if (normalizedFaction === "elves" || normalizedFaction === "elf") return "factionSpecificElves";
+  if (normalizedFaction === "men" || normalizedFaction === "man") return "factionSpecificMen";
+  if (normalizedFaction === "order") return "factionSpecificOrder";
+  if (normalizedFaction === "barbarians" || normalizedFaction === "barbarian") return "factionSpecificBarbarians";
+  return "common";
+}
+
 function getHeroEquipmentPile(card) {
   const rawPile = String(card?.pile || card?.rarity || card?.type || "common").toLowerCase();
   if (rawPile.includes("basic")) return "basic";
-  if (rawPile.includes("faction")) return "factionSpecific";
+  if (rawPile.includes("factionspecificorcs") || rawPile.includes("orc faction")) return "factionSpecificOrcs";
+  if (rawPile.includes("factionspecificdwarves") || rawPile.includes("dwarf faction")) return "factionSpecificDwarves";
+  if (rawPile.includes("factionspecificelves") || rawPile.includes("elf faction")) return "factionSpecificElves";
+  if (rawPile.includes("factionspecificmen") || rawPile.includes("men faction")) return "factionSpecificMen";
+  if (rawPile.includes("factionspecificorder") || rawPile.includes("order faction")) return "factionSpecificOrder";
+  if (rawPile.includes("factionspecificbarbarians") || rawPile.includes("barbarian faction")) return "factionSpecificBarbarians";
+  if (rawPile.includes("faction")) return getHeroFactionSpecificPileId(card?.faction);
   if (rawPile.includes("curs")) return "cursed";
   if (rawPile.includes("title")) return "titles";
   if (rawPile.includes("mount")) return "mounts";
@@ -10630,6 +10652,21 @@ function getExistingHeroEquipmentIds() {
   return ids;
 }
 
+function migrateHeroFactionSpecificDecks(sharedState) {
+  const oldFactionDeck = sharedState?.decks?.factionSpecific;
+  if (!Array.isArray(oldFactionDeck) || oldFactionDeck.length === 0) {
+    if (sharedState?.decks) delete sharedState.decks.factionSpecific;
+    return;
+  }
+
+  oldFactionDeck.forEach(card => {
+    const pileId = getHeroFactionSpecificPileId(card?.faction);
+    getHeroEquipmentDeckList(sharedState, pileId).push({ ...card, pile: pileId });
+  });
+
+  delete sharedState.decks.factionSpecific;
+}
+
 function updateHeroEquipmentDeckVersion() {
   if (!data.sharedHeroEquipment) return;
   if (data.sharedHeroEquipment.version === heroEquipmentDeckVersion) return;
@@ -10669,6 +10706,8 @@ function ensureHeroEquipmentState(profileName) {
   if (!Array.isArray(data.sharedHeroEquipment.discard)) {
     data.sharedHeroEquipment.discard = [];
   }
+
+  migrateHeroFactionSpecificDecks(data.sharedHeroEquipment);
 
   heroEquipmentPiles.forEach(pile => {
     getHeroEquipmentDeckList(data.sharedHeroEquipment, pile.id);
