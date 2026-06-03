@@ -19089,53 +19089,36 @@ function renderOrderPathCounters() {
 
   ensureHiddenPathState(resourceProfile);
   const counters = [
-    ["orderSecrets", "Secrets Uncovered", "POIs, caves, blueprints, and secret cards"],
-    ["orderContracts", "Contract Counter", "Commanders, heroes, caves, POIs, and major objectives"],
-    ["orderAssassins", "Assassin Counter", "Assassin kills and losses"]
+    ["orderSecrets", "Secrets Uncovered", "Gain 1 when:", [
+      "Discovering a Point of Interest.",
+      "Completing a Cave.",
+      "Gaining a Blueprint.",
+      "Gaining a Secret Card."
+    ]],
+    ["orderContracts", "Contract Counter", "Gain 1 Contract when:", [
+      "Killing a Commander.",
+      "Defeating a Hero.",
+      "Completing a Cave.",
+      "Completing a Point of Interest.",
+      "Completing a Tier 2 or greater Objective."
+    ]],
+    ["orderAssassins", "Assassin Counter", "Gain 1 when:", [
+      "An Assassin kills a unit.",
+      "An Assassin is lost."
+    ]]
   ];
 
   return `
     <div class="faction-info-layout" style="margin-top:16px;">
-      <div class="faction-info-card" style="border-left-color:#b28cff; background:rgba(31,25,42,0.94);">
-        <h3>Secrets Uncovered</h3>
-        <div style="color:#e8e0f0; line-height:1.45;">
-          <strong>Gain 1 when:</strong>
-          <ul style="margin:8px 0 12px 20px;">
-            <li>Discovering a Point of Interest.</li>
-            <li>Completing a Cave.</li>
-            <li>Gaining a Blueprint.</li>
-            <li>Gaining a Secret Card.</li>
-          </ul>
-          <strong>Thresholds:</strong>
-          <div style="margin-top:6px; color:#ffe08a;">5 / 10 / 15 / 20</div>
-        </div>
-      </div>
-      <div class="faction-info-card" style="border-left-color:#d4af37; background:rgba(31,25,42,0.94);">
-        <h3>Contracts Fulfilled</h3>
-        <div style="color:#e8e0f0; line-height:1.45;">
-          <strong>Gain 1 Contract when:</strong>
-          <ul style="margin:8px 0 12px 20px;">
-            <li>Killing a Commander.</li>
-            <li>Defeating a Hero.</li>
-            <li>Completing a Cave.</li>
-            <li>Completing a Point of Interest.</li>
-            <li>Completing a Tier 2 or greater Objective.</li>
-          </ul>
-          <strong>Thresholds:</strong>
-          <div style="margin-top:6px;">
-            <div><span style="color:#ffe08a;">10 Contracts:</span> "The Veil Watches."</div>
-            <div><span style="color:#ffe08a;">20 Contracts:</span> "The Chosen Are Named."</div>
-            <div><span style="color:#ffe08a;">30 Contracts:</span> "Ascension Available."</div>
-            <div style="color:#ffe08a; margin-top:4px;">Unlock Upgraded Stat Cards</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="faction-info-layout" style="margin-top:16px;">
-      ${counters.map(([counterKey, label, hint]) => `
+      ${counters.map(([counterKey, label, ruleTitle, rules]) => `
         <div class="faction-info-card" style="border-left-color:#b28cff; background:rgba(31,25,42,0.94);">
           <h3>${label}</h3>
-          <div style="color:#cfc6d8; line-height:1.35; min-height:36px;">${hint}</div>
+          <div style="color:#cfc6d8; line-height:1.45; min-height:120px;">
+            <strong>${ruleTitle}</strong>
+            <ul style="margin:8px 0 0 20px;">
+              ${rules.map(rule => `<li>${rule}</li>`).join("")}
+            </ul>
+          </div>
           <div style="font-size:36px; color:#ffe08a; font-weight:bold; margin:8px 0;">${getHiddenPathCounterValue(resourceProfile, counterKey)}</div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             <button type="button" onclick="changeHiddenPathCounter('${counterKey}', 1)">+1</button>
