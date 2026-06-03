@@ -10734,7 +10734,7 @@ const defaultHeroEquipmentCards = [
   }
 ];
 
-const heroEquipmentDeckVersion = 16;
+const heroEquipmentDeckVersion = 17;
 
 const heroEquipmentPiles = [
   { id: "basic", label: "Basic", backImage: "assets/hero-cards/basic-back.png" },
@@ -10754,19 +10754,46 @@ const heroEquipmentPiles = [
   { id: "factionSpecificMen", label: "Men Faction Equipment", backImage: "assets/hero-cards/tribes-of-men-back.png" },
   { id: "factionSpecificOrder", label: "Order Faction Equipment", backImage: "assets/hero-cards/order-back.png" },
   { id: "factionSpecificBarbarians", label: "Barbarian Faction Equipment", backImage: "assets/hero-cards/barbarian-back.png" },
-  { id: "heroRoles", label: "Hero Roles", backImage: "assets/hero-cards/titles-back.png" },
+  { id: "heroRoles", label: "Hero Classes", backImage: "assets/hero-cards/classes/hero-class-back.png" },
   { id: "cursed", label: "Cursed Equipment", backImage: "assets/hero-cards/cursed-back.png" }
 ];
 
 const heroRoleCards = [
-  makeHeroEquipmentCard("role_warrior", "Warrior", "Hero Role", "role", "heroRoles", "Two-handed weapons gain +1 OD.", "Role"),
-  makeHeroEquipmentCard("role_duelist", "Duelist", "Hero Role", "role", "heroRoles", "If using two one-handed weapons, gain +1 RC.", "Role"),
-  makeHeroEquipmentCard("role_guardian", "Guardian", "Hero Role", "role", "heroRoles", "Shields grant +1 Armour. Adjacent allies gain +1 Armour.", "Role"),
-  makeHeroEquipmentCard("role_mage", "Mage", "Hero Role", "role", "heroRoles", "Spells cost 1 less RC, or gain +1 RC when casting spells.", "Role"),
-  makeHeroEquipmentCard("role_ranger", "Ranger", "Hero Role", "role", "heroRoles", "Ranged weapons gain +1 Range. May move 2 after attacking.", "Role"),
-  makeHeroEquipmentCard("role_beastmaster", "Beastmaster", "Hero Role", "role", "heroRoles", "Mounts and companions gain +1 Movement or +1 HP.", "Role"),
-  makeHeroEquipmentCard("role_warlord", "Warlord", "Hero Role", "role", "heroRoles", "Adjacent allies gain +1 Movement or +1 OD once per Round.", "Role"),
-  makeHeroEquipmentCard("role_shadowblade", "Shadowblade", "Hero Role", "role", "heroRoles", "Gain Stealth 3-6 when enemies attack your hero", "Role")
+  makeHeroEquipmentCard("role_warrior", "Warrior", "Hero Class", "class", "heroRoles", "Two-Handed Weapons gain +1 OD. Once per Phase: reroll 1 melee attack.", "Class"),
+  makeHeroEquipmentCard("role_duelist", "Duelist", "Hero Class", "class", "heroRoles", "If wielding two One-Handed Weapons: gain +1 RC.", "Class"),
+  makeHeroEquipmentCard("role_guardian", "Guardian", "Hero Class", "class", "heroRoles", "Shields grant +1 Armour. Adjacent allies gain +1 Armour.", "Class"),
+  makeHeroEquipmentCard("role_mage", "Mage", "Hero Class", "class", "heroRoles", "Spells cost 1 less RC, or gain +1 RC when casting Spells.", "Class"),
+  makeHeroEquipmentCard("role_ranger", "Ranger", "Hero Class", "class", "heroRoles", "Ranged Weapons gain +1 Range. May move 2 after attacking.", "Class"),
+  makeHeroEquipmentCard("role_beastmaster", "Beastmaster", "Hero Class", "class", "heroRoles", "Mounts and Companions gain +1 Movement or +1 HP.", "Class"),
+  makeHeroEquipmentCard("role_warlord", "Warlord", "Hero Class", "class", "heroRoles", "Once per Round: adjacent allies gain +1 Movement or +1 OD.", "Class"),
+  makeHeroEquipmentCard("role_shadowblade", "Shadowblade", "Hero Class", "class", "heroRoles", "Gain Stealth 3-6 when enemies attack your hero", "Class"),
+  makeHeroEquipmentCard("role_cavalier", "Cavalier", "Hero Class", "class", "heroRoles", "While mounted: gain +2 Movement. Mount abilities trigger twice per Phase.", "Class"),
+  makeHeroEquipmentCard("role_runesmith", "Runesmith", "Hero Class", "class", "heroRoles", "Your Hero may equip 1 additional Rune. Once per Phase: reroll a Rune effect.", "Class"),
+  makeHeroEquipmentCard("role_relic_hunter", "Relic Hunter", "Hero Class", "class", "heroRoles", "When discovering a Blueprint or Chest: draw 2 and keep 1.", "Class"),
+  makeHeroEquipmentCard("role_dragonslayer", "Dragonslayer", "Hero Class", "class", "heroRoles", "Against Dragons, Greater Creatures, or World Bosses: gain +1 RC.", "Class"),
+  makeHeroEquipmentCard("role_high_priest", "High Priest", "Hero Class", "class", "heroRoles", "At the start of each Round choose 1: heal an adjacent ally 2 HP, or remove a negative effect from an adjacent ally. If equipped with a Talisman: gain +1 RC.", "Class"),
+  makeHeroEquipmentCard("role_artificer", "Artificer", "Hero Class", "class", "heroRoles", "Your Hero may equip 1 additional Ancient Remnant. Once per Phase: reroll an Ancient Remnant effect.", "Class"),
+  makeHeroEquipmentCard("role_champion", "Champion", "Hero Class", "class", "heroRoles", "When defeating a Hero, Commander, or World Boss, choose 1: heal 3 HP, or gain +1 RC until end of Round.", "Class"),
+  makeHeroEquipmentCard("role_necromancer", "Necromancer", "Hero Class", "class", "heroRoles", "When a unit dies within 4 spaces, choose 1: heal 2 HP, or gain +1 RC until end of Round. Once per Phase.", "Class"),
+  makeHeroEquipmentCard("role_cave_delver", "Cave Delver", "Hero Class", "class", "heroRoles", "When entering a Cave, choose 1: heal 2 HP, or gain +1 RC for the duration of the Cave. When completing a Mythological Cave: draw 1 additional reward.", "Class"),
+  makeHeroEquipmentCard("role_bounty_hunter", "Bounty Hunter", "Hero Class", "class", "heroRoles", "Against Heroes, Commanders, and Named Enemies: gain +1 RC. When defeating one: gain +5 Gold.", "Class"),
+  makeHeroEquipmentCard("role_alchemist", "Alchemist", "Hero Class", "class", "heroRoles", "Potions may be used 1 additional time before being discarded. Once per Phase: draw 2 Potions and keep 1.", "Class"),
+  makeHeroEquipmentCard("role_rune_knight", "Rune Knight", "Hero Class", "class", "heroRoles", "If equipped with 2 or more Runes: gain +1 OD and +1 Armour.", "Class"),
+  makeHeroEquipmentCard("role_tactician", "Tactician", "Hero Class", "class", "heroRoles", "At the start of each Round: choose up to 2 adjacent allies. Those units may move 2 spaces.", "Class"),
+  makeHeroEquipmentCard("role_treasure_seeker", "Treasure Seeker", "Hero Class", "class", "heroRoles", "When discovering Chests or Points of Interest: draw 2 rewards and keep 1.", "Class")
+];
+
+const allDefaultHeroEquipmentCards = [
+  ...defaultHeroEquipmentCards,
+  ...heroRoleCards
+];
+
+const heroClassUpgradeItemIds = [
+  "hero_class_slot_2",
+  "hero_class_slot_3",
+  "hero_class_slot_4",
+  "hero_class_slot_5",
+  "hero_class_slot_6"
 ];
 
 const heroCardCatalog = {
@@ -10804,6 +10831,8 @@ function createDefaultHeroEquipment() {
     name: "",
     className: "",
     roleId: "",
+    pendingRoleId: "",
+    unlockedRoleIds: [],
     weaponStyle: "dual",
     slots: {
       head: "",
@@ -10839,6 +10868,7 @@ function ensureHeroState(profileName) {
   data[profileName].hero = {
     ...defaults,
     ...current,
+    unlockedRoleIds: Array.isArray(current.unlockedRoleIds) ? current.unlockedRoleIds : [],
     slots: {
       ...defaults.slots,
       ...(current.slots || {})
@@ -10851,6 +10881,10 @@ function ensureHeroState(profileName) {
   if (selectedRole) {
     data[profileName].hero.roleId = selectedRole.id;
     data[profileName].hero.className = selectedRole.name;
+
+    if (!data[profileName].hero.unlockedRoleIds.length) {
+      data[profileName].hero.unlockedRoleIds = [selectedRole.id];
+    }
   }
 }
 
@@ -10874,7 +10908,7 @@ function getHeroEquipmentPile(card) {
   if (rawPile.includes("factionspecificmen") || rawPile.includes("men faction")) return "factionSpecificMen";
   if (rawPile.includes("factionspecificorder") || rawPile.includes("order faction")) return "factionSpecificOrder";
   if (rawPile.includes("factionspecificbarbarians") || rawPile.includes("barbarian faction")) return "factionSpecificBarbarians";
-  if (rawPile.includes("heroroles") || rawPile.includes("hero role")) return "heroRoles";
+  if (rawPile.includes("heroroles") || rawPile.includes("hero role") || rawPile.includes("hero class")) return "heroRoles";
   if (rawPile.includes("faction")) return getHeroFactionSpecificPileId(card?.faction);
   if (rawPile.includes("curs")) return "cursed";
   if (rawPile.includes("title")) return "titles";
@@ -10891,7 +10925,7 @@ function getHeroEquipmentPile(card) {
 
 function makeHeroEquipmentDecks() {
   const decks = Object.fromEntries(heroEquipmentPiles.map(pile => [pile.id, []]));
-  defaultHeroEquipmentCards.forEach(card => {
+  allDefaultHeroEquipmentCards.forEach(card => {
     const pileId = getHeroEquipmentPile(card);
     decks[pileId].push({ ...card, pile: pileId });
   });
@@ -10948,7 +10982,7 @@ function updateHeroEquipmentDeckVersion() {
   if (data.sharedHeroEquipment.version === heroEquipmentDeckVersion) return;
 
   const existingIds = getExistingHeroEquipmentIds();
-  defaultHeroEquipmentCards.forEach(card => {
+  allDefaultHeroEquipmentCards.forEach(card => {
     if (existingIds.has(card.id)) return;
     const pileId = getHeroEquipmentPile(card);
     getHeroEquipmentDeckList(data.sharedHeroEquipment, pileId).push({ ...card, pile: pileId });
@@ -11057,33 +11091,68 @@ function getHeroRoleCardByName(roleName) {
   return heroRoleCards.find(card => card.name.toLowerCase() === normalizedName) || null;
 }
 
+function getHeroClassSlotLimit(profileName = resourceProfile) {
+  if (!profileName || !data[profileName]) return 1;
+  ensureShopState(profileName);
+
+  const purchases = data[profileName].shop?.purchases || {};
+  const purchasedSlots = heroClassUpgradeItemIds
+    .filter(itemId => purchases[itemId]).length;
+
+  return Math.min(6, 1 + purchasedSlots);
+}
+
+function getUnlockedHeroRoles(hero) {
+  const unlockedIds = Array.isArray(hero.unlockedRoleIds) ? hero.unlockedRoleIds : [];
+  return unlockedIds
+    .map(roleId => getHeroRoleCard(roleId))
+    .filter(Boolean);
+}
+
 function renderHeroRoleSelect(hero) {
-  const selectedRole = getHeroRoleCard(hero.roleId) || getHeroRoleCardByName(hero.className);
+  const unlockedRoles = getUnlockedHeroRoles(hero);
+  const classSlotLimit = getHeroClassSlotLimit();
+  const selectedRole = getHeroRoleCard(hero.roleId) || unlockedRoles[0] || null;
   const currentRoleId = selectedRole?.id || "";
+  const pendingRole = getHeroRoleCard(hero.pendingRoleId);
+  const remainingRoles = heroRoleCards.filter(role => !unlockedRoles.some(unlockedRole => unlockedRole.id === role.id));
+  const canLockMore = unlockedRoles.length < classSlotLimit;
 
   return `
     <div class="hero-equip-card">
-      <span>Hero Role</span>
+      <span>Hero Class</span>
       <div class="hero-equip-body">
         <div class="hero-equip-controls">
-          <select onchange="updateHeroRole(this.value)">
-            <option value="">No role selected</option>
-            ${heroRoleCards.map(role => `
+          <small>Locked Classes: ${unlockedRoles.length} / ${classSlotLimit}</small>
+          <select onchange="updateHeroRole(this.value)" ${unlockedRoles.length ? "" : "disabled"}>
+            <option value="">No class equipped</option>
+            ${unlockedRoles.map(role => `
               <option value="${escapeHeroValue(role.id)}" ${currentRoleId === role.id ? "selected" : ""}>
                 ${escapeHeroValue(role.name)}
               </option>
             `).join("")}
           </select>
-          <input
-            value="${escapeHeroValue(selectedRole ? selectedRole.name : hero.className)}"
-            placeholder="Temporary custom role"
-            onchange="updateHeroField('className', this.value)"
-          >
-          <small>Earned role or class card</small>
+          <select onchange="updatePendingHeroRole(this.value)" ${canLockMore && remainingRoles.length ? "" : "disabled"}>
+            <option value="">Choose class to lock</option>
+            ${remainingRoles.map(role => `
+              <option value="${escapeHeroValue(role.id)}" ${hero.pendingRoleId === role.id ? "selected" : ""}>
+                ${escapeHeroValue(role.name)}
+              </option>
+            `).join("")}
+          </select>
+          <button type="button" onclick="lockHeroRole()" ${canLockMore && pendingRole ? "" : "disabled"}>
+            Lock Class
+          </button>
+          <small>Class upgrades unlock more committed classes. Only locked classes can be equipped.</small>
         </div>
-        ${selectedRole
-          ? `<div class="hero-equipped-preview">${renderHeroEquipmentCard(selectedRole, "equipped", 0, "heroRoles")}</div>`
-          : `<div class="hero-equipped-empty">No hero role selected</div>`}
+        <div style="display:grid; gap:10px;">
+          ${selectedRole
+            ? `<div class="hero-equipped-preview">${renderHeroEquipmentCard(selectedRole, "equipped", 0, "heroRoles")}</div>`
+            : `<div class="hero-equipped-empty">No class locked</div>`}
+          ${pendingRole
+            ? `<div class="hero-equipped-preview">${renderHeroEquipmentCard(pendingRole, "equipped", 0, "heroRoles")}</div>`
+            : ""}
+        </div>
       </div>
     </div>
   `;
@@ -11262,8 +11331,59 @@ function updateHeroField(field, value) {
 function updateHeroRole(roleId) {
   ensureHeroState(resourceProfile);
   const selectedRole = getHeroRoleCard(roleId);
+  const unlockedIds = data[resourceProfile].hero.unlockedRoleIds || [];
+
+  if (selectedRole && !unlockedIds.includes(selectedRole.id)) {
+    alert("Lock this class before equipping it.");
+    renderHero();
+    return;
+  }
+
   data[resourceProfile].hero.roleId = selectedRole ? selectedRole.id : "";
   data[resourceProfile].hero.className = selectedRole ? selectedRole.name : "";
+  saveProfiles();
+  renderHero();
+}
+
+function updatePendingHeroRole(roleId) {
+  ensureHeroState(resourceProfile);
+  data[resourceProfile].hero.pendingRoleId = roleId || "";
+  saveProfiles();
+  renderHero();
+}
+
+function lockHeroRole() {
+  ensureHeroState(resourceProfile);
+  const hero = data[resourceProfile].hero;
+  const selectedRole = getHeroRoleCard(hero.pendingRoleId);
+  const classSlotLimit = getHeroClassSlotLimit();
+
+  if (!selectedRole) {
+    alert("Choose a class to lock first.");
+    return;
+  }
+
+  if (!Array.isArray(hero.unlockedRoleIds)) {
+    hero.unlockedRoleIds = [];
+  }
+
+  if (hero.unlockedRoleIds.includes(selectedRole.id)) {
+    alert("This class is already locked.");
+    renderHero();
+    return;
+  }
+
+  if (hero.unlockedRoleIds.length >= classSlotLimit) {
+    alert("Buy another Hero Class Slot upgrade before locking another class.");
+    renderHero();
+    return;
+  }
+
+  hero.unlockedRoleIds.push(selectedRole.id);
+  hero.pendingRoleId = "";
+  hero.roleId = selectedRole.id;
+  hero.className = selectedRole.name;
+
   saveProfiles();
   renderHero();
 }
@@ -18150,6 +18270,23 @@ const tier5KeywordShopItems = [
   costResource: "Metal"
 }));
 
+const heroClassUpgradeShopItems = [
+  ["hero_class_slot_2", "Hero Class Slot 2", 25],
+  ["hero_class_slot_3", "Hero Class Slot 3", 35],
+  ["hero_class_slot_4", "Hero Class Slot 4", 45],
+  ["hero_class_slot_5", "Hero Class Slot 5", 55],
+  ["hero_class_slot_6", "Hero Class Slot 6", 65]
+].map(([id, name, cost], index, items) => ({
+  id,
+  section: "Hero Class Upgrades",
+  faction: "All",
+  name,
+  effect: "Unlock 1 additional committed Hero Class slot. A Hero may equip only 1 class at a time, but can switch between locked classes before a mission.",
+  cost,
+  costResource: "Gold",
+  prereq: index > 0 ? items[index - 1][0] : null
+}));
+
 const shopItems = [
   ...makeActionShopItems(),
   ...advancedUnitClassShopItems,
@@ -18161,6 +18298,7 @@ const shopItems = [
   ...setupLevelShopItems,
   ...gateWallHealthShopItems,
   ...meleeEngagementDiceShopItems,
+  ...heroClassUpgradeShopItems,
   ...battleTableKeywordShopItems,
   ...tier2KeywordShopItems,
   ...tier3KeywordShopItems,
@@ -18325,6 +18463,11 @@ function renderShop() {
       description: "Adds melee engagement dice when units move away or move past.",
       accent: "#f472b6"
     },
+    "Hero Class Upgrades": {
+      label: "Hero Class Upgrades",
+      description: "Unlock additional committed Hero Class slots. A hero can equip only one locked class at a time.",
+      accent: "#ffe08a"
+    },
     "Battle Table Keyword Upgrades": {
       label: "Battle Table Keyword Upgrades",
       description: "Tier 1 keyword upgrades for unit battle tables.",
@@ -18362,6 +18505,7 @@ function renderShop() {
     "Increase Setup Level, Faction Specific",
     "Gate & Wall Health Upgrade",
     "Melee Engagement Dice Adding Upgrade",
+    "Hero Class Upgrades",
     "Battle Table Keyword Upgrades",
     "Tier 2 Keyword Upgrades",
     "Tier 3 Keyword Upgrades",
@@ -18532,6 +18676,7 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
     saveResourceProfile();
     refreshResourceViewIfReady();
     renderFactionInfo();
+    renderHero();
     renderShop();
     return;
   }
@@ -18566,6 +18711,7 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
   saveResourceProfile();
   refreshResourceViewIfReady();
   renderFactionInfo();
+  renderHero();
   renderShop();
 }
 
