@@ -8821,7 +8821,7 @@ function getUnlockEnvelopeList() {
   const campaignOverrides = factionCampaignPathOverrides[hubKey] || {};
   return [
     ...(factionUnlockEnvelopes[hubKey] || []),
-    ...campaignUnlockEnvelopes.filter(card => !(hubKey === "dwarves" && ["campaign_mythic_cave_reward", "campaign_world_secret"].includes(card.id))).map(card => ({
+    ...campaignUnlockEnvelopes.filter(card => !["dwarves", "order"].includes(hubKey) || !["campaign_mythic_cave_reward", "campaign_world_secret"].includes(card.id)).map(card => ({
       ...card,
       title: campaignOverrides[card.id]?.title || `${hub.label} ${card.title}`,
       type: campaignOverrides[card.id]?.type || card.type,
