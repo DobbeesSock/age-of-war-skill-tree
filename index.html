@@ -18402,17 +18402,17 @@ const tier5KeywordShopItems = [
 }));
 
 const heroClassUpgradeShopItems = [
-  ["hero_class_slot_2", "Hero Class Slot 2", 25],
-  ["hero_class_slot_3", "Hero Class Slot 3", 35],
-  ["hero_class_slot_4", "Hero Class Slot 4", 45],
-  ["hero_class_slot_5", "Hero Class Slot 5", 55],
-  ["hero_class_slot_6", "Hero Class Slot 6", 65]
+  ["hero_class_slot_2", "Unlock Additional Hero Class 2", 25],
+  ["hero_class_slot_3", "Unlock Additional Hero Class 3", 35],
+  ["hero_class_slot_4", "Unlock Additional Hero Class 4", 45],
+  ["hero_class_slot_5", "Unlock Additional Hero Class 5", 55],
+  ["hero_class_slot_6", "Unlock Additional Hero Class 6", 65]
 ].map(([id, name, cost], index, items) => ({
   id,
-  section: "Hero Class Upgrades",
+  section: "Hero Class Unlocks",
   faction: "All",
   name,
-  effect: "Unlock 1 additional committed Hero Class slot. A Hero may equip only 1 class at a time, but can switch between locked classes before a mission.",
+  effect: "Unlock 1 additional committed Hero Class for your hero. A Hero may equip only 1 class at a time, but can switch between locked classes before a mission.",
   cost,
   costResource: "Gold",
   prereq: index > 0 ? items[index - 1][0] : null
@@ -18594,9 +18594,9 @@ function renderShop() {
       description: "Adds melee engagement dice when units move away or move past.",
       accent: "#f472b6"
     },
-    "Hero Class Upgrades": {
-      label: "Hero Class Upgrades",
-      description: "Unlock additional committed Hero Class slots. A hero can equip only one locked class at a time.",
+    "Hero Class Unlocks": {
+      label: "Hero Class Unlocks",
+      description: "Buy these to let your hero lock in more classes. A hero can equip only one locked class at a time.",
       accent: "#ffe08a"
     },
     "Battle Table Keyword Upgrades": {
@@ -18633,10 +18633,10 @@ function renderShop() {
     "Rival Ability",
     "Boons",
     "Ultimate/ Abilities",
+    "Hero Class Unlocks",
     "Increase Setup Level, Faction Specific",
     "Gate & Wall Health Upgrade",
     "Melee Engagement Dice Adding Upgrade",
-    "Hero Class Upgrades",
     "Battle Table Keyword Upgrades",
     "Tier 2 Keyword Upgrades",
     "Tier 3 Keyword Upgrades",
