@@ -11158,11 +11158,12 @@ function renderHero() {
       <div class="hero-layout">
         <div style="display:grid; gap:12px;">
           ${heroEquipmentSlots.map(renderHeroSelect).join("")}
+          ${heroUtilitySlots.filter(slot => slot.id.startsWith("accessory")).map(renderHeroSelect).join("")}
         </div>
         ${renderHeroPaperDoll(hero)}
         <div style="display:grid; gap:12px;">
           ${renderHeroWeaponFields()}
-          ${heroUtilitySlots.map(renderHeroSelect).join("")}
+          ${heroUtilitySlots.filter(slot => !slot.id.startsWith("accessory")).map(renderHeroSelect).join("")}
         </div>
       </div>
 
