@@ -10759,9 +10759,7 @@ const heroEquipmentPiles = [
 const heroCardCatalog = {
   head: [],
   armour: [],
-  legs: [],
   greaves: [],
-  footgear: [],
   mainHand: [],
   offHand: [],
   twoHanded: [],
@@ -10776,9 +10774,7 @@ const heroCardCatalog = {
 const heroEquipmentSlots = [
   { id: "head", label: "Head", hint: "Helms, crowns, masks, hoods" },
   { id: "armour", label: "Armour", hint: "Chest pieces and robes" },
-  { id: "legs", label: "Legs", hint: "Leg armour and garments" },
-  { id: "greaves", label: "Greaves", hint: "Shin and knee protection" },
-  { id: "footgear", label: "Footgear", hint: "Boots, sandals, sabatons" }
+  { id: "greaves", label: "Greaves", hint: "Leg armour, shin guards, and footgear" }
 ];
 
 const heroUtilitySlots = [
@@ -10798,9 +10794,7 @@ function createDefaultHeroEquipment() {
     slots: {
       head: "",
       armour: "",
-      legs: "",
       greaves: "",
-      footgear: "",
       mainHand: "",
       offHand: "",
       twoHanded: "",
@@ -11115,9 +11109,9 @@ function renderHeroPaperDoll(hero) {
         <div class="hero-part hero-armour ${isHeroSlotEquipped(hero, "armour") ? "equipped" : ""}" title="Armour"></div>
         <div class="hero-part hero-arm left ${isHeroSlotEquipped(hero, "armour") ? "equipped" : ""}" title="Armour"></div>
         <div class="hero-part hero-arm right ${isHeroSlotEquipped(hero, "armour") ? "equipped" : ""}" title="Armour"></div>
-        <div class="hero-part hero-legs ${isHeroSlotEquipped(hero, "legs") ? "equipped" : ""}" title="Legs"></div>
+        <div class="hero-part hero-legs ${isHeroSlotEquipped(hero, "greaves") ? "equipped" : ""}" title="Greaves"></div>
         <div class="hero-part hero-greaves ${isHeroSlotEquipped(hero, "greaves") ? "equipped" : ""}" title="Greaves"></div>
-        <div class="hero-part hero-footgear ${isHeroSlotEquipped(hero, "footgear") ? "equipped" : ""}" title="Footgear"></div>
+        <div class="hero-part hero-footgear ${isHeroSlotEquipped(hero, "greaves") ? "equipped" : ""}" title="Greaves"></div>
         ${hero.weaponStyle === "twoHanded" ? `
           <div class="hero-weapon two-handed ${weaponEquipped ? "equipped" : ""}" title="Two-Handed Weapon"></div>
         ` : `
