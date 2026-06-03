@@ -287,6 +287,7 @@ h1 {
 .hero-pile-factionSpecificMen { --hero-card-accent: #4fa3df; }
 .hero-pile-factionSpecificOrder { --hero-card-accent: #a66bff; }
 .hero-pile-factionSpecificBarbarians { --hero-card-accent: #e26a26; }
+.hero-pile-heroRoles { --hero-card-accent: #ffe08a; }
 
 #keywordsApp {
   display: grid;
@@ -10753,7 +10754,19 @@ const heroEquipmentPiles = [
   { id: "factionSpecificMen", label: "Men Faction Equipment", backImage: "assets/hero-cards/tribes-of-men-back.png" },
   { id: "factionSpecificOrder", label: "Order Faction Equipment", backImage: "assets/hero-cards/order-back.png" },
   { id: "factionSpecificBarbarians", label: "Barbarian Faction Equipment", backImage: "assets/hero-cards/barbarian-back.png" },
+  { id: "heroRoles", label: "Hero Roles", backImage: "assets/hero-cards/titles-back.png" },
   { id: "cursed", label: "Cursed Equipment", backImage: "assets/hero-cards/cursed-back.png" }
+];
+
+const heroRoleCards = [
+  makeHeroEquipmentCard("role_warrior", "Warrior", "Hero Role", "role", "heroRoles", "Two-handed weapons gain +1 OD.", "Role"),
+  makeHeroEquipmentCard("role_duelist", "Duelist", "Hero Role", "role", "heroRoles", "If using two one-handed weapons, gain +1 RC.", "Role"),
+  makeHeroEquipmentCard("role_guardian", "Guardian", "Hero Role", "role", "heroRoles", "Shields grant +1 Armour. Adjacent allies gain +1 Armour.", "Role"),
+  makeHeroEquipmentCard("role_mage", "Mage", "Hero Role", "role", "heroRoles", "Spells cost 1 less RC, or gain +1 RC when casting spells.", "Role"),
+  makeHeroEquipmentCard("role_ranger", "Ranger", "Hero Role", "role", "heroRoles", "Ranged weapons gain +1 Range. May move 2 after attacking.", "Role"),
+  makeHeroEquipmentCard("role_beastmaster", "Beastmaster", "Hero Role", "role", "heroRoles", "Mounts and companions gain +1 Movement or +1 HP.", "Role"),
+  makeHeroEquipmentCard("role_warlord", "Warlord", "Hero Role", "role", "heroRoles", "Adjacent allies gain +1 Movement or +1 OD once per Round.", "Role"),
+  makeHeroEquipmentCard("role_shadowblade", "Shadowblade", "Hero Role", "role", "heroRoles", "Gain Stealth 3-6 when enemies attack your hero", "Role")
 ];
 
 const heroCardCatalog = {
@@ -10790,6 +10803,7 @@ function createDefaultHeroEquipment() {
   return {
     name: "",
     className: "",
+    roleId: "",
     weaponStyle: "dual",
     slots: {
       head: "",
@@ -10830,6 +10844,14 @@ function ensureHeroState(profileName) {
       ...(current.slots || {})
     }
   };
+
+  const selectedRole = getHeroRoleCard(data[profileName].hero.roleId)
+    || getHeroRoleCardByName(data[profileName].hero.className);
+
+  if (selectedRole) {
+    data[profileName].hero.roleId = selectedRole.id;
+    data[profileName].hero.className = selectedRole.name;
+  }
 }
 
 function getHeroFactionSpecificPileId(faction) {
@@ -10852,6 +10874,7 @@ function getHeroEquipmentPile(card) {
   if (rawPile.includes("factionspecificmen") || rawPile.includes("men faction")) return "factionSpecificMen";
   if (rawPile.includes("factionspecificorder") || rawPile.includes("order faction")) return "factionSpecificOrder";
   if (rawPile.includes("factionspecificbarbarians") || rawPile.includes("barbarian faction")) return "factionSpecificBarbarians";
+  if (rawPile.includes("heroroles") || rawPile.includes("hero role")) return "heroRoles";
   if (rawPile.includes("faction")) return getHeroFactionSpecificPileId(card?.faction);
   if (rawPile.includes("curs")) return "cursed";
   if (rawPile.includes("title")) return "titles";
@@ -11023,6 +11046,49 @@ function findHeroSlotCard(slotId, value) {
     .find(card => card.id === value || card.name === value) || null;
 }
 
+function getHeroRoleCard(roleId) {
+  if (!roleId) return null;
+  return heroRoleCards.find(card => card.id === roleId || card.name === roleId) || null;
+}
+
+function getHeroRoleCardByName(roleName) {
+  if (!roleName) return null;
+  const normalizedName = String(roleName).trim().toLowerCase();
+  return heroRoleCards.find(card => card.name.toLowerCase() === normalizedName) || null;
+}
+
+function renderHeroRoleSelect(hero) {
+  const selectedRole = getHeroRoleCard(hero.roleId) || getHeroRoleCardByName(hero.className);
+  const currentRoleId = selectedRole?.id || "";
+
+  return `
+    <div class="hero-equip-card">
+      <span>Hero Role</span>
+      <div class="hero-equip-body">
+        <div class="hero-equip-controls">
+          <select onchange="updateHeroRole(this.value)">
+            <option value="">No role selected</option>
+            ${heroRoleCards.map(role => `
+              <option value="${escapeHeroValue(role.id)}" ${currentRoleId === role.id ? "selected" : ""}>
+                ${escapeHeroValue(role.name)}
+              </option>
+            `).join("")}
+          </select>
+          <input
+            value="${escapeHeroValue(selectedRole ? selectedRole.name : hero.className)}"
+            placeholder="Temporary custom role"
+            onchange="updateHeroField('className', this.value)"
+          >
+          <small>Earned role or class card</small>
+        </div>
+        ${selectedRole
+          ? `<div class="hero-equipped-preview">${renderHeroEquipmentCard(selectedRole, "equipped", 0, "heroRoles")}</div>`
+          : `<div class="hero-equipped-empty">No hero role selected</div>`}
+      </div>
+    </div>
+  `;
+}
+
 function renderHeroEquippedPreview(slotId, value, hasCustomValue) {
   const selectedCard = findHeroSlotCard(slotId, value);
 
@@ -11094,6 +11160,7 @@ function isHeroSlotEquipped(hero, slotId) {
 }
 
 function renderHeroPaperDoll(hero) {
+  const selectedRole = getHeroRoleCard(hero.roleId) || getHeroRoleCardByName(hero.className);
   const weaponEquipped = hero.weaponStyle === "twoHanded"
     ? isHeroSlotEquipped(hero, "twoHanded")
     : isHeroSlotEquipped(hero, "mainHand") || isHeroSlotEquipped(hero, "offHand");
@@ -11102,7 +11169,7 @@ function renderHeroPaperDoll(hero) {
     <div class="hero-paperdoll">
       <div style="position:absolute; top:18px; left:18px; right:18px; display:flex; justify-content:space-between; gap:10px; color:#ffe08a; font-weight:bold;">
         <span>${escapeHeroValue(hero.name || "Unnamed Hero")}</span>
-        <span>${escapeHeroValue(hero.className || "No Role")}</span>
+        <span>${escapeHeroValue(selectedRole?.name || hero.className || "No Role")}</span>
       </div>
       <div class="hero-figure">
         <div class="hero-part hero-head ${isHeroSlotEquipped(hero, "head") ? "equipped" : ""}" title="Head"></div>
@@ -11143,10 +11210,6 @@ function renderHero() {
           <input value="${escapeHeroValue(hero.name)}" placeholder="Hero name" onchange="updateHeroField('name', this.value)">
         </label>
         <label style="display:grid; gap:6px;">
-          <span style="color:#ffe08a; font-weight:bold;">Role / Class</span>
-          <input value="${escapeHeroValue(hero.className)}" placeholder="Warrior, mage, rider..." onchange="updateHeroField('className', this.value)">
-        </label>
-        <label style="display:grid; gap:6px;">
           <span style="color:#ffe08a; font-weight:bold;">Weapon Setup</span>
           <select onchange="updateHeroWeaponStyle(this.value)">
             <option value="dual" ${hero.weaponStyle === "dual" ? "selected" : ""}>Two 1-Handed Weapons</option>
@@ -11154,6 +11217,7 @@ function renderHero() {
           </select>
         </label>
       </div>
+      ${renderHeroRoleSelect(hero)}
 
       <div class="hero-layout">
         <div style="display:grid; gap:12px;">
@@ -11187,6 +11251,19 @@ function renderHero() {
 function updateHeroField(field, value) {
   ensureHeroState(resourceProfile);
   data[resourceProfile].hero[field] = value;
+  if (field === "className") {
+    const matchingRole = getHeroRoleCardByName(value);
+    data[resourceProfile].hero.roleId = matchingRole ? matchingRole.id : "";
+  }
+  saveProfiles();
+  renderHero();
+}
+
+function updateHeroRole(roleId) {
+  ensureHeroState(resourceProfile);
+  const selectedRole = getHeroRoleCard(roleId);
+  data[resourceProfile].hero.roleId = selectedRole ? selectedRole.id : "";
+  data[resourceProfile].hero.className = selectedRole ? selectedRole.name : "";
   saveProfiles();
   renderHero();
 }
