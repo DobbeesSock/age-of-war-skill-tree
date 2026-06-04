@@ -553,6 +553,89 @@ h1 {
   font-size: 12px;
 }
 
+.hero-stats-panel {
+  background:
+    linear-gradient(180deg, rgba(20,34,52,0.92), rgba(9,12,18,0.96)),
+    rgba(12,12,12,0.9);
+  border: 1px solid rgba(70,142,210,0.38);
+  border-left: 5px solid #4f8ed8;
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: inset 0 0 22px rgba(70,142,210,0.08);
+}
+
+.hero-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.hero-stat-tile {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  background: rgba(0,0,0,0.28);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.hero-stat-symbol {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, rgba(255,255,255,0.24), rgba(0,0,0,0.12)), rgba(18,30,46,0.9);
+  border: 1px solid rgba(255,255,255,0.24);
+  box-shadow: inset 0 0 14px rgba(255,255,255,0.08), 0 0 12px rgba(70,142,210,0.16);
+  font-size: 22px;
+}
+
+.hero-stat-value {
+  color: #ffe08a;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 1.1;
+}
+
+.hero-battle-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  color: #f2ead2;
+}
+
+.hero-battle-table th,
+.hero-battle-table td {
+  border: 1px solid rgba(255,255,255,0.14);
+  padding: 8px;
+  text-align: left;
+}
+
+.hero-battle-table th {
+  color: #9fc8ff;
+  background: rgba(70,142,210,0.14);
+}
+
+.hero-ability-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.hero-ability-card {
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.22);
+  padding: 10px;
+  color: #e8e0f0;
+  line-height: 1.4;
+}
+
 @media (max-width: 980px) {
   .hero-layout {
     grid-template-columns: 1fr;
@@ -11266,6 +11349,78 @@ function renderHeroPaperDoll(hero) {
   `;
 }
 
+const heroBaseStats = {
+  hp: 10,
+  od: 4,
+  move: 10,
+  rc: "4-6",
+  battleDie: "D6",
+  battleTable: [
+    ["1", "+0"],
+    ["2", "+0 & Move 1"],
+    ["3", "+1"],
+    ["4", "+1 & Move 2"],
+    ["5", "+2"],
+    ["6", "+2 & Hero Effect"]
+  ],
+  abilities: [
+    { title: "Hero Training", text: "May equip earned Hero Equipment and 1 locked Hero Class." },
+    { title: "Class Focus", text: "Apply the equipped Hero Class bonus while that class is selected." },
+    { title: "Equipment Scaling", text: "Use equipped cards to fine tune HP, OD, Movement, RC, Battle Table results, and abilities." }
+  ]
+};
+
+function renderHeroStatsPanel(hero) {
+  const selectedRole = getHeroRoleCard(hero.roleId) || getHeroRoleCardByName(hero.className);
+  const statRows = [
+    ["♥", "Health", heroBaseStats.hp],
+    ["🛡", "Output Damage", heroBaseStats.od],
+    ["👢", "Movement", heroBaseStats.move],
+    ["⚂", "Roll Check", heroBaseStats.rc]
+  ];
+
+  return `
+    <section class="hero-stats-panel">
+      <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:flex-start;">
+        <div>
+          <h2 style="margin:0; color:#ffe08a;">Hero Stats</h2>
+          <div style="color:#cfc6d8; margin-top:4px;">Baseline hero sheet${selectedRole ? ` with ${escapeHeroValue(selectedRole.name)} equipped` : ""}</div>
+        </div>
+        <div style="color:#9fc8ff; font-weight:bold;">Battle Table ${heroBaseStats.battleDie}</div>
+      </div>
+
+      <div class="hero-stats-grid">
+        ${statRows.map(([symbol, label, value]) => `
+          <div class="hero-stat-tile" title="${label}">
+            <div class="hero-stat-symbol">${symbol}</div>
+            <div>
+              <div class="hero-stat-value">${value}</div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+
+      <table class="hero-battle-table">
+        <thead>
+          <tr><th>Roll</th><th>Result</th></tr>
+        </thead>
+        <tbody>
+          ${heroBaseStats.battleTable.map(([roll, result]) => `<tr><td>${roll}</td><td>${result}</td></tr>`).join("")}
+        </tbody>
+      </table>
+
+      <div class="hero-ability-list">
+        ${heroBaseStats.abilities.map(ability => `
+          <div class="hero-ability-card">
+            <strong style="color:#ffe08a;">${ability.title}</strong>
+            <div>${ability.text}</div>
+          </div>
+        `).join("")}
+      </div>
+    </section>
+  `;
+}
+
 function renderHero() {
   const app = document.getElementById("heroApp");
   if (!app || !resourceProfile || !data[resourceProfile]) return;
@@ -11303,6 +11458,8 @@ function renderHero() {
           ${heroUtilitySlots.filter(slot => !slot.id.startsWith("accessory")).map(renderHeroSelect).join("")}
         </div>
       </div>
+
+      ${renderHeroStatsPanel(hero)}
 
       <label style="display:grid; gap:6px;">
         <span style="color:#ffe08a; font-weight:bold;">Hero Notes</span>
