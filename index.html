@@ -9630,6 +9630,12 @@ const factionHeroEquipmentCards = [
   makeHeroEquipmentCard("faction_order_silverward_blade", "Silverward Blade", "Weapon", heroWeaponSlots, "factionSpecific", "+2 Retaliate. Enemies suffer -1 RC.", "Rare", "order"),
   makeHeroEquipmentCard("faction_order_silverplate_armour", "Silverplate Armour", "Armour", "armour", "factionSpecific", "+2 Armour. Allies within 2 spaces gain +1 RC.", "Rare", "order"),
   makeHeroEquipmentCard("faction_order_aegis_of_order", "Aegis of Order", "Shield", "offHand", "factionSpecific", "+2 Armour. Once per Round: Cancel 1 RC, mutation, or negative effect.", "Rare", "order"),
+  makeHeroEquipmentCard("order_unlock_veilfang", "Veilfang", "Unique Weapon", heroOneHandedWeaponSlots, "factionSpecific", "Hidden Assassin Blade. One-Handed Weapon. Gain +1 RC. When attacking from Stealth choose 1: +2 OD, Pierce 2, or Impact.", "Unique", "order"),
+  makeHeroEquipmentCard("order_unlock_twin_fangs", "Twin Fangs", "Unique Weapon", heroOneHandedWeaponSlots, "factionSpecific", "Hidden Assassin Blades. Two One-Handed Weapons. If equipped together: gain +2 RC. Once per Phase: attack twice.", "Unique", "order"),
+  makeHeroEquipmentCard("order_unlock_nightmare_stalker", "Nightmare Stalker", "Unique Mount", "mount", "factionSpecific", "Shadow Panther. Gain +5 Movement. May move through enemy units. After moving: gain Stealth 3-6.", "Unique", "order"),
+  makeHeroEquipmentCard("order_unlock_shadow_of_the_first_blade", "Shadow of the First Blade", "Unique Title", heroAccessorySlots, "factionSpecific", "Gain +1 RC. When attacking from Stealth: reroll 1 attack roll.", "Unique", "order"),
+  makeHeroEquipmentCard("order_unlock_whisper", "Whisper", "Unique Companion", heroAccessorySlots, "factionSpecific", "Once per Round: choose an enemy within 8 spaces. Reveal if it is a Hero, Commander, or Hidden Unit.", "Unique", "order"),
+  makeHeroEquipmentCard("order_unlock_the_veil_shard", "The Veil Shard", "Unique Talisman", heroAccessorySlots, "factionSpecific", "At the start of each Round: gain 1 Veil Token. Maximum: +1 Veil Token Capacity.", "Unique", "order"),
   makeHeroEquipmentCard("faction_barbarian_rageclaw_axe", "Rageclaw Axe", "Weapon", heroWeaponSlots, "factionSpecific", "+3 Retaliate. Move through all enemy units.", "Rare", "barbarians"),
   makeHeroEquipmentCard("faction_barbarian_warfury_armour", "Warfury Armour", "Armour", "armour", "factionSpecific", "+2 Armour. Enemies adjacent suffer 1 damage per Round.", "Rare", "barbarians"),
   makeHeroEquipmentCard("faction_barbarian_totem_shield", "Totem Shield", "Shield", "offHand", "factionSpecific", "+1 Armour. Gain +1 Retaliate for each Barbarian ally adjacent.", "Common", "barbarians"),
@@ -10841,7 +10847,7 @@ const defaultHeroEquipmentCards = [
   }
 ];
 
-const heroEquipmentDeckVersion = 17;
+const heroEquipmentDeckVersion = 18;
 
 const heroEquipmentPiles = [
   { id: "basic", label: "Basic", backImage: "assets/hero-cards/basic-back.png" },
@@ -10887,7 +10893,11 @@ const heroRoleCards = [
   makeHeroEquipmentCard("role_alchemist", "Alchemist", "Hero Class", "class", "heroRoles", "Potions may be used 1 additional time before being discarded. Once per Phase: draw 2 Potions and keep 1.", "Class"),
   makeHeroEquipmentCard("role_rune_knight", "Rune Knight", "Hero Class", "class", "heroRoles", "If equipped with 2 or more Runes: gain +1 OD and +1 Armour.", "Class"),
   makeHeroEquipmentCard("role_tactician", "Tactician", "Hero Class", "class", "heroRoles", "At the start of each Round: choose up to 2 adjacent allies. Those units may move 2 spaces.", "Class"),
-  makeHeroEquipmentCard("role_treasure_seeker", "Treasure Seeker", "Hero Class", "class", "heroRoles", "When discovering Chests or Points of Interest: draw 2 rewards and keep 1.", "Class")
+  makeHeroEquipmentCard("role_treasure_seeker", "Treasure Seeker", "Hero Class", "class", "heroRoles", "When discovering Chests or Points of Interest: draw 2 rewards and keep 1.", "Class"),
+  {
+    ...makeHeroEquipmentCard("role_order_first_blade", "The First Blade", "Hero Class", "class", "factionSpecific", "Legendary Assassin. Your Hero gains Stealth 3-6, +1 RC, and +2 Movement. When attacking Heroes or Commanders: gain +1 OD. Once per Phase: teleport up to 6 spaces before attacking.", "Legendary", "order"),
+    requiresInventory: true
+  }
 ];
 
 const allDefaultHeroEquipmentCards = [
@@ -11188,6 +11198,21 @@ function getOwnedHeroEquipmentForSlot(slotId) {
     .filter(card => heroCardMatchesSlot(card, slotId));
 }
 
+function profileOwnsHeroEquipmentCard(profileName, cardId) {
+  if (!profileName || !data[profileName] || !cardId) return false;
+  ensureHeroEquipmentState(profileName);
+
+  return (data[profileName].heroEquipment.inventory || [])
+    .some(card => card?.id === cardId);
+}
+
+function heroRoleCanBeLockedByProfile(role, profileName) {
+  if (!role || !profileName || !data[profileName]) return false;
+  if (!heroCardCanGoToProfile(role, profileName)) return false;
+  if (role.requiresInventory && !profileOwnsHeroEquipmentCard(profileName, role.id)) return false;
+  return true;
+}
+
 function getHeroSlotCards(slotId) {
   return [
     ...(heroCardCatalog[slotId] || []),
@@ -11236,7 +11261,9 @@ function renderHeroRoleSelect(hero) {
   const selectedRole = getHeroRoleCard(hero.roleId) || unlockedRoles[0] || null;
   const currentRoleId = selectedRole?.id || "";
   const pendingRole = getHeroRoleCard(hero.pendingRoleId);
-  const remainingRoles = heroRoleCards.filter(role => !unlockedRoles.some(unlockedRole => unlockedRole.id === role.id));
+  const remainingRoles = heroRoleCards
+    .filter(role => heroRoleCanBeLockedByProfile(role, resourceProfile))
+    .filter(role => !unlockedRoles.some(unlockedRole => unlockedRole.id === role.id));
   const canLockMore = unlockedRoles.length < classSlotLimit;
 
   return `
@@ -11592,6 +11619,13 @@ function lockHeroRole() {
 
   if (!selectedRole) {
     alert("Choose a class to lock first.");
+    return;
+  }
+
+  if (!heroRoleCanBeLockedByProfile(selectedRole, resourceProfile)) {
+    alert("This class must be earned by this faction before it can be locked.");
+    hero.pendingRoleId = "";
+    renderHero();
     return;
   }
 
