@@ -573,7 +573,7 @@ h1 {
 
 .hero-stat-tile {
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
+  grid-template-columns: 46px minmax(56px, 0.35fr) minmax(120px, 1fr);
   gap: 10px;
   align-items: center;
   background: rgba(0,0,0,0.28);
@@ -599,6 +599,26 @@ h1 {
   font-size: 24px;
   font-weight: bold;
   line-height: 1.1;
+}
+
+.hero-stat-upgrade-input,
+.hero-battle-upgrade-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 36px;
+  background:
+    linear-gradient(180deg, rgba(190,160,105,0.22), rgba(70,45,22,0.24)),
+    rgba(18,14,10,0.9);
+  color: #fff2c6;
+  border: 1px solid rgba(212,175,55,0.46);
+  border-radius: 6px;
+  padding: 7px 9px;
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.38);
+}
+
+.hero-stat-upgrade-input::placeholder,
+.hero-battle-upgrade-input::placeholder {
+  color: rgba(255,232,178,0.52);
 }
 
 .hero-battle-table {
@@ -10935,6 +10955,12 @@ function createDefaultHeroEquipment() {
       accessoryOne: "",
       accessoryTwo: ""
     },
+    statUpgrades: {
+      hp: "",
+      od: "",
+      move: "",
+      battleTable: {}
+    },
     notes: ""
   };
 }
@@ -10959,6 +10985,14 @@ function ensureHeroState(profileName) {
     slots: {
       ...defaults.slots,
       ...(current.slots || {})
+    },
+    statUpgrades: {
+      ...defaults.statUpgrades,
+      ...(current.statUpgrades || {}),
+      battleTable: {
+        ...defaults.statUpgrades.battleTable,
+        ...((current.statUpgrades && current.statUpgrades.battleTable) || {})
+      }
     }
   };
 
@@ -11372,11 +11406,13 @@ const heroBaseStats = {
 
 function renderHeroStatsPanel(hero) {
   const selectedRole = getHeroRoleCard(hero.roleId) || getHeroRoleCardByName(hero.className);
+  const statUpgrades = hero.statUpgrades || {};
+  const battleTableUpgrades = statUpgrades.battleTable || {};
   const statRows = [
-    ["♥", "Health", heroBaseStats.hp],
-    ["🛡", "Output Damage", heroBaseStats.od],
-    ["👢", "Movement", heroBaseStats.move],
-    ["⚂", "Roll Check", heroBaseStats.rc]
+    ["♥", "Health", "hp", heroBaseStats.hp],
+    ["🛡", "Output Damage", "od", heroBaseStats.od],
+    ["👢", "Movement", "move", heroBaseStats.move],
+    ["⚂", "Roll Check", "", heroBaseStats.rc]
   ];
 
   return `
@@ -11390,22 +11426,43 @@ function renderHeroStatsPanel(hero) {
       </div>
 
       <div class="hero-stats-grid">
-        ${statRows.map(([symbol, label, value]) => `
+        ${statRows.map(([symbol, label, upgradeKey, value]) => `
           <div class="hero-stat-tile" title="${label}">
             <div class="hero-stat-symbol">${symbol}</div>
             <div>
               <div class="hero-stat-value">${value}</div>
             </div>
+            ${upgradeKey ? `
+              <input
+                class="hero-stat-upgrade-input"
+                value="${escapeHeroValue(statUpgrades[upgradeKey] || "")}"
+                placeholder="Upgrade"
+                onchange="updateHeroStatUpgrade('${upgradeKey}', this.value)"
+              >
+            ` : ""}
           </div>
         `).join("")}
       </div>
 
       <table class="hero-battle-table">
         <thead>
-          <tr><th>Roll</th><th>Result</th></tr>
+          <tr><th>Roll</th><th>Result</th><th>Upgrade</th></tr>
         </thead>
         <tbody>
-          ${heroBaseStats.battleTable.map(([roll, result]) => `<tr><td>${roll}</td><td>${result}</td></tr>`).join("")}
+          ${heroBaseStats.battleTable.map(([roll, result], index) => `
+            <tr>
+              <td>${roll}</td>
+              <td>${result}</td>
+              <td>
+                <input
+                  class="hero-battle-upgrade-input"
+                  value="${escapeHeroValue(battleTableUpgrades[index] || "")}"
+                  placeholder="Upgrade"
+                  onchange="updateHeroBattleTableUpgrade('${index}', this.value)"
+                >
+              </td>
+            </tr>
+          `).join("")}
         </tbody>
       </table>
 
@@ -11485,6 +11542,20 @@ function updateHeroField(field, value) {
     const matchingRole = getHeroRoleCardByName(value);
     data[resourceProfile].hero.roleId = matchingRole ? matchingRole.id : "";
   }
+  saveProfiles();
+  renderHero();
+}
+
+function updateHeroStatUpgrade(statKey, value) {
+  ensureHeroState(resourceProfile);
+  data[resourceProfile].hero.statUpgrades[statKey] = value;
+  saveProfiles();
+  renderHero();
+}
+
+function updateHeroBattleTableUpgrade(rowKey, value) {
+  ensureHeroState(resourceProfile);
+  data[resourceProfile].hero.statUpgrades.battleTable[rowKey] = value;
   saveProfiles();
   renderHero();
 }
