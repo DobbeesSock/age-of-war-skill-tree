@@ -8664,6 +8664,9 @@ const factionUnlockEnvelopes = {
   ],
   barbarians: [
     { id: "barbarians_secret_t", title: "Secret Card T - Barbarians", type: "Unique Unit Unlock", lore: "The saga-stones split and the campfires burn three colors at once. The warband has called too loudly for ordinary beasts; from the mythic reaches comes a creature worthy of the next verse.", unlocks: ["Unlock unique unit: The Chimera.", "The GM gives this faction The Chimera stat card when this envelope is revealed.", "The Chimera becomes available to this faction for future army building once unlocked."], ...secretCardTImages },
+    { id: "barbarians_storm_belief_path", pathId: "barbarian_storm_belief", title: "Path of Storm Belief", type: "Hidden Path", lore: "The clans stop praying to the storm and begin marching with it. Thunder gathers around every broken shield, every fallen gate, every roar of spent Fury.", unlocks: ["Reveal when the Barbarians unlock or claim Path I - Storm Belief.", "New Skill Tree: Storm Belief.", "Use the Storm Belief skill tree card as the faction reference."] },
+    { id: "barbarians_ascension_path", pathId: "barbarian_ascension", title: "Path of Ascension", type: "Hidden Path", lore: "The skalds keep a permanent tally. Every burst of Fury becomes a verse, and every verse becomes a name that refuses to die.", unlocks: ["Reveal when the Barbarians unlock or claim Path II - Ascension.", "Path of Ascension becomes available.", "Record the exact ascension reward, stat card, or campaign rule in the notes."] },
+    { id: "barbarians_storm_rider_path", pathId: "barbarian_storm_rider", title: "Path of the Storm Rider", type: "Hidden Path", lore: "The fiercest words begin to crackle at the edges. The clans do not yet know why, only that some names sound like thunder when spoken aloud.", unlocks: ["Reveal when the Barbarians unlock or claim Path III - Storm Rider.", "Path of the Storm Rider becomes available.", "Record the exact Storm Rider reward, skill tree, or campaign rule in the notes."] },
     { id: "barbarians_faction_secret", title: "Saga-Bound Envelope", type: "Faction Secret", lore: "The warband carves a new verse into its shields. The ending is not written yet, but the cost is already known.", unlocks: ["Reveal when a Barbarians secret faction card or campaign reward tells you to open it.", "Record the exact unlocked unit, structure, or rule in the notes."] }
   ]
 };
@@ -12947,6 +12950,93 @@ const hiddenPathDefinitions = {
     ],
     weights: {}
   },
+  barbarian_storm_belief: {
+    hubKey: "barbarians",
+    treeId: null,
+    title: "Path of Storm Belief",
+    threshold: 75,
+    reward: "New Skill Tree: Storm Belief",
+    source: "stormPoints",
+    breadcrumbs: [
+      "The thunder grows louder.",
+      "Lightning walks among warriors.",
+      "Something ancient stirs beyond the clouds.",
+      "The storm has found a master."
+    ],
+    milestones: [
+      [25, "The Sky Answers\n\nRead aloud:\n\"The thunder grows louder.\"\n\"The winds no longer obey.\""],
+      [50, "The Storm Breaks\n\nRead aloud:\n\"Lightning walks among warriors.\"\n\"The earth trembles beneath charging feet.\""],
+      [75, "The Tempest Awakens\n\nRead aloud:\n\"Something ancient stirs beyond the clouds.\"\n\"The storm has found a master.\"\n\nUnlock: Skill Tree"]
+    ],
+    weights: {}
+  },
+  barbarian_ascension: {
+    hubKey: "barbarians",
+    treeId: null,
+    title: "Path of Ascension",
+    threshold: 100,
+    reward: "Path of Ascension Available",
+    source: "legendTrack",
+    breadcrumbs: [
+      "The skalds begin to speak your names.",
+      "Across the north, warriors boast of impossible victories.",
+      "The mountains answer with thunder.",
+      "The clans no longer tell stories of heroes. They tell stories of you."
+    ],
+    milestones: [
+      [20, "The skalds begin to speak your names.\n\nSmall fires become great legends."],
+      [40, "Across the north, warriors boast of impossible victories.\n\nThe clans gather to hear the tale."],
+      [60, "The mountains answer with thunder.\n\nEven the old spirits listen."],
+      [80, "Names long forgotten are spoken once more.\n\nThe dead watch from beyond the storm."],
+      [100, "The clans no longer tell stories of heroes.\n\nThey tell stories of you.\n\nPath of Ascension Available."]
+    ],
+    weights: {}
+  },
+  barbarian_storm_rider: {
+    hubKey: "barbarians",
+    treeId: null,
+    title: "Path of the Storm Rider",
+    threshold: 13,
+    reward: "Path of the Storm Rider Available",
+    breadcrumbs: [
+      "A hard word sparks when spoken.",
+      "The warband hears hoofbeats inside the thunder.",
+      "The sky begins choosing its riders.",
+      "The Storm Rider path opens."
+    ],
+    milestones: [
+      [6, "A hard word sparks when spoken.\n\nThe clans feel the storm listening."],
+      [9, "The warband hears hoofbeats inside the thunder.\n\nCertain words now carry the smell of rain and iron."],
+      [13, "The sky begins choosing its riders.\n\nPath of the Storm Rider Available."]
+    ],
+    weights: {
+      Wrath: 1,
+      Fury: 1,
+      Rage: 1,
+      Conqueror: 1,
+      Destroy: 1,
+      Destroyer: 1,
+      Ruin: 1,
+      Pillage: 1,
+      Plunderer: 1,
+      Dominate: 1,
+      Dominance: 1,
+      Dominating: 1,
+      Bloodshed: 1,
+      Bloodied: 1,
+      Brutality: 1,
+      Brutal: 1,
+      Savage: 1,
+      Vengeance: 1,
+      Cataclysm: 2,
+      Cataclysmic: 2,
+      Fear: 1,
+      Terror: 1,
+      Warlord: 1,
+      Warborn: 1,
+      Warbound: 1
+    }
+  },
   orcs_belief: {
     hubKey: "orcs",
     treeId: "orcsRuin",
@@ -13431,6 +13521,7 @@ function renderFactionInfo() {
     ${renderDwarfPathCounters()}
     ${renderOrderPathCounters()}
     ${renderMenPathCounters()}
+    ${renderBarbarianPathCounters()}
     <div class="faction-info-layout" style="margin-top:16px;">
       ${info.sections.map(section => `${renderSection(section)}${section.title && /gates?\s*&\s*walls?/i.test(section.title) ? renderLadderInfoCard() : ""}`).join("")}
     </div>
@@ -14614,6 +14705,11 @@ function changeFury(amount){
     if(fury > 10) fury = 10;
 
     data[resourceProfile].shared.fury = fury;
+
+    const hubKey = currentHubFaction || data[resourceProfile].hubFaction || getHubKeyFromFaction(currentFaction);
+    if (amount > 0 && hubKey === "barbarians") {
+        changeHiddenPathCounter("barbarianLegendTrack", amount);
+    }
 
     updateFury();
     saveProfiles();
@@ -17506,20 +17602,20 @@ const keywordSourceSections = [
     title: "Section A - Aggression / Dominance",
     keywords: [
       "Aggressor", "Ambition", "Anarchist", "Apex", "Ascendant", "Ascending", "Ascension", "Authority",
-      "Avarice", "Awakener", "Backstabber", "Beastmaster", "Blood Hunt", "Bloodcall", "Blooded", "Bloodied", "Breaker",
-      "Breaker of Armies", "Breaker of Crowns", "Breaker of Oath", "Breaker of Time", "Brutal", "Catalyst",
+      "Avarice", "Awakener", "Backstabber", "Beastmaster", "Blood Hunt", "Bloodcall", "Blooded", "Bloodied", "Bloodshed", "Breaker",
+      "Breaker of Armies", "Breaker of Crowns", "Breaker of Oath", "Breaker of Time", "Brutal", "Brutality", "Catalyst",
       "Chaos", "Chaotic Mind", "Claimed by Force", "Command", "Commander", "Commander of Ash", "Conqueror",
       "Controller", "Crowned", "Cruel", "Defiance", "Defiant", "Defied", "Desecrator", "Destruction",
-      "Destroyer", "Dominance", "Dominant", "Dominating", "Entitled", "Erasure", "Excess", "Extractor", "Fatal", "Feeder", "Force",
-      "Forceful", "Fracture", "Godslayer", "Grave Robber", "Greed", "Greedy", "Harvester", "Hubris",
+      "Destroy", "Destroyer", "Dominate", "Dominance", "Dominant", "Dominating", "Entitled", "Erasure", "Excess", "Extractor", "Fatal", "Feeder", "Force",
+      "Forceful", "Fracture", "Fury", "Godslayer", "Grave Robber", "Greed", "Greedy", "Harvester", "Hubris",
       "Hunter", "Iconoclast", "Impulse", "Impulsive", "Instigator", "Intruder", "Judgment", "Justice",
       "Lawbringer", "Leech", "Lightbreaker", "Manipulator", "Might", "Nemesis", "Opportunist", "Outburst",
-      "Overlord", "Parasite", "Plunderer", "Predator", "Profane", "Provoked", "Provoker", "Rebel",
-      "Reckless", "Reclaimed", "Revolt", "Rival", "Ruin", "Rule", "Ruler", "Ruthless", "Saboteur",
+      "Overlord", "Parasite", "Pillage", "Plunderer", "Predator", "Profane", "Provoked", "Provoker", "Rage", "Rebel",
+      "Reckless", "Reclaimed", "Revolt", "Rival", "Ruin", "Rule", "Ruler", "Ruthless", "Saboteur", "Savage",
       "Scavenger of Time", "Seized", "Selfish", "Selfish Freedom", "Shortsighted", "Siegebreaker",
       "Silenced", "Silencer", "Suppress", "Summoner", "Thief", "Thief of Flame", "Theft", "Tyrant",
       "Tycoon", "Unmaker", "Usurper", "Utilitarian", "Valor", "Vengeance", "Victor", "Violence",
-      "Violent", "Warborn", "Warbound", "Warlord", "Wanted", "Worldbreaker"
+      "Violent", "Warborn", "Warbound", "Warlord", "Wanted", "Worldbreaker", "Wrath"
     ]
   },
   {
@@ -17556,11 +17652,11 @@ const keywordSourceSections = [
     title: "Section D - Risk / Corruption / Consequence",
     keywords: [
       "Abandoned", "Appeased", "Avoidance", "Avoided", "Bearer", "Blame", "Burden Shifter",
-      "Burdened", "Burned", "Careless", "Carried", "Catastrophe", "Cataclysmic", "Chasing", "Clumsy", "Cold", "Complicit",
+      "Burdened", "Burned", "Careless", "Carried", "Catastrophe", "Cataclysm", "Cataclysmic", "Chasing", "Clumsy", "Cold", "Complicit",
       "Consumed", "Coward", "Debt", "Deceiver", "Deception", "Declined", "Deferred", "Delay", "Delayed",
       "Denial", "Denied", "Denied Power", "Desperate", "Discord", "Dissonance", "Disruption", "Disruptor",
       "Diverged", "Doubt", "Dragged", "Drifted", "Drowned", "Echo", "Echoed", "Erased", "Exposed",
-      "Fall", "Falling", "Fearful", "Fooled", "Fool", "Foolish", "Followed", "Fractured", "Fractured Timeline",
+      "Fall", "Falling", "Fear", "Fearful", "Fooled", "Fool", "Foolish", "Followed", "Fractured", "Fractured Timeline",
       "Fractured Trust", "Fraud", "Frozen", "Gluttony", "Hard Choice", "Hasty", "Hunted", "Ignored",
       "Ignored Again", "Imitated", "Indecision", "Instability", "Isolated", "Isolated Minds", "Leaderless",
       "Corrupted", "Looped", "Lost", "Lost Route", "Marked", "Marked by Light", "Massacre", "Merged", "Misdirected", "Muted",
@@ -19371,7 +19467,9 @@ const hiddenCounterPathIds = {
   orderContracts: "order_ascension",
   orderAssassins: "order_first_blade",
   menFaithStructures: "men_belief",
-  menAngelicMarks: "men_awakening"
+  menAngelicMarks: "men_awakening",
+  barbarianStormPoints: "barbarian_storm_belief",
+  barbarianLegendTrack: "barbarian_ascension"
 };
 
 function changeHiddenPathCounter(counterKey, amount) {
@@ -19542,6 +19640,57 @@ function renderMenPathCounters() {
           </div>
         </div>
       `).join("")}
+    </div>
+  `;
+}
+
+function renderBarbarianPathCounters() {
+  if (!resourceProfile || !data[resourceProfile]) return "";
+  const hubKey = currentHubFaction || data[resourceProfile].hubFaction || getHubKeyFromFaction(currentFaction);
+  if (hubKey !== "barbarians") return "";
+
+  ensureHiddenPathState(resourceProfile);
+
+  return `
+    <div class="faction-info-layout" style="margin-top:16px;">
+      <div class="faction-info-card" style="border-left-color:#e26a26; background:rgba(42,25,20,0.94);">
+        <h3>Storm Points</h3>
+        <div style="color:#f0d2b0; line-height:1.45; min-height:132px;">
+          <strong>Gain Storm Points when:</strong>
+          <ul style="margin:8px 0 0 20px;">
+            <li>Destroy an enemy unit.</li>
+            <li>Destroy an Elite, Commander, Hero, or Ultimate.</li>
+            <li>Destroy a Structure.</li>
+            <li>Spend 5 Fury.</li>
+            <li>End a Phase with 10+ Fury.</li>
+          </ul>
+        </div>
+        <div style="font-size:36px; color:#ffe08a; font-weight:bold; margin:8px 0;">${getHiddenPathCounterValue(resourceProfile, "barbarianStormPoints")}</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" onclick="changeHiddenPathCounter('barbarianStormPoints', 1)">Enemy Unit +1</button>
+          <button type="button" onclick="changeHiddenPathCounter('barbarianStormPoints', 2)">Elite/Hero +2</button>
+          <button type="button" onclick="changeHiddenPathCounter('barbarianStormPoints', 1)">Structure +1</button>
+          <button type="button" onclick="changeHiddenPathCounter('barbarianStormPoints', 3)">Spend 5 Fury +3</button>
+          <button type="button" onclick="changeHiddenPathCounter('barbarianStormPoints', 1)">10+ Fury Phase +1</button>
+          <button type="button" onclick="changeHiddenPathCounter('barbarianStormPoints', -1)">-1</button>
+          <button type="button" onclick="changeHiddenPathCounter('barbarianStormPoints', -5)">-5</button>
+        </div>
+      </div>
+      <div class="faction-info-card" style="border-left-color:#d89631; background:rgba(38,28,18,0.94);">
+        <h3>Legend Track</h3>
+        <div style="color:#f0d2b0; line-height:1.45; min-height:132px;">
+          <strong>Add Fury gained throughout the campaign.</strong>
+          <p style="margin:8px 0 0 0;">This track updates automatically when Fury is gained from the Fury bar. Use these buttons only for corrections or Fury gained somewhere else.</p>
+        </div>
+        <div style="font-size:36px; color:#ffe08a; font-weight:bold; margin:8px 0;">${getHiddenPathCounterValue(resourceProfile, "barbarianLegendTrack")}</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" onclick="changeHiddenPathCounter('barbarianLegendTrack', 1)">+1</button>
+          <button type="button" onclick="changeHiddenPathCounter('barbarianLegendTrack', 5)">+5</button>
+          <button type="button" onclick="changeHiddenPathCounter('barbarianLegendTrack', 10)">+10</button>
+          <button type="button" onclick="changeHiddenPathCounter('barbarianLegendTrack', -1)">-1</button>
+          <button type="button" onclick="changeHiddenPathCounter('barbarianLegendTrack', -5)">-5</button>
+        </div>
+      </div>
     </div>
   `;
 }
