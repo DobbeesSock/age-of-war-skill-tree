@@ -12892,17 +12892,17 @@ const hiddenPathDefinitions = {
     hubKey: "men",
     treeId: null,
     title: "Path of Ascension",
-    threshold: 12,
+    threshold: 18,
     reward: "Ascension Available - Unlock Enhanced Unit Stat Cards",
     breadcrumbs: [
-      "The realm chooses mercy where fear would be easier.",
-      "The crown shines brighter in worthy hands.",
+      "The people begin to speak of a kingdom that cannot fall.",
+      "The old virtues gather beneath the crown.",
       "The Eternal Kingdom answers."
     ],
     milestones: [
-      [6, "The realm chooses mercy where fear would be easier."],
-      [8, "The crown shines brighter in worthy hands."],
-      [12, "Ascension Available.\n\nThe Eternal Kingdom answers.\n\nUnlock Enhanced Unit Stat Cards."]
+      [10, "The people begin to speak of a kingdom that cannot fall.\n\nCertain virtues now carry a brighter omen."],
+      [15, "The old virtues gather beneath the crown.\n\nThe Men should keep watch for words of mercy, unity, faith, and protection."],
+      [18, "Ascension Available.\n\nThe Eternal Kingdom answers.\n\nUnlock Enhanced Unit Stat Cards."]
     ],
     weights: {
       Protector: 1,
@@ -19253,6 +19253,17 @@ function calculateHiddenPathScore(pathId, selected) {
   const definition = hiddenPathDefinitions[pathId];
   if (!definition) return { score: 0, matches: [] };
 
+  if (pathId === "men_ascension") {
+    return Object.entries(selected).reduce((result, [keyword, isSelected]) => {
+      if (!isSelected) return result;
+      const value = getMenAscensionKeywordWeight(keyword);
+      if (!value) return result;
+      result.score += value;
+      result.matches.push({ keyword, value });
+      return result;
+    }, { score: 0, matches: [] });
+  }
+
   return Object.entries(definition.weights).reduce((result, [keyword, value]) => {
     if (!selected[keyword]) return result;
     result.score += value;
@@ -19538,6 +19549,12 @@ function renderMenPathCounters() {
 function getHiddenPathKeywordClass(keyword) {
   if (!resourceProfile || !data[resourceProfile]) return "";
   const hubKey = currentHubFaction || data[resourceProfile].hubFaction || getHubKeyFromFaction(currentFaction);
+  if (hubKey === "men") {
+    const menWeight = getMenAscensionKeywordWeight(keyword);
+    if (menWeight > 0) return "men-hidden-path-pull";
+    if (menWeight < 0) return "hidden-path-resist";
+  }
+
   const definitions = Object.values(hiddenPathDefinitions).filter(definition => definition.hubKey === hubKey);
   const weight = definitions.reduce((value, definition) => value || definition.weights[keyword] || 0, 0);
 
@@ -19621,6 +19638,30 @@ function getSelectedKeywordCount() {
 function getKeywordCategory(keyword) {
   const section = keywordSections.find(keywordSection => keywordSection.keywords.includes(keyword));
   return section ? section.category : "campaign";
+}
+
+function getMenAscensionKeywordWeight(keyword) {
+  const definitionWeight = hiddenPathDefinitions.men_ascension?.weights?.[keyword];
+  if (definitionWeight) return definitionWeight;
+
+  const sacredVirtues = new Set([
+    "Faithful", "Unity", "United", "United Front", "Merciful", "Mercy", "Peacemaker",
+    "Protector", "Guardian", "Redeemer", "Harmony", "Hope", "Lawbound", "Loyal",
+    "Trust", "Trusted", "Worthy", "Devotion", "Devout", "Reverent", "Respect",
+    "Respectful", "Responsible", "Steward", "Shieldbearer", "Warden"
+  ]);
+  const severeFalls = new Set([
+    "Corrupted", "Massacre", "Cataclysmic", "Worldbreaker", "Profane", "Desecrator",
+    "Tyrant", "Cruel", "Ruthless", "Destroyer", "Violent", "Greedy"
+  ]);
+
+  if (sacredVirtues.has(keyword)) return 2;
+  if (severeFalls.has(keyword)) return keyword === "Corrupted" || keyword === "Massacre" || keyword === "Cataclysmic" ? -3 : -2;
+
+  const category = getKeywordCategory(keyword);
+  if (category === "virtue") return 1;
+  if (category === "corruption") return -1;
+  return 0;
 }
 
 function calculateKeywordAlignment(selected) {
