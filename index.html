@@ -8666,8 +8666,7 @@ const factionUnlockEnvelopes = {
     { id: "barbarians_secret_t", title: "Secret Card T - Barbarians", type: "Unique Unit Unlock", lore: "The saga-stones split and the campfires burn three colors at once. The warband has called too loudly for ordinary beasts; from the mythic reaches comes a creature worthy of the next verse.", unlocks: ["Unlock unique unit: The Chimera.", "The GM gives this faction The Chimera stat card when this envelope is revealed.", "The Chimera becomes available to this faction for future army building once unlocked."], ...secretCardTImages },
     { id: "barbarians_storm_belief_path", pathId: "barbarian_storm_belief", title: "Path of Storm Belief", type: "Hidden Path", lore: "The clans stop praying to the storm and begin marching with it. Thunder gathers around every broken shield, every fallen gate, every roar of spent Fury.", unlocks: ["Reveal when the Barbarians unlock or claim Path I - Storm Belief.", "New Skill Tree: Storm Belief.", "Use the Storm Belief skill tree card as the faction reference."] },
     { id: "barbarians_ascension_path", pathId: "barbarian_ascension", title: "Path of Ascension", type: "Hidden Path", lore: "The skalds keep a permanent tally. Every burst of Fury becomes a verse, and every verse becomes a name that refuses to die.", unlocks: ["Reveal when the Barbarians unlock or claim Path II - Ascension.", "Path of Ascension becomes available.", "Record the exact ascension reward, stat card, or campaign rule in the notes."] },
-    { id: "barbarians_storm_rider_path", pathId: "barbarian_storm_rider", title: "Path of the Storm Rider", type: "Hidden Path", lore: "The fiercest words begin to crackle at the edges. The clans do not yet know why, only that some names sound like thunder when spoken aloud.", unlocks: ["Reveal when the Barbarians unlock or claim Path III - Storm Rider.", "Path of the Storm Rider becomes available.", "Record the exact Storm Rider reward, skill tree, or campaign rule in the notes."] },
-    { id: "barbarians_faction_secret", title: "Saga-Bound Envelope", type: "Faction Secret", lore: "The warband carves a new verse into its shields. The ending is not written yet, but the cost is already known.", unlocks: ["Reveal when a Barbarians secret faction card or campaign reward tells you to open it.", "Record the exact unlocked unit, structure, or rule in the notes."] }
+    { id: "barbarians_storm_rider_path", pathId: "barbarian_storm_rider", title: "Path of the Storm Rider", type: "Hidden Path", lore: "The fiercest words begin to crackle at the edges. The clans do not yet know why, only that some names sound like thunder when spoken aloud.", unlocks: ["Reveal when the Barbarians unlock or claim Path III - Storm Rider.", "Path of the Storm Rider becomes available.", "Record the exact Storm Rider reward, skill tree, or campaign rule in the notes."] }
   ]
 };
 
@@ -8941,7 +8940,7 @@ function getUnlockEnvelopeList() {
   const campaignOverrides = factionCampaignPathOverrides[hubKey] || {};
   return [
     ...(factionUnlockEnvelopes[hubKey] || []),
-    ...campaignUnlockEnvelopes.filter(card => !["dwarves", "men", "order"].includes(hubKey) || !["campaign_mythic_cave_reward", "campaign_world_secret"].includes(card.id)).map(card => ({
+    ...campaignUnlockEnvelopes.filter(card => !["dwarves", "men", "order", "barbarians"].includes(hubKey) || !["campaign_mythic_cave_reward", "campaign_world_secret"].includes(card.id)).map(card => ({
       ...card,
       title: campaignOverrides[card.id]?.title || `${hub.label} ${card.title}`,
       type: campaignOverrides[card.id]?.type || card.type,
