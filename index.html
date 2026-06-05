@@ -8626,7 +8626,9 @@ const secretCardTImages = {
 const factionUnlockEnvelopes = {
   men: [
     { id: "men_secret_t", title: "Secret Card T - Men", type: "Unique Unit Unlock", lore: "The old kingdoms open a war-pen sealed since the first border wars. The army is no longer only marching with soldiers and banners; it is gathering the hard-bred beasts of a greater realm.", unlocks: ["Unlock unique unit: Battle Boar.", "The GM gives this faction the Battle Boar stat card when this envelope is revealed.", "Battle Boar becomes available to this faction for future army building once unlocked."], ...secretCardTImages },
-    { id: "men_faction_secret", title: "Tribes of Men Secret Envelope", type: "Faction Secret", lore: "Old roads, old kings, and old debts return to the campaign map. The Men remember more than their enemies expected.", unlocks: ["Reveal when a Men secret faction card or campaign reward tells you to open it.", "Record the exact unlocked unit, structure, or rule in the notes."] }
+    { id: "men_belief_path", pathId: "men_belief", title: "Path of Belief", type: "Hidden Path", lore: "The people gather beneath one banner. Roads, churches, taxes, and armies begin moving as a single imperial body.", unlocks: ["Reveal when the Men unlock or claim Path I - Belief.", "New Skill Tree: Imperial Doctrine.", "Use the Imperial Doctrine skill tree card as the faction reference."], revealedImage: "assets/path-unlocks/men/path-1/imperial-doctrine.png" },
+    { id: "men_ascension_path", pathId: "men_ascension", title: "Path of Ascension", type: "Hidden Path", lore: "Only a kingdom that remembers mercy, duty, and protection can become eternal. The banners rise cleaner with every noble choice.", unlocks: ["Reveal when the Men unlock or claim Path II - Ascension.", "Unlock enhanced unit stat cards.", "The GM gives the upgraded stat cards to the Men player when this path is chosen."] },
+    { id: "men_awakening_path", pathId: "men_awakening", title: "Path of Awakening", type: "Hidden Path", lore: "The heavens answer slowly at first: a feather in ash, a hymn after battle, a blade of light seen beyond the veil.", unlocks: ["Reveal when the Men unlock or claim Path III - Awakening.", "New Skill Tree: Angelic Ascension.", "Use the Angelic Ascension skill tree card as the faction reference."], revealedImage: "assets/path-unlocks/men/path-3/angelic-ascension.png" }
   ],
   dwarves: [
     { id: "dwarves_secret_t", title: "Secret Card T - Dwarves", type: "Unique Unit Unlock", lore: "Deep below the hold, the forge bells wake something older than the mountain gates. The Dwarves bind wild strength to their expanding host, proving their armies can call more than stone and steel.", unlocks: ["Unlock unique unit: The Fierce Gorilla.", "The GM gives this faction The Fierce Gorilla stat card when this envelope is revealed.", "The Fierce Gorilla becomes available to this faction for future army building once unlocked."], ...secretCardTImages },
@@ -12855,6 +12857,84 @@ const hiddenPathDefinitions = {
     ],
     weights: {}
   },
+  men_belief: {
+    hubKey: "men",
+    treeId: null,
+    title: "Path of Belief",
+    threshold: 75,
+    reward: "New Skill Tree: Imperial Doctrine",
+    source: "faithAndStructures",
+    breadcrumbs: [
+      "The people gather beneath a single banner.",
+      "The Empire remembers its purpose.",
+      "The Imperial Doctrine awakens."
+    ],
+    milestones: [
+      [25, "The people gather beneath a single banner."],
+      [50, "The Empire remembers its purpose."],
+      [75, "The Imperial Doctrine awakens.\n\nNew Skill Tree: Imperial Doctrine."]
+    ],
+    weights: {}
+  },
+  men_ascension: {
+    hubKey: "men",
+    treeId: null,
+    title: "Path of Ascension",
+    threshold: 12,
+    reward: "Ascension Available - Unlock Enhanced Unit Stat Cards",
+    breadcrumbs: [
+      "The realm chooses mercy where fear would be easier.",
+      "The crown shines brighter in worthy hands.",
+      "The Eternal Kingdom answers."
+    ],
+    milestones: [
+      [6, "The realm chooses mercy where fear would be easier."],
+      [8, "The crown shines brighter in worthy hands."],
+      [12, "Ascension Available.\n\nThe Eternal Kingdom answers.\n\nUnlock Enhanced Unit Stat Cards."]
+    ],
+    weights: {
+      Protector: 1,
+      Guardian: 1,
+      Loyal: 1,
+      Faithful: 1,
+      Unity: 1,
+      Steward: 1,
+      Merciful: 2,
+      Mercy: 2,
+      Keeper: 2,
+      Peacemaker: 2,
+      Redeemer: 3,
+      Harmony: 2,
+      Hope: 2,
+      Lawbound: 2,
+      Cruel: -1,
+      Greedy: -1,
+      Violent: -1,
+      Ruthless: -2,
+      Destroyer: -2,
+      Corrupted: -3,
+      Massacre: -3
+    }
+  },
+  men_awakening: {
+    hubKey: "men",
+    treeId: null,
+    title: "Path of Awakening",
+    threshold: 75,
+    reward: "New Skill Tree: Angelic Ascension",
+    source: "angelicMarks",
+    breadcrumbs: [
+      "The heavens begin to stir.",
+      "The Host gathers beyond the veil.",
+      "Angelic Ascension is available."
+    ],
+    milestones: [
+      [25, "The heavens begin to stir."],
+      [50, "The Host gathers beyond the veil."],
+      [75, "Angelic Ascension Available.\n\nNew Skill Tree: Angelic Ascension."]
+    ],
+    weights: {}
+  },
   orcs_belief: {
     hubKey: "orcs",
     treeId: "orcsRuin",
@@ -13338,6 +13418,7 @@ function renderFactionInfo() {
     ${renderOrcPathCounters()}
     ${renderDwarfPathCounters()}
     ${renderOrderPathCounters()}
+    ${renderMenPathCounters()}
     <div class="faction-info-layout" style="margin-top:16px;">
       ${info.sections.map(section => `${renderSection(section)}${section.title && /gates?\s*&\s*walls?/i.test(section.title) ? renderLadderInfoCard() : ""}`).join("")}
     </div>
@@ -19180,6 +19261,11 @@ function updateHiddenPathUnlocks(profileName) {
     const entry = data[profileName].hiddenPaths.paths[pathId];
     const progress = calculateHiddenPathScore(pathId, selected);
     entry.highScore = Math.max(Number(entry.highScore || 0), progress.score);
+    (definition.milestones || []).forEach(([threshold, message]) => {
+      if (progress.score < threshold || entry.milestonesShown[threshold]) return;
+      entry.milestonesShown[threshold] = new Date().toISOString();
+      alert(message);
+    });
     if (!entry.unlocked && progress.score >= definition.threshold) {
       entry.unlocked = true;
       entry.unlockedAt = new Date().toISOString();
@@ -19260,7 +19346,9 @@ const hiddenCounterPathIds = {
   dwarfMountainInfluence: "dwarves_mountain_speaker",
   orderSecrets: "order_veiled_path",
   orderContracts: "order_ascension",
-  orderAssassins: "order_first_blade"
+  orderAssassins: "order_first_blade",
+  menFaithStructures: "men_belief",
+  menAngelicMarks: "men_awakening"
 };
 
 function changeHiddenPathCounter(counterKey, amount) {
@@ -19394,6 +19482,47 @@ function renderOrderPathCounters() {
   `;
 }
 
+function renderMenPathCounters() {
+  if (!resourceProfile || !data[resourceProfile]) return "";
+  const hubKey = currentHubFaction || data[resourceProfile].hubFaction || getHubKeyFromFaction(currentFaction);
+  if (hubKey !== "men") return "";
+
+  ensureHiddenPathState(resourceProfile);
+  const counters = [
+    ["menFaithStructures", "Imperial Ledger", "Gain 1 when:", [
+      "Faith is generated.",
+      "A Structure is constructed."
+    ]],
+    ["menAngelicMarks", "Heavenly Signs", "Gain 1 when:", [
+      "An Angelic unit is spawned.",
+      "An Angelic unit kills an enemy."
+    ]]
+  ];
+
+  return `
+    <div class="faction-info-layout" style="margin-top:16px;">
+      ${counters.map(([counterKey, label, ruleTitle, rules]) => `
+        <div class="faction-info-card" style="border-left-color:#4fa3df; background:rgba(24,31,42,0.94);">
+          <h3>${label}</h3>
+          <div style="color:#d8e6f5; line-height:1.45; min-height:96px;">
+            <strong>${ruleTitle}</strong>
+            <ul style="margin:8px 0 0 20px;">
+              ${rules.map(rule => `<li>${rule}</li>`).join("")}
+            </ul>
+          </div>
+          <div style="font-size:36px; color:#ffe08a; font-weight:bold; margin:8px 0;">${getHiddenPathCounterValue(resourceProfile, counterKey)}</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" onclick="changeHiddenPathCounter('${counterKey}', 1)">+1</button>
+            <button type="button" onclick="changeHiddenPathCounter('${counterKey}', 5)">+5</button>
+            <button type="button" onclick="changeHiddenPathCounter('${counterKey}', -1)">-1</button>
+            <button type="button" onclick="changeHiddenPathCounter('${counterKey}', -5)">-5</button>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
 function getHiddenPathKeywordClass(keyword) {
   if (!resourceProfile || !data[resourceProfile]) return "";
   const hubKey = currentHubFaction || data[resourceProfile].hubFaction || getHubKeyFromFaction(currentFaction);
@@ -19417,7 +19546,8 @@ function renderHiddenPathUnlocks() {
   return pathEntries.map(([pathId, definition]) => {
     const entry = data[resourceProfile].hiddenPaths.paths[pathId];
     const unlocked = Boolean(entry.unlocked);
-    const claimed = data[resourceProfile].hiddenPaths.claimedPath === definition.treeId;
+    const claimId = definition.treeId || pathId;
+    const claimed = data[resourceProfile].hiddenPaths.claimedPath === claimId;
     const alreadyClaimedOther = data[resourceProfile].hiddenPaths.claimedPath && !claimed;
     if (!unlocked && !claimed) return "";
 
