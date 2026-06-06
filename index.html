@@ -3417,6 +3417,7 @@ body.elves {
 <div id="objectivesView" style="display:none;">
   <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
     <label style="color:white;">Give to: <select id="gmObjectiveTargetSelect"></select></label>
+    <button onclick="returnTierOneAndTwoObjectivesToGm()">Return Tier 1 & 2 From Players</button>
     <button onclick="resetObjectives()">Reset Objective Decks</button>
   </div>
   <div id="objectivesApp"></div>
@@ -22032,6 +22033,52 @@ function returnObjectiveToDeck(index) {
         if (!data.sharedObjectives.decks[tier]) data.sharedObjectives.decks[tier] = [];
         data.sharedObjectives.decks[tier].push(card);
     });
+}
+
+function isTierOneOrTwoObjective(card) {
+    const tier = String(card?.tier || "Tier 1");
+    return tier === "Tier 1" || tier.startsWith("Tier 2");
+}
+
+function returnTierOneAndTwoObjectivesToGm() {
+    let returnedCount = 0;
+
+    const finishAlert = () => {
+        alert(returnedCount
+            ? `Returned ${returnedCount} Tier 1 / Tier 2 objective card${returnedCount === 1 ? "" : "s"} to the GM decks.`
+            : "No Tier 1 or Tier 2 objective cards were found in player inventories.");
+    };
+
+    const mutationResult = persistObjectiveMutation(() => {
+        ensureObjectiveState(resourceProfile);
+
+        Object.keys(data).forEach(profileName => {
+            const profile = data[profileName];
+            const inventory = profile?.objectives?.inventory;
+            if (!Array.isArray(inventory)) return;
+
+            const keptCards = [];
+            inventory.forEach(card => {
+                if (!isTierOneOrTwoObjective(card)) {
+                    keptCards.push(card);
+                    return;
+                }
+
+                const tier = card.tier || "Tier 1";
+                if (!data.sharedObjectives.decks[tier]) data.sharedObjectives.decks[tier] = [];
+                data.sharedObjectives.decks[tier].push(card);
+                returnedCount++;
+            });
+
+            profile.objectives.inventory = keptCards;
+        });
+    });
+
+    if (mutationResult?.then) {
+        mutationResult.then(finishAlert);
+    } else {
+        finishAlert();
+    }
 }
 
 function resetObjectives() {
