@@ -8664,9 +8664,9 @@ const factionUnlockEnvelopes = {
   ],
   barbarians: [
     { id: "barbarians_secret_t", title: "Secret Card T - Barbarians", type: "Unique Unit Unlock", lore: "The saga-stones split and the campfires burn three colors at once. The warband has called too loudly for ordinary beasts; from the mythic reaches comes a creature worthy of the next verse.", unlocks: ["Unlock unique unit: The Chimera.", "The GM gives this faction The Chimera stat card when this envelope is revealed.", "The Chimera becomes available to this faction for future army building once unlocked."], ...secretCardTImages },
-    { id: "barbarians_storm_belief_path", pathId: "barbarian_storm_belief", title: "Path of Storm Belief", type: "Hidden Path", lore: "The clans stop praying to the storm and begin marching with it. Thunder gathers around every broken shield, every fallen gate, every roar of spent Fury.", unlocks: ["Reveal when the Barbarians unlock or claim Path I - Storm Belief.", "New Skill Tree: Storm Belief.", "Use the Storm Belief skill tree card as the faction reference."] },
+    { id: "barbarians_storm_belief_path", pathId: "barbarian_storm_belief", title: "Path of Storm Belief", type: "Hidden Path", lore: "The clans stop praying to the storm and begin marching with it. Thunder gathers around every broken shield, every fallen gate, every roar of spent Fury.", revealedImage: "assets/path-unlocks/barbarians/path-1/stormborn-tree.png", unlocks: ["Reveal when the Barbarians unlock or claim Path I - Storm Belief.", "New Skill Tree: Storm Belief.", "Use the Storm Belief skill tree card as the faction reference."] },
     { id: "barbarians_ascension_path", pathId: "barbarian_ascension", title: "Path of Ascension", type: "Hidden Path", lore: "The skalds keep a permanent tally. Every burst of Fury becomes a verse, and every verse becomes a name that refuses to die.", unlocks: ["Reveal when the Barbarians unlock or claim Path II - Ascension.", "Path of Ascension becomes available.", "Record the exact ascension reward, stat card, or campaign rule in the notes."] },
-    { id: "barbarians_storm_rider_path", pathId: "barbarian_storm_rider", title: "Path of the Storm Rider", type: "Hidden Path", lore: "The fiercest words begin to crackle at the edges. The clans do not yet know why, only that some names sound like thunder when spoken aloud.", unlocks: ["Reveal when the Barbarians unlock or claim Path III - Storm Rider.", "Path of the Storm Rider becomes available.", "Record the exact Storm Rider reward, skill tree, or campaign rule in the notes."] }
+    { id: "barbarians_storm_rider_path", pathId: "barbarian_storm_rider", title: "Path of the Storm Rider", type: "Hidden Path", lore: "The fiercest words begin to crackle at the edges. The clans do not yet know why, only that some names sound like thunder when spoken aloud.", revealedImage: "assets/path-unlocks/barbarians/path-3/storm-rider-cards.png", unlocks: ["Reveal when the Barbarians unlock or claim Path III - Storm Rider.", "GM may send the Storm Rider reward cards from the Barbarian Faction Equipment pile.", "Path of the Storm Rider becomes available."] }
   ]
 };
 
@@ -9633,6 +9633,8 @@ const commonHeroRangedWeaponCards = [
   makeHeroEquipmentCard("common_ranged_mens_long_rifle", "Men's Long Rifle", "One-Handed Ranged Weapon", heroOneHandedWeaponSlots, "common", "+2 Range. Ignore Cover (1).", "Common", "men")
 ];
 
+const barbarianStormRiderCardImage = "assets/path-unlocks/barbarians/path-3/storm-rider-cards.png";
+
 const factionHeroEquipmentCards = [
   makeHeroEquipmentCard("faction_orc_brutal_choppa", "Brutal Choppa", "Weapon", heroWeaponSlots, "factionSpecific", "+2 Retaliate. Enemies suffer -1 RC.", "Common", "orcs"),
   makeHeroEquipmentCard("faction_orc_ironhide_armour", "Ironhide Armour", "Armour", "armour", "factionSpecific", "+2 Armour. Gain +1 Armour per Shadow Orc ally.", "Common", "orcs"),
@@ -9655,6 +9657,34 @@ const factionHeroEquipmentCards = [
   makeHeroEquipmentCard("faction_barbarian_rageclaw_axe", "Rageclaw Axe", "Weapon", heroWeaponSlots, "factionSpecific", "+3 Retaliate. Move through all enemy units.", "Rare", "barbarians"),
   makeHeroEquipmentCard("faction_barbarian_warfury_armour", "Warfury Armour", "Armour", "armour", "factionSpecific", "+2 Armour. Enemies adjacent suffer 1 damage per Round.", "Rare", "barbarians"),
   makeHeroEquipmentCard("faction_barbarian_totem_shield", "Totem Shield", "Shield", "offHand", "factionSpecific", "+1 Armour. Gain +1 Retaliate for each Barbarian ally adjacent.", "Common", "barbarians"),
+  {
+    ...makeHeroEquipmentCard("barbarian_unlock_stormbreaker", "Stormbreaker", "Two-Handed Weapon", "twoHanded", "factionSpecific", "+2 OD. When attacking: roll D6. On 5-6, deal 1 Lightning Damage to all adjacent enemies.", "Unique", "barbarians"),
+    frontImage: barbarianStormRiderCardImage
+  },
+  {
+    ...makeHeroEquipmentCard("barbarian_unlock_thunder_roc", "Thunder Roc", "Unique Mount", "mount", "factionSpecific", "+6 Movement. May move over units, walls, and structures. After moving 10+ spaces: gain +1 RC.", "Unique", "barbarians"),
+    frontImage: barbarianStormRiderCardImage
+  },
+  {
+    ...makeHeroEquipmentCard("barbarian_unlock_sky_chosen", "Sky Chosen", "Unique Title", heroAccessorySlots, "factionSpecific", "Whenever your Hero destroys an enemy, choose 1: Move 4, Heal 2, or gain +1 RC until end of Phase.", "Unique", "barbarians"),
+    frontImage: barbarianStormRiderCardImage
+  },
+  {
+    ...makeHeroEquipmentCard("barbarian_unlock_storm_spirit", "Storm Spirit", "Unique Companion", heroAccessorySlots, "factionSpecific", "At the start of each Round: choose one enemy within 8 spaces. That enemy suffers -1 RC until end of Phase.", "Unique", "barbarians"),
+    frontImage: barbarianStormRiderCardImage
+  },
+  {
+    ...makeHeroEquipmentCard("barbarian_unlock_eye_of_the_tempest", "Eye of the Tempest", "Unique Talisman", heroAccessorySlots, "factionSpecific", "Once per Phase: ignore all terrain penalties. After moving: gain +1 OD for your next attack.", "Unique", "barbarians"),
+    frontImage: barbarianStormRiderCardImage
+  },
+  {
+    ...makeHeroEquipmentCard("barbarian_unlock_rune_of_lightning", "Rune of Lightning", "Unique Rune", heroRuneSlots, "factionSpecific", "When rolling a Battle Table result: once per Phase, increase or decrease the result by 1.", "Unique", "barbarians"),
+    frontImage: barbarianStormRiderCardImage
+  },
+  {
+    ...makeHeroEquipmentCard("barbarian_unlock_banner_of_the_north_wind", "Banner of the North Wind", "Unique Banner", heroAccessorySlots, "factionSpecific", "Adjacent allies gain +2 Movement. When charging 8+ spaces: gain +1 OD.", "Unique", "barbarians"),
+    frontImage: barbarianStormRiderCardImage
+  },
   makeHeroEquipmentCard("faction_men_hunters_spear", "Hunter's Spear", "Weapon", heroWeaponSlots, "factionSpecific", "+1 RC. Restore 1 RC when you deal damage.", "Common", "men"),
   makeHeroEquipmentCard("faction_men_tribal_leathers", "Tribal Leathers", "Armour", "armour", "factionSpecific", "+1 Armour. Once per Mission: Restore 1 HP when you deal damage.", "Rare", "men"),
   makeHeroEquipmentCard("faction_men_wildwood_shield", "Wildwood Shield", "Shield", "offHand", "factionSpecific", "+1 Armour. Ignore difficult terrain once per Mission.", "Rare", "men")
@@ -10863,7 +10893,7 @@ const defaultHeroEquipmentCards = [
   }
 ];
 
-const heroEquipmentDeckVersion = 18;
+const heroEquipmentDeckVersion = 19;
 
 const heroEquipmentPiles = [
   { id: "basic", label: "Basic", backImage: "assets/hero-cards/basic-back.png" },
@@ -10913,6 +10943,11 @@ const heroRoleCards = [
   {
     ...makeHeroEquipmentCard("role_order_first_blade", "The First Blade", "Hero Class", "class", "factionSpecific", "Legendary Assassin. Your Hero gains Stealth 3-6, +1 RC, and +2 Movement. When attacking Heroes or Commanders: gain +1 OD. Once per Phase: teleport up to 6 spaces before attacking.", "Legendary", "order"),
     requiresInventory: true
+  },
+  {
+    ...makeHeroEquipmentCard("role_barbarian_storm_rider", "Storm Rider", "Hero Class", "class", "factionSpecific", "+4 Movement and +1 RC. Once per Phase: choose a point within 12 spaces and teleport your Hero there. Enemy units adjacent to the destination suffer 1 Lightning Damage. When attacking after teleporting: gain +1 OD.", "Legendary", "barbarians"),
+    requiresInventory: true,
+    frontImage: barbarianStormRiderCardImage
   }
 ];
 
