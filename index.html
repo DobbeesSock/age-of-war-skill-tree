@@ -12257,7 +12257,9 @@ function isSharedDataKey(name) {
     return name === "sharedPotions" ||
         name === "sharedRelics" ||
         name === "sharedObjectives" ||
-        name === "sharedHeroEquipment";
+        name === "sharedHeroEquipment" ||
+        name === "sharedAlliances" ||
+        name === "sharedTrades";
 }
 
 
@@ -13272,18 +13274,78 @@ function subscribeToLiveCampaign(code) {
   });
 }
 
-function queueLiveCampaignSave() {
+function cloneCampaignValue(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function getLiveSavePayload(remoteData = {}, options = {}) {
+  if (options.fullData) return cloneCampaignValue(data);
+
+  const nextData = { ...remoteData };
+  const profileName = options.profileName === undefined ? resourceProfile : options.profileName;
+
+  if (profileName && data[profileName] && !isSharedDataKey(profileName)) {
+    nextData[profileName] = cloneCampaignValue(data[profileName]);
+  }
+
+  if (options.includeShared) {
+    Object.keys(data).forEach(key => {
+      if (isSharedDataKey(key)) {
+        nextData[key] = cloneCampaignValue(data[key]);
+      }
+    });
+  }
+
+  return nextData;
+}
+
+function flushLiveCampaignSave(options = {}) {
+  if (isApplyingRemoteCampaign || !liveCampaignCode || !liveSyncDb) return Promise.resolve(false);
+
+  clearTimeout(liveSaveTimer);
+
+  const saveOptions = {
+    profileName: options.profileName === undefined ? resourceProfile : options.profileName,
+    includeShared: Boolean(options.includeShared),
+    fullData: Boolean(options.fullData)
+  };
+
+  if (!saveOptions.fullData && !saveOptions.includeShared && (!saveOptions.profileName || !data[saveOptions.profileName])) {
+    return Promise.resolve(false);
+  }
+
+  const code = liveCampaignCode;
+  const campaignRef = getCampaignDoc(code);
+
+  return liveSyncDb.runTransaction(transaction => {
+    return transaction.get(campaignRef).then(snapshot => {
+      const remote = snapshot.exists ? snapshot.data() : {};
+      const remoteData = remote?.data || {};
+      const nextData = getLiveSavePayload(remoteData, saveOptions);
+
+      transaction.set(campaignRef, {
+        data: nextData,
+        updatedAt: Date.now(),
+        updatedBy: liveClientId
+      }, { merge: true });
+    });
+  }).then(() => {
+    setSyncStatus(`Live campaign ${code} saved.`, "#84c46a");
+    return true;
+  }).catch(error => {
+    setSyncStatus(`Live save failed: ${error.message}`, "#ff8a8a");
+    return false;
+  });
+}
+
+function queueLiveCampaignSave(options = {}) {
   if (isApplyingRemoteCampaign || !liveCampaignCode || !liveSyncDb) return;
 
   clearTimeout(liveSaveTimer);
+  const saveOptions = { ...options };
+
   liveSaveTimer = setTimeout(() => {
-    getCampaignDoc(liveCampaignCode).set({
-      data,
-      updatedAt: Date.now(),
-      updatedBy: liveClientId
-    }, { merge: true }).catch(error => {
-      setSyncStatus(`Live save failed: ${error.message}`, "#ff8a8a");
-    });
+    flushLiveCampaignSave(saveOptions);
   }, 250);
 }
 
@@ -14856,22 +14918,26 @@ function persistCurrentProfileState(){
     setCurrentTreeSm(sm);
 
     localStorage.setItem("skillTreeData", JSON.stringify(data));
-    queueLiveCampaignSave();
+    queueLiveCampaignSave({ profileName: resourceProfile });
     return true;
 }
 
-function autosaveProfile(){
-    persistCurrentProfileState();
+function autosaveProfile(options = {}){
+    const saved = persistCurrentProfileState();
+
+    if (saved && options.flushLive) {
+        flushLiveCampaignSave({ profileName: resourceProfile });
+    }
 }
 
-window.addEventListener("pagehide", autosaveProfile);
-window.addEventListener("beforeunload", autosaveProfile);
+window.addEventListener("pagehide", () => autosaveProfile({ flushLive: true }));
+window.addEventListener("beforeunload", () => autosaveProfile({ flushLive: true }));
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
-        autosaveProfile();
+        autosaveProfile({ flushLive: true });
     }
 });
-setInterval(autosaveProfile, 15000);
+setInterval(() => autosaveProfile(), 15000);
 
 
 // PROFILE LIST
@@ -20399,7 +20465,7 @@ function renderAllianceTrading() {
 
 function persistCampaignData() {
   localStorage.setItem("skillTreeData", JSON.stringify(data));
-  queueLiveCampaignSave();
+  queueLiveCampaignSave({ profileName: resourceProfile, includeShared: true });
 }
 function ensureTradeState() {
   if (!data.sharedTrades) {
