@@ -829,6 +829,18 @@ h1 {
   color: #dcecff;
 }
 
+.keyword-chip.elves-hidden-path-pull {
+  border-color: rgba(126, 226, 178, 0.72);
+  box-shadow: 0 0 10px rgba(90, 220, 140, 0.34), inset 0 0 14px rgba(65, 160, 95, 0.14);
+}
+
+.keyword-chip.elves-hidden-path-pull.active {
+  background: linear-gradient(145deg, rgba(25, 88, 54, 0.58), rgba(60, 150, 92, 0.32));
+  border-color: #9ef2b5;
+  box-shadow: 0 0 18px rgba(110, 255, 165, 0.68), 0 0 8px rgba(210, 255, 170, 0.36), inset 0 0 18px rgba(126, 226, 178, 0.22);
+  color: #f2fff1;
+}
+
 .keyword-chip-impact {
   font-size: 11px;
   font-weight: bold;
@@ -1322,7 +1334,7 @@ body.men {
 
 
 .branch-title::before {
-    content: "⚔";
+    content: "âš”";
     margin-right: 6px;
 }
 
@@ -1658,7 +1670,7 @@ body.elves {
 }
 
 .potion-zone:first-child .potion-card::after {
-    content: "🂠";
+    content: "ðŸ‚ ";
     position: absolute;
     top: 10px;
     right: 12px;
@@ -2074,10 +2086,10 @@ body.elves {
         <option value="men2">Men - War Council</option>
         <option value="barbarians">Barbarians - Fury</option>
         <option value="barbarians2">Barbarians - Ragin Host</option>
-        <option value="orcs">Orcs – Bloodied Path</option>
-        <option value="orcsWar">Orcs – War Path</option>
-        <option value="order">Order – Core</option>
-        <option value="order2">Order – Assassins</option>
+        <option value="orcs">Orcs â€“ Bloodied Path</option>
+        <option value="orcsWar">Orcs â€“ War Path</option>
+        <option value="order">Order â€“ Core</option>
+        <option value="order2">Order â€“ Assassins</option>
         <option value="redacted1" disabled>??? (Locked)</option>
         <option value="redacted2" disabled>??? (Locked)</option>
         <option value="redacted3" disabled>??? (Locked)</option>
@@ -2128,7 +2140,7 @@ body.elves {
 
             <div class="node locked" data-id="m3" data-cost="2">
                 <h3>Mounted Assault</h3>
-                <p>+1 OD if moved ≤6</p>
+                <p>+1 OD if moved â‰¤6</p>
             </div>
 
             <div class="node locked" data-id="m4" data-cost="3" data-prereq="m3">
@@ -2169,7 +2181,7 @@ body.elves {
 
     </div>
 
-    <!-- ✅ CAPSTONE GOES HERE -->
+    <!-- âœ… CAPSTONE GOES HERE -->
     <div class="capstone locked" id="capstone-dwarves" data-id="cap_dwarves" data-cost="9">
         <h2>The Mountain Endures</h2>
         <p><b>Cost: 9 SM</b></p>
@@ -3554,7 +3566,74 @@ const defaultResources = [
   { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "&#128128;" },
   { name: "Unlock Tokens", value: 0, color: "#14B8A6", icon: "UT" }
 ];
+const defaultCraftingMaterialGroups = [
+  {
+    tier: "Common Materials",
+    color: "#b8c0aa",
+    items: [
+      { name: "Wood", value: 0, icon: "&#129717;" },
+      { name: "Stone", value: 0, icon: "&#129704;" },
+      { name: "Iron Ore", value: 0, icon: "&#9939;" },
+      { name: "Plant Fibres", value: 0, icon: "&#127807;" },
+      { name: "Beast Parts", value: 0, icon: "&#128062;" }
+    ]
+  },
+  {
+    tier: "Rare Materials",
+    color: "#6fb8ff",
+    items: [
+      { name: "Steel Ingot", value: 0, icon: "&#128297;" },
+      { name: "Moon Blossom", value: 0, icon: "&#127800;" },
+      { name: "Crystal Shard", value: 0, icon: "&#128142;" },
+      { name: "Ancient Bone", value: 0, icon: "&#129460;" },
+      { name: "Ember Core", value: 0, icon: "&#128293;" }
+    ]
+  },
+  {
+    tier: "Legendary Materials",
+    color: "#f5a623",
+    items: [
+      { name: "Root Fragment", value: 0, icon: "&#127795;" },
+      { name: "Dragon Scale", value: 0, icon: "&#128009;" },
+      { name: "Storm Crystal", value: 0, icon: "&#9889;" },
+      { name: "Ancient Relic Fragment", value: 0, icon: "&#128081;" },
+      { name: "Void Essence", value: 0, icon: "&#127761;" }
+    ]
+  },
+  {
+    tier: "Mythic Materials",
+    color: "#c084fc",
+    items: [
+      { name: "Star Metal", value: 0, icon: "&#11088;" },
+      { name: "Reality Shard", value: 0, icon: "&#127744;" },
+      { name: "Elder Eye", value: 0, icon: "&#128065;" },
+      { name: "Primordial Flame", value: 0, icon: "&#128293;" },
+      { name: "Astral Core", value: 0, icon: "&#127756;" }
+    ]
+  }
+];
 
+function normalizeCraftingMaterialGroups(materialGroups) {
+  const existingItems = {};
+  const existingGroups = Array.isArray(materialGroups) ? materialGroups : [];
+
+  existingGroups.forEach(group => {
+    const items = Array.isArray(group?.items) ? group.items : [];
+    items.forEach(item => {
+      if (item?.name) existingItems[item.name] = item;
+    });
+  });
+
+  return defaultCraftingMaterialGroups.map(group => ({
+    ...group,
+    items: group.items.map(defaultItem => {
+      const existingItem = existingItems[defaultItem.name];
+      return existingItem
+        ? { ...defaultItem, ...existingItem, icon: defaultItem.icon, value: Number(existingItem.value || 0) }
+        : { ...defaultItem };
+    })
+  }));
+}
 function normalizeResourceList(resourceList) {
   const existingResources = Array.isArray(resourceList) ? resourceList : [];
   const normalizedResources = defaultResources.map(defaultResource => {
@@ -3750,6 +3829,7 @@ const constructionProductionTables = {
   }
 };
 let resources = [];
+let craftingMaterials = normalizeCraftingMaterialGroups();
 let selectedCollectionFaction = "auto";
 
 function getFactionFamily(faction) {
@@ -8943,7 +9023,7 @@ function getUnlockEnvelopeList() {
   const campaignOverrides = factionCampaignPathOverrides[hubKey] || {};
   return [
     ...(factionUnlockEnvelopes[hubKey] || []),
-    ...campaignUnlockEnvelopes.filter(card => !["dwarves", "men", "order", "barbarians"].includes(hubKey) || !["campaign_mythic_cave_reward", "campaign_world_secret"].includes(card.id)).map(card => ({
+    ...campaignUnlockEnvelopes.filter(card => !["dwarves", "elves", "men", "order", "barbarians"].includes(hubKey) || !["campaign_mythic_cave_reward", "campaign_world_secret"].includes(card.id)).map(card => ({
       ...card,
       title: campaignOverrides[card.id]?.title || `${hub.label} ${card.title}`,
       type: campaignOverrides[card.id]?.type || card.type,
@@ -12093,6 +12173,8 @@ function renderResources() {
     <div style="max-width:980px; margin:0 auto; display:grid; gap:16px;">
       <h2 style="margin:0 10px; color:gold;">Resources</h2>
       <div id="resourceCounterPanel" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;"></div>
+      <h2 style="margin:10px 10px 0; color:gold;">Crafting Materials</h2>
+      <div id="craftingMaterialPanel" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;"></div>
     </div>
   `;
 
@@ -12137,8 +12219,59 @@ function renderResources() {
 
     counterPanel.appendChild(row);
   });
+
+  renderCraftingMaterials();
 }
 
+function renderCraftingMaterials() {
+  const materialPanel = document.getElementById("craftingMaterialPanel");
+  if (!materialPanel) return;
+
+  craftingMaterials = normalizeCraftingMaterialGroups(craftingMaterials);
+  materialPanel.innerHTML = "";
+
+  craftingMaterials.forEach((group, groupIndex) => {
+    const groupCard = document.createElement("div");
+    groupCard.style.padding = "16px";
+    groupCard.style.border = "1px solid rgba(255,255,255,0.16)";
+    groupCard.style.borderLeft = `8px solid ${group.color}`;
+    groupCard.style.borderRadius = "10px";
+    groupCard.style.background = "rgba(25, 25, 25, 0.92)";
+    groupCard.style.boxShadow = "0 8px 18px rgba(0,0,0,0.42)";
+
+    groupCard.innerHTML = `
+      <h3 style="margin:0 0 12px; color:${group.color};">${group.tier}</h3>
+      <div style="display:grid; gap:10px;">
+        ${group.items.map((material, materialIndex) => `
+          <div style="display:grid; grid-template-columns:minmax(0, 1fr) auto; gap:10px; align-items:center; padding:10px; background:rgba(255,255,255,0.045); border:1px solid rgba(255,255,255,0.10); border-radius:8px;">
+            <div style="min-width:0;">
+              <strong style="color:#fff; font-size:16px;">${material.icon} ${material.name}</strong>
+              <div style="font-size:28px; font-weight:bold; color:#fff; margin-top:4px;">${material.value}</div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(2, minmax(44px, 1fr)); gap:6px; width:104px;">
+              <button style="min-height:36px;" onclick="changeCraftingMaterial(${groupIndex}, ${materialIndex}, 1)">+1</button>
+              <button style="min-height:36px;" onclick="changeCraftingMaterial(${groupIndex}, ${materialIndex}, 5)">+5</button>
+              <button style="min-height:36px;" onclick="changeCraftingMaterial(${groupIndex}, ${materialIndex}, -1)">-1</button>
+              <button style="min-height:36px;" onclick="changeCraftingMaterial(${groupIndex}, ${materialIndex}, -5)">-5</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+    materialPanel.appendChild(groupCard);
+  });
+}
+
+function changeCraftingMaterial(groupIndex, materialIndex, amount) {
+  craftingMaterials = normalizeCraftingMaterialGroups(craftingMaterials);
+  const material = craftingMaterials[groupIndex]?.items?.[materialIndex];
+  if (!material) return;
+
+  material.value = Math.max(0, Number(material.value || 0) + amount);
+  saveResourceProfile();
+  renderResources();
+}
 function renderFactionAbilities() {
   const app = document.getElementById("factionAbilitiesApp");
   if (!app) return;
@@ -12191,6 +12324,7 @@ function change(index, amount) {
 
 function resetResources() {
     resources = normalizeResourceList(JSON.parse(JSON.stringify(defaultResources)));
+    craftingMaterials = normalizeCraftingMaterialGroups();
     saveResourceProfile();
     renderResources();
     renderFactionAbilities();
@@ -12199,6 +12333,7 @@ function resetResources() {
 function saveResourceProfile() {
     if (!resourceProfile || !data[resourceProfile]) return;
     data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
+    data[resourceProfile].craftingMaterials = JSON.parse(JSON.stringify(craftingMaterials));
     saveProfiles();
     updateProfileList();
 }
@@ -12212,6 +12347,8 @@ function loadResourceProfile(profileName = resourceProfile) {
 
     resources = normalizeResourceList(JSON.parse(JSON.stringify(data[profileName].resources)));
     data[profileName].resources = JSON.parse(JSON.stringify(resources));
+    craftingMaterials = normalizeCraftingMaterialGroups(data[profileName].craftingMaterials);
+    data[profileName].craftingMaterials = JSON.parse(JSON.stringify(craftingMaterials));
 
     const select = document.getElementById("resourceProfileSelect");
     if (select) {
@@ -13728,6 +13865,7 @@ function createProfile() {
         hubFaction: null,
         shared: { fury: 0 },
         resources: JSON.parse(JSON.stringify(defaultResources)),
+        craftingMaterials: normalizeCraftingMaterialGroups(),
         potions: { inventory: [] },
         relics: { inventory: [] },
         objectives: { inventory: [] },
@@ -14792,7 +14930,7 @@ function updateAvailability(){
         let id = n.dataset.id;
         let prereq = n.dataset.prereq;
 
-        // ✅ Doctrine always available
+        // âœ… Doctrine always available
         const rootMap = {
             dwarves: "dwarves_root",
             dwarves2: "dwarves2_root",
@@ -14811,14 +14949,14 @@ function updateAvailability(){
 
         const rootId = rootMap[currentFaction];
 
-        // ✅ Doctrine always available
+        // âœ… Doctrine always available
         if(id === rootId){
             n.classList.add("available");
             n.classList.remove("locked");
             return;
         }
 
-        // 🚨 Lock behind doctrine
+        // ðŸš¨ Lock behind doctrine
         if(
             (currentFaction === "dwarves" && !skills["dwarves_root"]) ||
             (currentFaction === "dwarves2" && !skills["dwarves2_root"]) ||
@@ -14836,7 +14974,7 @@ function updateAvailability(){
             return;
         }
 
-        // ✅ normal prereq
+        // âœ… normal prereq
         if(!prereq || skills[prereq]){
             n.classList.add("available");
             n.classList.remove("locked");
@@ -15043,7 +15181,7 @@ function resetProfile(){
 }
 
 
-// 👇 ADD IT HERE
+// ðŸ‘‡ ADD IT HERE
 function deleteProfile() {
     let select = document.getElementById("skillProfileSelect");
     let name = select.value;
@@ -18015,7 +18153,7 @@ const volumeOneCaveKeywordAdditions = {
     "Drowned Witness", "Echo-Touched", "End of Warmth", "Escaped the Living Cave", "Faded",
     "False Record", "Forgotten", "Freed from the False Light", "Gravity-Touched", "Hesitation",
     "I Did It Differently", "Ignore", "Interference", "It Almost Knew", "It Already Happened", "It Answered",
-    "It Lied Twice", "It Saw Me", "It�s Inside Now", "King of the Hollow Realm", "Kingless",
+    "It Lied Twice", "It Saw Me", "It’s Inside Now", "King of the Hollow Realm", "Kingless",
     "Kingless Wanderer", "Loyal to the Many-Handed King", "Lunar Witness", "Machinebound", "Marked by the Bell",
     "Marked by the Maw", "Mirrored", "Mirrored Soul", "Observed", "Opened the Final Door", "Processional",
     "Redrawn", "Retreat", "Seen by the Many", "Silenced the Bell", "Silenced the Final Song",
@@ -19936,7 +20074,7 @@ function getHiddenPathKeywordClass(keyword) {
   const definitions = Object.values(hiddenPathDefinitions).filter(definition => definition.hubKey === hubKey);
   const weight = definitions.reduce((value, definition) => value || definition.weights[keyword] || 0, 0);
 
-  if (weight > 0) return hubKey === "men" ? "men-hidden-path-pull" : "hidden-path-pull";
+  if (weight > 0) return hubKey === "men" ? "men-hidden-path-pull" : hubKey === "elves" ? "elves-hidden-path-pull" : "hidden-path-pull";
   if (weight < 0) return "hidden-path-resist";
   return "";
 }
