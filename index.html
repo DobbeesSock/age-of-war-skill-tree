@@ -1322,7 +1322,7 @@ body.men {
 
 
 .branch-title::before {
-    content: "âš”";
+    content: "⚔";
     margin-right: 6px;
 }
 
@@ -1658,7 +1658,7 @@ body.elves {
 }
 
 .potion-zone:first-child .potion-card::after {
-    content: "ðŸ‚ ";
+    content: "🂠";
     position: absolute;
     top: 10px;
     right: 12px;
@@ -2074,10 +2074,10 @@ body.elves {
         <option value="men2">Men - War Council</option>
         <option value="barbarians">Barbarians - Fury</option>
         <option value="barbarians2">Barbarians - Ragin Host</option>
-        <option value="orcs">Orcs â€“ Bloodied Path</option>
-        <option value="orcsWar">Orcs â€“ War Path</option>
-        <option value="order">Order â€“ Core</option>
-        <option value="order2">Order â€“ Assassins</option>
+        <option value="orcs">Orcs – Bloodied Path</option>
+        <option value="orcsWar">Orcs – War Path</option>
+        <option value="order">Order – Core</option>
+        <option value="order2">Order – Assassins</option>
         <option value="redacted1" disabled>??? (Locked)</option>
         <option value="redacted2" disabled>??? (Locked)</option>
         <option value="redacted3" disabled>??? (Locked)</option>
@@ -2128,7 +2128,7 @@ body.elves {
 
             <div class="node locked" data-id="m3" data-cost="2">
                 <h3>Mounted Assault</h3>
-                <p>+1 OD if moved â‰¤6</p>
+                <p>+1 OD if moved ≤6</p>
             </div>
 
             <div class="node locked" data-id="m4" data-cost="3" data-prereq="m3">
@@ -2169,7 +2169,7 @@ body.elves {
 
     </div>
 
-    <!-- âœ… CAPSTONE GOES HERE -->
+    <!-- ✅ CAPSTONE GOES HERE -->
     <div class="capstone locked" id="capstone-dwarves" data-id="cap_dwarves" data-cost="9">
         <h2>The Mountain Endures</h2>
         <p><b>Cost: 9 SM</b></p>
@@ -8651,7 +8651,9 @@ const factionUnlockEnvelopes = {
   ],
   elves: [
     { id: "elves_secret_t", title: "Secret Card T - Elves", type: "Unique Unit Unlock", lore: "The rivers beneath the veiled woods begin to answer by name. The Elves reach beyond bow, branch, and crown, calling a guardian from the mystic waterways to join the greater army of the forest.", unlocks: ["Unlock unique unit: The River Lord.", "The GM gives this faction The River Lord stat card when this envelope is revealed.", "The River Lord becomes available to this faction for future army building once unlocked."], ...secretCardTImages },
-    { id: "elves_faction_secret", title: "Veiled Canopy Envelope", type: "Faction Secret", lore: "The forest has layers the younger kingdoms cannot see. One of them opens only to those who have paid in silence and patience.", unlocks: ["Reveal when an Elves secret faction card or campaign reward tells you to open it.", "Record the exact unlocked unit, structure, or rule in the notes."] }
+    { id: "elves_belief_path", pathId: "elves_belief", title: "Path of Belief", type: "Hidden Path", lore: "The roots remember every oath, every spared grove, every creature returned to the old cycle. The Ancient Grove opens only when the forest believes the Elves still hear it.", unlocks: ["Reveal when the Elves unlock or claim Path I - Belief.", "New Skill Tree: Ancient Grove.", "Use the Ancient Grove skill tree card as the faction reference."], revealedImage: "assets/path-unlocks/elves/path-1/ancient-grove.png" },
+    { id: "elves_ascension_path", pathId: "elves_ascension", title: "Path of Ascension", type: "Hidden Path", lore: "The Worldroot drinks victory and grief alike. Every Elven life lost, every enemy felled by Elven hands, sinks deeper into the green dark below the world.", unlocks: ["Reveal when the Elves unlock or claim Path II - Ascension.", "Path of Ascension becomes available.", "Record the exact ascension reward, stat card, or campaign rule in the notes."] },
+    { id: "elves_awakening_path", pathId: "elves_awakening", title: "Path of Awakening", type: "Hidden Path", lore: "The Ancient Forest Spirit does not arrive as a creature. It spreads through bark, breath, blade, and blood until the faction itself becomes the forest's chosen body.", unlocks: ["Reveal when the Elves unlock or claim Path III - Awakening.", "New Skill Tree: Heartwood Path.", "Use the Heartwood Path skill tree card as the faction reference."], revealedImage: "assets/path-unlocks/elves/path-3/heartwood-path.png" }
   ],
   orcs: [
     { id: "orcs_secret_t", title: "Secret Card T - Shadow Orcs", type: "Unique Unit Unlock", lore: "The smoke behind the war camp thickens until it starts to breathe. The Shadow Orcs drag a brutal champion from the dark places, expanding their horde with muscle made for breaking lines.", unlocks: ["Unlock unique unit: Troll Brawler.", "The GM gives this faction the Troll Brawler stat card when this envelope is revealed.", "Troll Brawler becomes available to this faction for future army building once unlocked."], ...secretCardTImages },
@@ -11488,10 +11490,10 @@ function renderHeroStatsPanel(hero) {
   const statUpgrades = hero.statUpgrades || {};
   const battleTableUpgrades = statUpgrades.battleTable || {};
   const statRows = [
-    ["♥", "Health", "hp", heroBaseStats.hp],
-    ["🛡", "Output Damage", "od", heroBaseStats.od],
-    ["👢", "Movement", "move", heroBaseStats.move],
-    ["⚂", "Roll Check", "", heroBaseStats.rc]
+    ["?", "Health", "hp", heroBaseStats.hp],
+    ["??", "Output Damage", "od", heroBaseStats.od],
+    ["??", "Movement", "move", heroBaseStats.move],
+    ["?", "Roll Check", "", heroBaseStats.rc]
   ];
 
   return `
@@ -12987,6 +12989,77 @@ const hiddenPathDefinitions = {
     ],
     weights: {}
   },
+  elves_belief: {
+    hubKey: "elves",
+    treeId: null,
+    title: "Path of Belief",
+    threshold: 10,
+    reward: "New Skill Tree: Ancient Grove",
+    source: "harmony",
+    breadcrumbs: [
+      "The roots remember.",
+      "The forest listens.",
+      "The old paths awaken.",
+      "The forest chooses its guardians."
+    ],
+    milestones: [
+      [10, "The roots remember.\n\nAncient Grove Tree available."],
+      [20, "The forest listens.\n\nLore II revealed."],
+      [30, "The old paths awaken.\n\nLore III revealed."],
+      [40, "The forest chooses its guardians.\n\nPath of Ascension available."]
+    ],
+    weights: {}
+  },
+  elves_ascension: {
+    hubKey: "elves",
+    treeId: null,
+    title: "Path of Ascension",
+    threshold: 100,
+    reward: "Awakening Available",
+    source: "worldroot",
+    breadcrumbs: [
+      "The First Root coils beneath the warpath.",
+      "Old songs move beneath the Greenwood.",
+      "The Sleeping King turns in the deep earth.",
+      "The Heart of the Worldroot opens."
+    ],
+    milestones: [
+      [40, "Lore I - The First Root"],
+      [55, "Lore II - Beneath the Greenwood"],
+      [70, "Lore III - Songs of the Ancients"],
+      [85, "Lore IV - The Sleeping King"],
+      [100, "Lore V - Heart of the Worldroot\n\nAwakening Available."]
+    ],
+    weights: {}
+  },
+  elves_awakening: {
+    hubKey: "elves",
+    treeId: null,
+    title: "Path of Awakening",
+    threshold: 12,
+    reward: "New Skill Tree: Heartwood Tree",
+    breadcrumbs: [
+      "A green word lingers after it is spoken.",
+      "The Worldroot stirs.",
+      "The forest spirit begins to answer through every Elf.",
+      "The Heartwood Tree is ready."
+    ],
+    milestones: [
+      [12, "The Worldroot stirs.\n\nUnlock: Heartwood Tree."]
+    ],
+    weights: {
+      Harmony: 1,
+      Renewal: 1,
+      Protector: 1,
+      Guardian: 1,
+      Hope: 1,
+      Oathbound: 1,
+      Ancient: 1,
+      Lifebound: 1,
+      Grovekeeper: 1,
+      Revered: 1
+    }
+  },
   barbarian_storm_belief: {
     hubKey: "barbarians",
     treeId: null,
@@ -13618,6 +13691,7 @@ function renderFactionInfo() {
     ${renderDwarfPathCounters()}
     ${renderOrderPathCounters()}
     ${renderMenPathCounters()}
+    ${renderElvesPathCounters()}
     ${renderBarbarianPathCounters()}
     <div class="faction-info-layout" style="margin-top:16px;">
       ${info.sections.map(section => `${renderSection(section)}${section.title && /gates?\s*&\s*walls?/i.test(section.title) ? renderLadderInfoCard() : ""}`).join("")}
@@ -14718,7 +14792,7 @@ function updateAvailability(){
         let id = n.dataset.id;
         let prereq = n.dataset.prereq;
 
-        // âœ… Doctrine always available
+        // ✅ Doctrine always available
         const rootMap = {
             dwarves: "dwarves_root",
             dwarves2: "dwarves2_root",
@@ -14737,14 +14811,14 @@ function updateAvailability(){
 
         const rootId = rootMap[currentFaction];
 
-        // âœ… Doctrine always available
+        // ✅ Doctrine always available
         if(id === rootId){
             n.classList.add("available");
             n.classList.remove("locked");
             return;
         }
 
-        // ðŸš¨ Lock behind doctrine
+        // 🚨 Lock behind doctrine
         if(
             (currentFaction === "dwarves" && !skills["dwarves_root"]) ||
             (currentFaction === "dwarves2" && !skills["dwarves2_root"]) ||
@@ -14762,7 +14836,7 @@ function updateAvailability(){
             return;
         }
 
-        // âœ… normal prereq
+        // ✅ normal prereq
         if(!prereq || skills[prereq]){
             n.classList.add("available");
             n.classList.remove("locked");
@@ -14969,7 +15043,7 @@ function resetProfile(){
 }
 
 
-// ðŸ‘‡ ADD IT HERE
+// 👇 ADD IT HERE
 function deleteProfile() {
     let select = document.getElementById("skillProfileSelect");
     let name = select.value;
@@ -17726,7 +17800,7 @@ const keywordSourceSections = [
       "Cautious", "Clear", "Closed", "Composed", "Contain", "Contained", "Corrected", "Determined",
       "Devotion", "Devout", "Discipline", "Endure", "Endured", "Enduring", "Equilibrium", "Escaped",
       "Fixed", "Focused", "Fortified", "Freed", "Grounded", "Guardian", "Harmony", "Healer", "Hidden",
-      "Humbled", "Humility", "Liberator", "Loyal", "Mastery", "Measured", "Measured Gratitude", "Mediator",
+      "Humbled", "Humility", "Liberator", "Loyal", "Mastery", "Measured", "Renewal", "Revered", "Measured Gratitude", "Mediator",
       "Keeper", "Merciful", "Mercy", "Methodical", "Patient", "Patience", "Peacemaker", "Practical", "Pragmatic",
       "Precision", "Prepared", "Prudent", "Prudence", "Quiet", "Reconciled", "Refusal", "Released",
       "Protector", "Redeemer", "Renewed", "Resilient", "Resistant", "Respect", "Respectful", "Responsible", "Restraint", "Rested",
@@ -17846,8 +17920,8 @@ campaignKeywordSet.forEach(keyword => {
 const mythologicalCaveKeywordAdditions = {
   virtue: [
     "Accord", "Bargain", "Coordinated", "Faithful", "Glory", "Growth", "Hospitality", "Informed",
-    "Lawbound", "Loyalty", "Measured", "Sea-Bound", "Signal", "Starguided", "Steward", "Strategy",
-    "Truth", "Unity", "Wonder"
+    "Lawbound", "Lifebound", "Loyalty", "Measured", "Renewal", "Revered", "Sea-Bound", "Signal", "Starguided", "Steward", "Strategy",
+    "Truth", "Unity", "Wonder", "Grovekeeper"
   ],
   corruption: [
     "Author", "Bloodmarked", "Claim", "Cost", "Divided", "Dread", "Exposure", "Haunted", "Hunger",
@@ -17941,7 +18015,7 @@ const volumeOneCaveKeywordAdditions = {
     "Drowned Witness", "Echo-Touched", "End of Warmth", "Escaped the Living Cave", "Faded",
     "False Record", "Forgotten", "Freed from the False Light", "Gravity-Touched", "Hesitation",
     "I Did It Differently", "Ignore", "Interference", "It Almost Knew", "It Already Happened", "It Answered",
-    "It Lied Twice", "It Saw Me", "It’s Inside Now", "King of the Hollow Realm", "Kingless",
+    "It Lied Twice", "It Saw Me", "It�s Inside Now", "King of the Hollow Realm", "Kingless",
     "Kingless Wanderer", "Loyal to the Many-Handed King", "Lunar Witness", "Machinebound", "Marked by the Bell",
     "Marked by the Maw", "Mirrored", "Mirrored Soul", "Observed", "Opened the Final Door", "Processional",
     "Redrawn", "Retreat", "Seen by the Many", "Silenced the Bell", "Silenced the Final Song",
@@ -19569,6 +19643,8 @@ const hiddenCounterPathIds = {
   orderAssassins: "order_first_blade",
   menFaithStructures: "men_belief",
   menAngelicMarks: "men_awakening",
+  elfHarmony: "elves_belief",
+  elfWorldroot: "elves_ascension",
   barbarianStormPoints: "barbarian_storm_belief",
   barbarianLegendTrack: "barbarian_ascension"
 };
@@ -19745,6 +19821,58 @@ function renderMenPathCounters() {
   `;
 }
 
+function renderElvesPathCounters() {
+  if (!resourceProfile || !data[resourceProfile]) return "";
+  const hubKey = currentHubFaction || data[resourceProfile].hubFaction || getHubKeyFromFaction(currentFaction);
+  if (hubKey !== "elves") return "";
+
+  ensureHiddenPathState(resourceProfile);
+
+  return `
+    <div class="faction-info-layout" style="margin-top:16px;">
+      <div class="faction-info-card" style="border-left-color:#78c46b; background:rgba(20,38,24,0.94);">
+        <h3>Harmony</h3>
+        <div style="color:#d8f5d4; line-height:1.45; min-height:132px;">
+          <strong>Gain Harmony when:</strong>
+          <ul style="margin:8px 0 0 20px;">
+            <li>Discover a Point of Interest.</li>
+            <li>Complete a Cave.</li>
+            <li>Control a Point of Interest at end of Round.</li>
+            <li>Kill a Creature or World Boss.</li>
+            <li>Lose a Structure.</li>
+          </ul>
+        </div>
+        <div style="font-size:36px; color:#ffe08a; font-weight:bold; margin:8px 0;">${getHiddenPathCounterValue(resourceProfile, "elfHarmony")}</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" onclick="changeHiddenPathCounter('elfHarmony', 1)">PoI +1</button>
+          <button type="button" onclick="changeHiddenPathCounter('elfHarmony', 1)">Cave +1</button>
+          <button type="button" onclick="changeHiddenPathCounter('elfHarmony', 1)">Control PoI +1</button>
+          <button type="button" onclick="changeHiddenPathCounter('elfHarmony', 1)">Creature/Boss +1</button>
+          <button type="button" onclick="changeHiddenPathCounter('elfHarmony', -1)">Structure Lost -1</button>
+          <button type="button" onclick="changeHiddenPathCounter('elfHarmony', -5)">-5</button>
+        </div>
+      </div>
+      <div class="faction-info-card" style="border-left-color:#68b7d8; background:rgba(18,32,36,0.94);">
+        <h3>Worldroot</h3>
+        <div style="color:#d5edf5; line-height:1.45; min-height:132px;">
+          <strong>Gain 1 when:</strong>
+          <ul style="margin:8px 0 0 20px;">
+            <li>An Elf unit kills an enemy.</li>
+            <li>An Elven unit is lost.</li>
+          </ul>
+        </div>
+        <div style="font-size:36px; color:#ffe08a; font-weight:bold; margin:8px 0;">${getHiddenPathCounterValue(resourceProfile, "elfWorldroot")}</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" onclick="changeHiddenPathCounter('elfWorldroot', 1)">+1</button>
+          <button type="button" onclick="changeHiddenPathCounter('elfWorldroot', 5)">+5</button>
+          <button type="button" onclick="changeHiddenPathCounter('elfWorldroot', -1)">-1</button>
+          <button type="button" onclick="changeHiddenPathCounter('elfWorldroot', -5)">-5</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderBarbarianPathCounters() {
   if (!resourceProfile || !data[resourceProfile]) return "";
   const hubKey = currentHubFaction || data[resourceProfile].hubFaction || getHubKeyFromFaction(currentFaction);
@@ -19896,7 +20024,7 @@ function getMenAscensionKeywordWeight(keyword) {
 
   const sacredVirtues = new Set([
     "Faithful", "Unity", "United", "United Front", "Merciful", "Mercy", "Peacemaker",
-    "Protector", "Guardian", "Redeemer", "Harmony", "Hope", "Lawbound", "Loyal",
+    "Protector", "Guardian", "Redeemer", "Harmony", "Hope", "Lawbound", "Lifebound", "Loyal",
     "Trust", "Trusted", "Worthy", "Devotion", "Devout", "Reverent", "Respect",
     "Respectful", "Responsible", "Steward", "Shieldbearer", "Warden"
   ]);
