@@ -1334,7 +1334,7 @@ body.men {
 
 
 .branch-title::before {
-    content: "Ã¢Å¡â€";
+    content: "ÃƒÂ¢Ã…Â¡Ã¢â‚¬Â";
     margin-right: 6px;
 }
 
@@ -1670,7 +1670,7 @@ body.elves {
 }
 
 .potion-zone:first-child .potion-card::after {
-    content: "Ã°Å¸â€šÂ ";
+    content: "ÃƒÂ°Ã…Â¸Ã¢â‚¬Å¡Ã‚Â ";
     position: absolute;
     top: 10px;
     right: 12px;
@@ -2022,7 +2022,8 @@ body.elves {
   <button onclick="showView('potions')">Potion Deck</button>
   <button onclick="showView('relics')">Relic Deck</button>
   <button onclick="showView('heroEquipment')">Hero Equipment</button>
-  <button onclick="showView('objectives')">Objective Deck</button>
+  
+  <button onclick="showView('materialCards')">Material Cards</button><button onclick="showView('objectives')">Objective Deck</button>
 
 
   
@@ -2086,10 +2087,10 @@ body.elves {
         <option value="men2">Men - War Council</option>
         <option value="barbarians">Barbarians - Fury</option>
         <option value="barbarians2">Barbarians - Ragin Host</option>
-        <option value="orcs">Orcs Ã¢â‚¬â€œ Bloodied Path</option>
-        <option value="orcsWar">Orcs Ã¢â‚¬â€œ War Path</option>
-        <option value="order">Order Ã¢â‚¬â€œ Core</option>
-        <option value="order2">Order Ã¢â‚¬â€œ Assassins</option>
+        <option value="orcs">Orcs ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Bloodied Path</option>
+        <option value="orcsWar">Orcs ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ War Path</option>
+        <option value="order">Order ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Core</option>
+        <option value="order2">Order ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Assassins</option>
         <option value="redacted1" disabled>??? (Locked)</option>
         <option value="redacted2" disabled>??? (Locked)</option>
         <option value="redacted3" disabled>??? (Locked)</option>
@@ -2140,7 +2141,7 @@ body.elves {
 
             <div class="node locked" data-id="m3" data-cost="2">
                 <h3>Mounted Assault</h3>
-                <p>+1 OD if moved Ã¢â€°Â¤6</p>
+                <p>+1 OD if moved ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤6</p>
             </div>
 
             <div class="node locked" data-id="m4" data-cost="3" data-prereq="m3">
@@ -2181,7 +2182,7 @@ body.elves {
 
     </div>
 
-    <!-- Ã¢Å“â€¦ CAPSTONE GOES HERE -->
+    <!-- ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CAPSTONE GOES HERE -->
     <div class="capstone locked" id="capstone-dwarves" data-id="cap_dwarves" data-cost="9">
         <h2>The Mountain Endures</h2>
         <p><b>Cost: 9 SM</b></p>
@@ -3424,6 +3425,16 @@ body.elves {
   </div>
 
   <div id="heroEquipmentApp"></div>
+</div>
+
+<div id="materialCardsView" style="display:none;">
+  <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <label style="color:white;">Give to: <select id="gmMaterialCardTargetSelect"></select></label>
+    <input id="materialCardSearch" type="search" placeholder="Search materials..." oninput="renderMaterialCards()" style="min-width:260px;">
+    <button onclick="shuffleAllMaterialDiscardsIntoDecks()">Shuffle All Discards Into Decks</button>
+    <button onclick="resetMaterialCardDecks()">Reset Material Cards</button>
+  </div>
+  <div id="materialCardsApp"></div>
 </div>
 
 <div id="objectivesView" style="display:none;">
@@ -9597,11 +9608,13 @@ function renderInventory() {
   ensureRelicState(resourceProfile);
   ensureObjectiveState(resourceProfile);
   ensureHeroEquipmentState(resourceProfile);
+  ensureMaterialCardState(resourceProfile);
 
   const potions = data[resourceProfile].potions.inventory;
   const relics = data[resourceProfile].relics.inventory;
   const objectives = data[resourceProfile].objectives.inventory;
   const heroEquipment = data[resourceProfile].heroEquipment.inventory;
+  const materialCards = data[resourceProfile].materialCards.inventory;
 
   app.innerHTML = `
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; align-items:start;">
@@ -9624,10 +9637,316 @@ function renderInventory() {
         <h2>Hero Equipment (${heroEquipment.length})</h2>
         ${heroEquipment.map((card, index) => renderHeroEquipmentCard(card, "inventory", index)).join("") || "<p>No hero equipment in inventory.</p>"}
       </div>
+
+      <div class="relic-zone">
+        <h2>Material Cards (${materialCards.length})</h2>
+        ${materialCards.map((card, index) => renderMaterialCard(card, "inventory", index)).join("") || "<p>No material cards in inventory.</p>"}
+      </div>
     </div>
   `;
 }
 
+const materialCardDeckVersion = 1;
+const materialCardCopiesPerMaterial = 5;
+const materialCardTiers = [
+  { id: "common", label: "Common", accent: "#d7c8a2" },
+  { id: "rare", label: "Rare", accent: "#55b8ff" },
+  { id: "legendary", label: "Legendary", accent: "#ffb84a" },
+  { id: "mythic", label: "Mythic", accent: "#c575ff" }
+];
+
+function materialCardSlug(value) {
+  return String(value || "material")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "material";
+}
+
+function getMaterialTierById(tierId) {
+  return materialCardTiers.find(tier => tier.id === tierId) || materialCardTiers[0];
+}
+
+function getMaterialTierFromGroup(groupName) {
+  const label = String(groupName || "").toLowerCase();
+  if (label.includes("mythic")) return "mythic";
+  if (label.includes("legendary")) return "legendary";
+  if (label.includes("rare")) return "rare";
+  return "common";
+}
+
+function buildDefaultMaterialCards() {
+  return normalizeCraftingMaterialGroups().flatMap(group => {
+    const tier = getMaterialTierFromGroup(group.name);
+    return (group.items || []).flatMap(item => Array.from({ length: materialCardCopiesPerMaterial }, (_, copyIndex) => ({
+      id: `material-${tier}-${materialCardSlug(item.name)}-${copyIndex + 1}`,
+      baseId: `material-${tier}-${materialCardSlug(item.name)}`,
+      name: item.name,
+      icon: item.icon,
+      tier,
+      rarity: getMaterialTierById(tier).label,
+      type: "Crafting Material",
+      text: `${item.icon} ${item.name} crafting material card.`
+    })));
+  });
+}
+
+function makeMaterialCardDecks() {
+  const decks = {};
+  materialCardTiers.forEach(tier => { decks[tier.id] = []; });
+  buildDefaultMaterialCards().forEach(card => {
+    decks[card.tier].push({ ...card });
+  });
+  materialCardTiers.forEach(tier => shuffleArray(decks[tier.id]));
+  return decks;
+}
+
+function makeMaterialCardDiscards() {
+  const discards = {};
+  materialCardTiers.forEach(tier => { discards[tier.id] = []; });
+  return discards;
+}
+
+function getMaterialDeckList(sharedState, tierId) {
+  if (!sharedState.decks) sharedState.decks = makeMaterialCardDecks();
+  if (!Array.isArray(sharedState.decks[tierId])) sharedState.decks[tierId] = [];
+  return sharedState.decks[tierId];
+}
+
+function getMaterialDiscardList(sharedState, tierId) {
+  if (!sharedState.discards || Array.isArray(sharedState.discards)) sharedState.discards = makeMaterialCardDiscards();
+  if (!Array.isArray(sharedState.discards[tierId])) sharedState.discards[tierId] = [];
+  return sharedState.discards[tierId];
+}
+
+function getExistingMaterialCardIds() {
+  const ids = new Set();
+  Object.values(data.sharedMaterialCards?.decks || {}).forEach(deck => (deck || []).forEach(card => ids.add(card.id)));
+  Object.values(data.sharedMaterialCards?.discards || {}).forEach(deck => (deck || []).forEach(card => ids.add(card.id)));
+  Object.keys(data).forEach(profileName => {
+    if (isSharedDataKey(profileName)) return;
+    (data[profileName]?.materialCards?.inventory || []).forEach(card => ids.add(card.id));
+  });
+  return ids;
+}
+
+function updateMaterialCardDeckVersion() {
+  if (!data.sharedMaterialCards) return;
+  if (data.sharedMaterialCards.version === materialCardDeckVersion) return;
+  const existingIds = getExistingMaterialCardIds();
+  buildDefaultMaterialCards().forEach(card => {
+    if (existingIds.has(card.id)) return;
+    getMaterialDeckList(data.sharedMaterialCards, card.tier).push({ ...card });
+    existingIds.add(card.id);
+  });
+  data.sharedMaterialCards.version = materialCardDeckVersion;
+}
+
+function ensureMaterialCardState(profileName) {
+  if (!data.sharedMaterialCards) {
+    data.sharedMaterialCards = {
+      version: materialCardDeckVersion,
+      decks: makeMaterialCardDecks(),
+      discards: makeMaterialCardDiscards()
+    };
+  }
+
+  if (!data.sharedMaterialCards.decks) data.sharedMaterialCards.decks = makeMaterialCardDecks();
+  if (!data.sharedMaterialCards.discards || Array.isArray(data.sharedMaterialCards.discards)) {
+    data.sharedMaterialCards.discards = makeMaterialCardDiscards();
+  }
+
+  materialCardTiers.forEach(tier => {
+    getMaterialDeckList(data.sharedMaterialCards, tier.id);
+    getMaterialDiscardList(data.sharedMaterialCards, tier.id);
+  });
+
+  updateMaterialCardDeckVersion();
+
+  if (profileName && data[profileName]) {
+    if (!data[profileName].materialCards) {
+      data[profileName].materialCards = { inventory: [] };
+    } else {
+      data[profileName].materialCards = {
+        inventory: data[profileName].materialCards.inventory || []
+      };
+    }
+  }
+}
+
+function getMaterialCardDeckEntries(sharedState = data.sharedMaterialCards) {
+  if (!sharedState) return [];
+  return materialCardTiers.flatMap(tier =>
+    getMaterialDeckList(sharedState, tier.id).map((card, index) => ({ card, index, tier }))
+  );
+}
+
+function renderMaterialCard(card, zone, index) {
+  const tier = getMaterialTierById(card.tier);
+  const actions = zone === "inventory"
+    ? `<div class="potion-actions"><button onclick="discardMaterialCard(${index})">Discard to GM</button><button onclick="returnMaterialCardToDeck(${index})">Return to Deck</button></div>`
+    : `<div class="potion-actions"><button onclick="sendMaterialCard('${card.tier}', ${index})">Give to Player</button></div>`;
+
+  return `
+    <div class="relic-card ${zone}" style="border-color:${tier.accent}; background:radial-gradient(circle at 50% 0%, rgba(255,255,255,0.08), rgba(10,10,10,0.95));">
+      <small>${escapeHeroValue(tier.label)} - Crafting Material</small>
+      <h3 style="display:flex; align-items:center; gap:8px;"><span style="font-size:28px;">${card.icon || ""}</span>${escapeHeroValue(card.name)}</h3>
+      <p><strong>Type:</strong> ${escapeHeroValue(card.type || "Crafting Material")}</p>
+      <p><strong>Use:</strong> Track this as a material card in inventory until spent, traded, or discarded.</p>
+      ${actions}
+    </div>
+  `;
+}
+
+function renderMaterialDeckStack(tier, count) {
+  return `
+    <span style="position:relative; width:74px; height:104px; border-radius:8px; border:1px solid ${tier.accent}; background:linear-gradient(145deg, ${tier.accent}55, rgba(0,0,0,0.7)); display:grid; place-items:center; color:#fff; font-weight:bold; overflow:hidden; box-shadow:8px 8px 0 rgba(0,0,0,0.24), 14px 14px 0 rgba(255,255,255,0.05);">
+      <span style="font-size:38px; opacity:0.8;">${tier.id === "common" ? "M" : tier.label.charAt(0)}</span>
+      <span style="position:absolute; right:5px; bottom:5px; min-width:24px; padding:3px 6px; border-radius:999px; background:rgba(0,0,0,0.78); border:1px solid ${tier.accent}; color:#ffe08a; font-size:13px; line-height:1; text-align:center;">${count}</span>
+    </span>
+  `;
+}
+
+function renderMaterialCards() {
+  const app = document.getElementById("materialCardsApp");
+  if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+  renderGmTargetOptions("gmMaterialCardTargetSelect");
+  ensureMaterialCardState(resourceProfile);
+
+  const searchInput = document.getElementById("materialCardSearch");
+  const query = (searchInput?.value || "").trim().toLowerCase();
+  const sharedState = data.sharedMaterialCards;
+  const allDeckCards = getMaterialCardDeckEntries(sharedState);
+  const visibleCards = allDeckCards.filter(entry => {
+    const haystack = [entry.card.name, entry.card.rarity, entry.card.type, entry.card.text, entry.tier.label].join(" ").toLowerCase();
+    return !query || haystack.includes(query);
+  });
+
+  app.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; align-items:start;">
+      ${materialCardTiers.map(tier => {
+        const deck = getMaterialDeckList(sharedState, tier.id);
+        const discard = getMaterialDiscardList(sharedState, tier.id);
+        const visiblePileCards = visibleCards.filter(entry => entry.tier.id === tier.id);
+        const openAttr = query && visiblePileCards.length ? "open" : "";
+        return `
+          <details class="relic-zone" ${openAttr} style="padding:0; border-color:${tier.accent}; background:linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.72));">
+            <summary style="cursor:pointer; list-style:none; padding:16px; display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
+              <span>
+                <strong style="display:block; color:#ffe08a; font-size:22px;">${tier.label} Materials</strong>
+                <small style="color:#bbb;">${visiblePileCards.length} shown / ${deck.length} in pile / ${discard.length} discarded</small>
+              </span>
+              <span style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end;">
+                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); giveRandomMaterialCardFromPile('${tier.id}')" ${deck.length === 0 ? "disabled" : ""}>Give ${tier.label} to Player</button>
+                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); shuffleMaterialCardPile('${tier.id}')" ${deck.length < 2 ? "disabled" : ""}>Shuffle Deck</button>
+                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); shuffleMaterialDiscardIntoDeck('${tier.id}')" ${discard.length === 0 ? "disabled" : ""}>Shuffle Discard</button>
+                ${renderMaterialDeckStack(tier, deck.length)}
+              </span>
+            </summary>
+            <div style="padding:0 16px 16px 16px;">
+              <p style="margin-top:0; color:#bbb;">Search by material name or rarity, then send exact cards to the selected player.</p>
+              ${visiblePileCards.map(entry => renderMaterialCard(entry.card, "deck", entry.index)).join("") || "<p>No material cards in this pile match this search.</p>"}
+            </div>
+          </details>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function sendMaterialCard(tierId, deckIndex, targetProfile = getGmTargetProfile("gmMaterialCardTargetSelect")) {
+  if (!targetProfile) return;
+  ensureMaterialCardState(targetProfile);
+  const deck = getMaterialDeckList(data.sharedMaterialCards, tierId);
+  const card = deck.splice(deckIndex, 1)[0];
+  if (!card) return;
+  data[targetProfile].materialCards.inventory.push({ ...card });
+  saveProfiles();
+  renderMaterialCards();
+  renderInventory();
+}
+
+function giveRandomMaterialCardFromPile(tierId, targetProfile = getGmTargetProfile("gmMaterialCardTargetSelect")) {
+  if (!targetProfile) return;
+  ensureMaterialCardState(targetProfile);
+  const deck = getMaterialDeckList(data.sharedMaterialCards, tierId);
+  if (!deck.length) {
+    alert(`No ${getMaterialTierById(tierId).label} material cards are available.`);
+    return;
+  }
+  sendMaterialCard(tierId, Math.floor(Math.random() * deck.length), targetProfile);
+}
+
+function shuffleMaterialCardPile(tierId) {
+  if (!resourceProfile) return;
+  ensureMaterialCardState(resourceProfile);
+  shuffleArray(getMaterialDeckList(data.sharedMaterialCards, tierId));
+  saveProfiles();
+  renderMaterialCards();
+}
+
+function shuffleMaterialDiscardIntoDeck(tierId) {
+  if (!resourceProfile) return;
+  ensureMaterialCardState(resourceProfile);
+  const discard = getMaterialDiscardList(data.sharedMaterialCards, tierId);
+  const deck = getMaterialDeckList(data.sharedMaterialCards, tierId);
+  discard.splice(0).forEach(card => deck.push({ ...card, tier: tierId }));
+  shuffleArray(deck);
+  saveProfiles();
+  renderMaterialCards();
+}
+
+function shuffleAllMaterialDiscardsIntoDecks() {
+  if (!resourceProfile) return;
+  ensureMaterialCardState(resourceProfile);
+  materialCardTiers.forEach(tier => {
+    const discard = getMaterialDiscardList(data.sharedMaterialCards, tier.id);
+    const deck = getMaterialDeckList(data.sharedMaterialCards, tier.id);
+    discard.splice(0).forEach(card => deck.push({ ...card, tier: tier.id }));
+    shuffleArray(deck);
+  });
+  saveProfiles();
+  renderMaterialCards();
+}
+
+function discardMaterialCard(index) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  ensureMaterialCardState(resourceProfile);
+  const card = data[resourceProfile].materialCards.inventory.splice(index, 1)[0];
+  if (!card) return;
+  getMaterialDiscardList(data.sharedMaterialCards, card.tier).push({ ...card });
+  saveProfiles();
+  renderInventory();
+  renderMaterialCards();
+}
+
+function returnMaterialCardToDeck(index) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  ensureMaterialCardState(resourceProfile);
+  const card = data[resourceProfile].materialCards.inventory.splice(index, 1)[0];
+  if (!card) return;
+  getMaterialDeckList(data.sharedMaterialCards, card.tier).push({ ...card });
+  saveProfiles();
+  renderInventory();
+  renderMaterialCards();
+}
+
+function resetMaterialCardDecks() {
+  if (!resourceProfile) return;
+  data.sharedMaterialCards = {
+    version: materialCardDeckVersion,
+    decks: makeMaterialCardDecks(),
+    discards: makeMaterialCardDiscards()
+  };
+  Object.keys(data).forEach(key => {
+    if (data[key] && data[key].materialCards && data[key].materialCards.inventory) {
+      data[key].materialCards.inventory = [];
+    }
+  });
+  saveProfiles();
+  renderMaterialCards();
+  renderInventory();
+}
 const heroWeaponSlots = ["mainHand", "offHand", "twoHanded"];
 const heroSpellSlots = ["spellOne", "spellTwo", "spellThree"];
 const heroAccessorySlots = ["accessoryOne", "accessoryTwo"];
@@ -12397,6 +12716,7 @@ function isSharedDataKey(name) {
         name === "sharedRelics" ||
         name === "sharedObjectives" ||
         name === "sharedHeroEquipment" ||
+        name === "sharedMaterialCards" ||
         name === "sharedAlliances" ||
         name === "sharedTrades";
 }
@@ -13871,6 +14191,7 @@ function createProfile() {
         objectives: { inventory: [] },
         hero: createDefaultHeroEquipment(),
         heroEquipment: { inventory: [] },
+        materialCards: { inventory: [] },
         unlocks: { revealed: {}, notes: {}, setupSixChoices: {}, actionBoard: {} },
         hiddenPaths: { paths: {}, claimedPath: null, counters: {} },
         keywords: { selected: {} },
@@ -14041,6 +14362,11 @@ function showView(view) {
     heroEquipmentView.style.display = view === "heroEquipment" && isHostMode ? "block" : "none";
   }
 
+  const materialCardsView = document.getElementById("materialCardsView");
+  if (materialCardsView) {
+    materialCardsView.style.display = view === "materialCards" && isHostMode ? "block" : "none";
+  }
+
   const objectivesView = document.getElementById("objectivesView");
   if (objectivesView) {
     objectivesView.style.display = view === "objectives" && isHostMode ? "block" : "none";
@@ -14114,6 +14440,9 @@ function showView(view) {
   }
   if (view === "heroEquipment" && isHostMode) {
     renderHeroEquipmentDeck();
+  }
+  if (view === "materialCards" && isHostMode) {
+    renderMaterialCards();
   }
   if (view === "unlocks") {
     renderUnlocks();
@@ -14930,7 +15259,7 @@ function updateAvailability(){
         let id = n.dataset.id;
         let prereq = n.dataset.prereq;
 
-        // Ã¢Å“â€¦ Doctrine always available
+        // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Doctrine always available
         const rootMap = {
             dwarves: "dwarves_root",
             dwarves2: "dwarves2_root",
@@ -14949,14 +15278,14 @@ function updateAvailability(){
 
         const rootId = rootMap[currentFaction];
 
-        // Ã¢Å“â€¦ Doctrine always available
+        // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Doctrine always available
         if(id === rootId){
             n.classList.add("available");
             n.classList.remove("locked");
             return;
         }
 
-        // Ã°Å¸Å¡Â¨ Lock behind doctrine
+        // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ Lock behind doctrine
         if(
             (currentFaction === "dwarves" && !skills["dwarves_root"]) ||
             (currentFaction === "dwarves2" && !skills["dwarves2_root"]) ||
@@ -14974,7 +15303,7 @@ function updateAvailability(){
             return;
         }
 
-        // Ã¢Å“â€¦ normal prereq
+        // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ normal prereq
         if(!prereq || skills[prereq]){
             n.classList.add("available");
             n.classList.remove("locked");
@@ -15181,7 +15510,7 @@ function resetProfile(){
 }
 
 
-// Ã°Å¸â€˜â€¡ ADD IT HERE
+// ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Â¡ ADD IT HERE
 function deleteProfile() {
     let select = document.getElementById("skillProfileSelect");
     let name = select.value;
@@ -18153,7 +18482,7 @@ const volumeOneCaveKeywordAdditions = {
     "Drowned Witness", "Echo-Touched", "End of Warmth", "Escaped the Living Cave", "Faded",
     "False Record", "Forgotten", "Freed from the False Light", "Gravity-Touched", "Hesitation",
     "I Did It Differently", "Ignore", "Interference", "It Almost Knew", "It Already Happened", "It Answered",
-    "It Lied Twice", "It Saw Me", "Itâ€™s Inside Now", "King of the Hollow Realm", "Kingless",
+    "It Lied Twice", "It Saw Me", "ItÃ¢â‚¬â„¢s Inside Now", "King of the Hollow Realm", "Kingless",
     "Kingless Wanderer", "Loyal to the Many-Handed King", "Lunar Witness", "Machinebound", "Marked by the Bell",
     "Marked by the Maw", "Mirrored", "Mirrored Soul", "Observed", "Opened the Final Door", "Processional",
     "Redrawn", "Retreat", "Seen by the Many", "Silenced the Bell", "Silenced the Final Song",
@@ -22900,6 +23229,10 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
+
 
 
 
