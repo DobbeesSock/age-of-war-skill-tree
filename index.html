@@ -1334,7 +1334,7 @@ body.men {
 
 
 .branch-title::before {
-    content: "âš”";
+    content: "Ã¢Å¡â€";
     margin-right: 6px;
 }
 
@@ -1670,7 +1670,7 @@ body.elves {
 }
 
 .potion-zone:first-child .potion-card::after {
-    content: "ðŸ‚ ";
+    content: "Ã°Å¸â€šÂ ";
     position: absolute;
     top: 10px;
     right: 12px;
@@ -2086,10 +2086,10 @@ body.elves {
         <option value="men2">Men - War Council</option>
         <option value="barbarians">Barbarians - Fury</option>
         <option value="barbarians2">Barbarians - Ragin Host</option>
-        <option value="orcs">Orcs â€“ Bloodied Path</option>
-        <option value="orcsWar">Orcs â€“ War Path</option>
-        <option value="order">Order â€“ Core</option>
-        <option value="order2">Order â€“ Assassins</option>
+        <option value="orcs">Orcs Ã¢â‚¬â€œ Bloodied Path</option>
+        <option value="orcsWar">Orcs Ã¢â‚¬â€œ War Path</option>
+        <option value="order">Order Ã¢â‚¬â€œ Core</option>
+        <option value="order2">Order Ã¢â‚¬â€œ Assassins</option>
         <option value="redacted1" disabled>??? (Locked)</option>
         <option value="redacted2" disabled>??? (Locked)</option>
         <option value="redacted3" disabled>??? (Locked)</option>
@@ -2140,7 +2140,7 @@ body.elves {
 
             <div class="node locked" data-id="m3" data-cost="2">
                 <h3>Mounted Assault</h3>
-                <p>+1 OD if moved â‰¤6</p>
+                <p>+1 OD if moved Ã¢â€°Â¤6</p>
             </div>
 
             <div class="node locked" data-id="m4" data-cost="3" data-prereq="m3">
@@ -2181,7 +2181,7 @@ body.elves {
 
     </div>
 
-    <!-- âœ… CAPSTONE GOES HERE -->
+    <!-- Ã¢Å“â€¦ CAPSTONE GOES HERE -->
     <div class="capstone locked" id="capstone-dwarves" data-id="cap_dwarves" data-cost="9">
         <h2>The Mountain Endures</h2>
         <p><b>Cost: 9 SM</b></p>
@@ -2692,7 +2692,7 @@ body.elves {
             <div class="node locked" data-id="orc_g3" data-cost="4" data-prereq="orc_g2">
                 
                 <h3>The Line Is Ours</h3>
-                <p>Cannot be Trampled</p>
+                <p>May move through 2 enemies pushing them 1 space each &amp; dealing 1 damage to each shoved enemy</p>
             </div>
         </div>
 
@@ -3093,12 +3093,12 @@ body.elves {
 
             <div class="node locked" data-id="os_e2" data-cost="4" data-prereq="os_e1">
                 <h3>Aggression</h3>
-                <p>No RC on Elites while Invisible</p>
+                <p>+1 Damage against Elites while Invisible</p>
             </div>
 
             <div class="node locked" data-id="os_e3" data-cost="4" data-prereq="os_e2">
                 <h3>Calculated</h3>
-                <p>No RC on Commanders while Invisible</p>
+                <p>+1 Damage against Commanders while Invisible</p>
             </div>
         </div>
 
@@ -3254,7 +3254,7 @@ body.elves {
 
             <div class="node locked" data-id="mB5" data-cost="4" data-prereq="mB4">
                 <h3>Trample Force</h3>
-                <p>Trample deals 1 damage regardless of evade</p>
+                <p>May move through 2 enemies pushing them 1 space each &amp; dealing 1 damage to each shoved enemy</p>
             </div>
 
             <div class="node locked" data-id="mB6" data-cost="6" data-prereq="mB5">
@@ -14930,7 +14930,7 @@ function updateAvailability(){
         let id = n.dataset.id;
         let prereq = n.dataset.prereq;
 
-        // âœ… Doctrine always available
+        // Ã¢Å“â€¦ Doctrine always available
         const rootMap = {
             dwarves: "dwarves_root",
             dwarves2: "dwarves2_root",
@@ -14949,14 +14949,14 @@ function updateAvailability(){
 
         const rootId = rootMap[currentFaction];
 
-        // âœ… Doctrine always available
+        // Ã¢Å“â€¦ Doctrine always available
         if(id === rootId){
             n.classList.add("available");
             n.classList.remove("locked");
             return;
         }
 
-        // ðŸš¨ Lock behind doctrine
+        // Ã°Å¸Å¡Â¨ Lock behind doctrine
         if(
             (currentFaction === "dwarves" && !skills["dwarves_root"]) ||
             (currentFaction === "dwarves2" && !skills["dwarves2_root"]) ||
@@ -14974,7 +14974,7 @@ function updateAvailability(){
             return;
         }
 
-        // âœ… normal prereq
+        // Ã¢Å“â€¦ normal prereq
         if(!prereq || skills[prereq]){
             n.classList.add("available");
             n.classList.remove("locked");
@@ -15181,7 +15181,7 @@ function resetProfile(){
 }
 
 
-// ðŸ‘‡ ADD IT HERE
+// Ã°Å¸â€˜â€¡ ADD IT HERE
 function deleteProfile() {
     let select = document.getElementById("skillProfileSelect");
     let name = select.value;
@@ -18153,7 +18153,7 @@ const volumeOneCaveKeywordAdditions = {
     "Drowned Witness", "Echo-Touched", "End of Warmth", "Escaped the Living Cave", "Faded",
     "False Record", "Forgotten", "Freed from the False Light", "Gravity-Touched", "Hesitation",
     "I Did It Differently", "Ignore", "Interference", "It Almost Knew", "It Already Happened", "It Answered",
-    "It Lied Twice", "It Saw Me", "It’s Inside Now", "King of the Hollow Realm", "Kingless",
+    "It Lied Twice", "It Saw Me", "Itâ€™s Inside Now", "King of the Hollow Realm", "Kingless",
     "Kingless Wanderer", "Loyal to the Many-Handed King", "Lunar Witness", "Machinebound", "Marked by the Bell",
     "Marked by the Maw", "Mirrored", "Mirrored Soul", "Observed", "Opened the Final Door", "Processional",
     "Redrawn", "Retreat", "Seen by the Many", "Silenced the Bell", "Silenced the Final Song",
