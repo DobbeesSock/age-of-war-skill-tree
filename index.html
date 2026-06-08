@@ -9646,7 +9646,7 @@ function renderInventory() {
   `;
 }
 
-const materialCardDeckVersion = 1;
+const materialCardDeckVersion = 2;
 const materialCardCopiesPerMaterial = 5;
 const materialCardTiers = [
   { id: "common", label: "Common", accent: "#d7c8a2" },
@@ -9674,9 +9674,34 @@ function getMaterialTierFromGroup(groupName) {
   return "common";
 }
 
+function getMaterialTierForName(materialName) {
+  const targetName = String(materialName || "").toLowerCase();
+  for (const group of defaultCraftingMaterialGroups) {
+    if ((group.items || []).some(item => String(item.name || "").toLowerCase() === targetName)) {
+      return getMaterialTierFromGroup(group.tier || group.name);
+    }
+  }
+  return "common";
+}
+
+function normalizeMaterialCard(card) {
+  const tier = getMaterialTierForName(card?.name) || card?.tier || "common";
+  const suffixMatch = String(card?.id || "").match(/-(\d+)$/);
+  const copySuffix = suffixMatch ? suffixMatch[1] : "1";
+  const slug = materialCardSlug(card?.name);
+  return {
+    ...card,
+    id: `material-${tier}-${slug}-${copySuffix}`,
+    baseId: `material-${tier}-${slug}`,
+    tier,
+    rarity: getMaterialTierById(tier).label,
+    type: card?.type || "Crafting Material"
+  };
+}
+
 function buildDefaultMaterialCards() {
   return normalizeCraftingMaterialGroups().flatMap(group => {
-    const tier = getMaterialTierFromGroup(group.name);
+    const tier = getMaterialTierFromGroup(group.tier || group.name);
     return (group.items || []).flatMap(item => Array.from({ length: materialCardCopiesPerMaterial }, (_, copyIndex) => ({
       id: `material-${tier}-${materialCardSlug(item.name)}-${copyIndex + 1}`,
       baseId: `material-${tier}-${materialCardSlug(item.name)}`,
@@ -9729,6 +9754,56 @@ function getExistingMaterialCardIds() {
   return ids;
 }
 
+
+function normalizeSharedMaterialCardPiles() {
+  if (!data.sharedMaterialCards) return;
+  const normalizedDecks = {};
+  const normalizedDiscards = {};
+  const deckIds = new Set();
+  const discardIds = new Set();
+
+  materialCardTiers.forEach(tier => {
+    normalizedDecks[tier.id] = [];
+    normalizedDiscards[tier.id] = [];
+  });
+
+  const addUnique = (list, ids, card) => {
+    const normalized = normalizeMaterialCard(card);
+    if (ids.has(normalized.id)) return;
+    list.push(normalized);
+    ids.add(normalized.id);
+  };
+
+  Object.values(data.sharedMaterialCards.decks || {}).forEach(deck => {
+    (deck || []).forEach(card => {
+      const normalized = normalizeMaterialCard(card);
+      addUnique(normalizedDecks[normalized.tier], deckIds, normalized);
+    });
+  });
+
+  Object.values(data.sharedMaterialCards.discards || {}).forEach(discard => {
+    (discard || []).forEach(card => {
+      const normalized = normalizeMaterialCard(card);
+      addUnique(normalizedDiscards[normalized.tier], discardIds, normalized);
+    });
+  });
+
+  data.sharedMaterialCards.decks = normalizedDecks;
+  data.sharedMaterialCards.discards = normalizedDiscards;
+
+  Object.keys(data).forEach(profileName => {
+    if (isSharedDataKey(profileName)) return;
+    if (!data[profileName]?.materialCards?.inventory) return;
+    const inventoryIds = new Set();
+    data[profileName].materialCards.inventory = data[profileName].materialCards.inventory
+      .map(card => normalizeMaterialCard(card))
+      .filter(card => {
+        if (inventoryIds.has(card.id)) return false;
+        inventoryIds.add(card.id);
+        return true;
+      });
+  });
+}
 function updateMaterialCardDeckVersion() {
   if (!data.sharedMaterialCards) return;
   if (data.sharedMaterialCards.version === materialCardDeckVersion) return;
@@ -23229,6 +23304,8 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
 
 
 
