@@ -1994,6 +1994,7 @@ body.elves {
   <button onclick="showView('buildings')">Income</button>
   <button onclick="showView('constructionProduction')">Construction & Production</button>
   <button onclick="showView('inventory')">Inventory</button>
+  <button onclick="showView('unlockedCards')">Unlocked Cards</button>
   <button onclick="showView('hero')">Hero</button>
   <button onclick="showView('factionAbilities')">Faction Abilities</button>
   <button onclick="showView('keywords')">Keywords</button>
@@ -2022,6 +2023,7 @@ body.elves {
   <button onclick="showView('potions')">Potion Deck</button>
   <button onclick="showView('relics')">Relic Deck</button>
   <button onclick="showView('heroEquipment')">Hero Equipment</button>
+  <button onclick="showView('unlockCardLibrary')">Unlock Cards</button>
   
   <button onclick="showView('materialCards')">Materials</button>
   <button onclick="showView('objectives')">Objective Deck</button>
@@ -3340,6 +3342,13 @@ body.elves {
   </div>
 </div>
 
+<div id="unlockedCardsView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);">
+    <h2 style="margin-top:0; color:gold;">Unlocked Cards</h2>
+    <div id="unlockedCardsApp"></div>
+  </div>
+</div>
+
 
 
 
@@ -3428,6 +3437,14 @@ body.elves {
   <div id="heroEquipmentApp"></div>
 </div>
 
+<div id="unlockCardLibraryView" style="display:none;">
+  <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <label style="color:white;">Give to: <select id="gmUnlockCardTargetSelect"></select></label>
+    <label style="color:white;">Faction: <select id="unlockCardFactionFilter" onchange="renderUnlockCardLibrary()"><option value="all">All Factions</option><option value="Dwarves">Dwarves</option></select></label>
+    <input id="unlockCardSearch" type="search" placeholder="Search unlock cards..." oninput="renderUnlockCardLibrary()" style="min-width:260px;">
+  </div>
+  <div id="unlockCardLibraryApp"></div>
+</div>
 <div id="materialCardsView" style="display:none;">
   <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
     <label style="color:white;">Give to: <select id="gmMaterialCardTargetSelect"></select></label>
@@ -9606,7 +9623,8 @@ function renderInventory() {
   ensurePotionState(resourceProfile);
   ensureRelicState(resourceProfile);
   ensureObjectiveState(resourceProfile);
-  ensureHeroEquipmentState(resourceProfile);  const potions = data[resourceProfile].potions.inventory;
+  ensureHeroEquipmentState(resourceProfile);
+  ensureUnlockedCardState(resourceProfile);  const potions = data[resourceProfile].potions.inventory;
   const relics = data[resourceProfile].relics.inventory;
   const objectives = data[resourceProfile].objectives.inventory;
   const heroEquipment = data[resourceProfile].heroEquipment.inventory;  app.innerHTML = `
@@ -9758,6 +9776,156 @@ function sendRandomMaterialToPlayer(tierId, amount = 1, targetProfile = getGmTar
   if (!choices.length) return;
   const material = choices[Math.floor(Math.random() * choices.length)];
   sendMaterialToPlayer(material.name, amount, targetProfile);
+}
+const unlockableCards = [
+  { id: "dwarves_action_board_ironhold", faction: "Dwarves", category: "Action Board Unlock", name: "The Ironhold Stronghold", summary: "Forward operating base card unlocked from the Dwarves action board requirement.", frontImage: "assets/unlocked-cards/dwarves/action-board-dwarves-front.png", backImage: "assets/unlocked-cards/dwarves/action-board-dwarves-back.png" },
+  { id: "dwarves_setup6_deep_call", faction: "Dwarves", category: "Setup 6 Secret", name: "The Deep Call", summary: "Dwarven secret unlock option.", frontImage: "assets/unlocked-cards/dwarves/the-deep-call.png", backImage: "assets/unlocked-cards/dwarves/the-deep-call-back.png" },
+  { id: "dwarves_setup6_mountain_remembers", faction: "Dwarves", category: "Setup 6 Secret", name: "The Mountain Remembers", summary: "Dwarven secret unlock option.", frontImage: "assets/unlocked-cards/dwarves/the-mountain-remembers.png", backImage: "assets/unlocked-cards/dwarves/the-mountain-remembers-back.png" },
+  { id: "dwarves_path2_swordsman", faction: "Dwarves", category: "Path II Stat Card", name: "Swordsman", summary: "Updated Dwarven stat card.", frontImage: "assets/unlocked-cards/dwarves/path2-swordsman.png" },
+  { id: "dwarves_path2_feral_hog", faction: "Dwarves", category: "Path II Stat Card", name: "Feral Hog", summary: "Updated Dwarven stat card.", frontImage: "assets/unlocked-cards/dwarves/path2-feral-hog.png" },
+  { id: "dwarves_path2_commando", faction: "Dwarves", category: "Path II Stat Card", name: "Commando", summary: "Updated Dwarven stat card.", frontImage: "assets/unlocked-cards/dwarves/path2-commando.png" },
+  { id: "dwarves_path2_iron_pike", faction: "Dwarves", category: "Path II Stat Card", name: "Iron Pike Warrior", summary: "Updated Dwarven stat card.", frontImage: "assets/unlocked-cards/dwarves/path2-iron-pike.png" },
+  { id: "dwarves_path2_king", faction: "Dwarves", category: "Path II Stat Card", name: "King", summary: "Updated Dwarven stat card.", frontImage: "assets/unlocked-cards/dwarves/path2-king.png" },
+  { id: "dwarves_path2_kings_guard", faction: "Dwarves", category: "Path II Stat Card", name: "Kings Guard", summary: "Updated Dwarven stat card.", frontImage: "assets/unlocked-cards/dwarves/path2-kings-guard.png" },
+  { id: "dwarves_path2_lord", faction: "Dwarves", category: "Path II Stat Card", name: "Lord", summary: "Updated Dwarven stat card.", frontImage: "assets/unlocked-cards/dwarves/path2-lord.png" },
+  { id: "dwarves_path2_ram", faction: "Dwarves", category: "Path II Stat Card", name: "Ram", summary: "Updated Dwarven stat card.", frontImage: "assets/unlocked-cards/dwarves/path2-ram.png" },
+  { id: "dwarves_path2_spawn_of_the_deep", faction: "Dwarves", category: "Path II Stat Card", name: "Spawn of the Deep", summary: "Updated Dwarven stat card.", frontImage: "assets/unlocked-cards/dwarves/path2-spawn-of-the-deep.png" },
+  { id: "dwarves_path3_stone_speaker", faction: "Dwarves", category: "Path III Unlock", name: "Stone Speaker", summary: "Path III Stone Speaker unlock card.", frontImage: "assets/unlocked-cards/dwarves/path3-stone-speaker.png" }
+];
+
+function getUnlockableCardById(cardId) {
+  return unlockableCards.find(card => card.id === cardId) || null;
+}
+
+function ensureUnlockedCardState(profileName) {
+  if (!profileName || !data[profileName]) return;
+  if (!data[profileName].unlockedCards) {
+    data[profileName].unlockedCards = { inventory: [] };
+  }
+  data[profileName].unlockedCards.inventory = (data[profileName].unlockedCards.inventory || []).filter(card => card && card.id);
+}
+
+function renderUnlockedCardImages(card, compact = false) {
+  const imageMaxHeight = compact ? "220px" : "520px";
+  const images = [
+    card.backImage ? { label: "Back", src: card.backImage } : null,
+    card.frontImage ? { label: "Front", src: card.frontImage } : null
+  ].filter(Boolean);
+
+  return `
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(${compact ? "120px" : "220px"}, 1fr)); gap:10px; align-items:start;">
+      ${images.map(image => `
+        <figure style="margin:0; background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.14); border-radius:8px; padding:8px;">
+          <img src="${image.src}" alt="${escapeHeroValue(card.name)} ${image.label}" style="width:100%; max-height:${imageMaxHeight}; object-fit:contain; border-radius:6px; display:block;">
+          <figcaption style="text-align:center; color:#bbb; font-size:12px; margin-top:6px;">${image.label}</figcaption>
+        </figure>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderUnlockedCard(card, zone = "player", index = -1) {
+  const canSend = zone === "gm";
+  const canRemove = zone === "player" && index >= 0;
+  return `
+    <div class="relic-card" style="background:linear-gradient(135deg, rgba(20,20,20,0.96), rgba(5,5,5,0.92)); border-color:rgba(255,215,0,0.32);">
+      <small>${escapeHeroValue(card.faction)} - ${escapeHeroValue(card.category)}</small>
+      <h3>${escapeHeroValue(card.name)}</h3>
+      ${card.summary ? `<p>${escapeHeroValue(card.summary)}</p>` : ""}
+      ${renderUnlockedCardImages(card, zone === "gm")}
+      <div class="potion-actions" style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+        ${canSend ? `<button onclick="sendUnlockCardToPlayer('${card.id}')">Send to Player</button>` : ""}
+        ${canRemove ? `<button onclick="removeUnlockedCard(${index})">Remove</button>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function renderUnlockedCards() {
+  const app = document.getElementById("unlockedCardsApp");
+  if (!app || !resourceProfile || !data[resourceProfile]) return;
+  ensureUnlockedCardState(resourceProfile);
+
+  const cards = data[resourceProfile].unlockedCards.inventory.map(entry => getUnlockableCardById(entry.id) || entry).filter(Boolean);
+  const grouped = cards.reduce((groups, card, index) => {
+    const key = `${card.faction || "Other"} - ${card.category || "Unlock"}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push({ card, index });
+    return groups;
+  }, {});
+
+  app.innerHTML = cards.length ? `
+    <div style="display:grid; gap:20px;">
+      ${Object.entries(grouped).map(([groupName, items]) => `
+        <section class="relic-zone">
+          <h2>${escapeHeroValue(groupName)} (${items.length})</h2>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; align-items:start;">
+            ${items.map(item => renderUnlockedCard(item.card, "player", item.index)).join("")}
+          </div>
+        </section>
+      `).join("")}
+    </div>
+  ` : `
+    <div class="relic-zone">
+      <h2>No Unlocked Cards Yet</h2>
+      <p>The GM can send special unlock cards here when this faction earns them.</p>
+    </div>
+  `;
+}
+
+function renderUnlockCardLibrary() {
+  const app = document.getElementById("unlockCardLibraryApp");
+  if (!app) return;
+  renderGmTargetOptions("gmUnlockCardTargetSelect");
+
+  const factionFilter = document.getElementById("unlockCardFactionFilter")?.value || "all";
+  const query = (document.getElementById("unlockCardSearch")?.value || "").trim().toLowerCase();
+  const visibleCards = unlockableCards.filter(card => {
+    const factionMatches = factionFilter === "all" || card.faction === factionFilter;
+    const haystack = [card.name, card.faction, card.category, card.summary].join(" ").toLowerCase();
+    return factionMatches && (!query || haystack.includes(query));
+  });
+
+  const grouped = visibleCards.reduce((groups, card) => {
+    const key = `${card.faction} - ${card.category}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(card);
+    return groups;
+  }, {});
+
+  app.innerHTML = `
+    <div style="display:grid; gap:20px;">
+      ${Object.entries(grouped).map(([groupName, cards]) => `
+        <section class="relic-zone">
+          <h2>${escapeHeroValue(groupName)} (${cards.length})</h2>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px; align-items:start;">
+            ${cards.map(card => renderUnlockedCard(card, "gm")).join("")}
+          </div>
+        </section>
+      `).join("") || `<div class="relic-zone"><h2>No unlock cards found.</h2></div>`}
+    </div>
+  `;
+}
+
+function sendUnlockCardToPlayer(cardId, targetProfile = getGmTargetProfile("gmUnlockCardTargetSelect")) {
+  const card = getUnlockableCardById(cardId);
+  if (!card || !targetProfile || !data[targetProfile]) return;
+  ensureUnlockedCardState(targetProfile);
+  const inventory = data[targetProfile].unlockedCards.inventory;
+  if (!inventory.some(entry => entry.id === card.id)) {
+    inventory.push({ id: card.id, receivedAt: Date.now() });
+  }
+  saveProfiles();
+  renderUnlockCardLibrary();
+  if (targetProfile === resourceProfile) renderUnlockedCards();
+}
+
+function removeUnlockedCard(index) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  ensureUnlockedCardState(resourceProfile);
+  data[resourceProfile].unlockedCards.inventory.splice(index, 1);
+  saveProfiles();
+  renderUnlockedCards();
 }
 const heroWeaponSlots = ["mainHand", "offHand", "twoHanded"];
 const heroSpellSlots = ["spellOne", "spellTwo", "spellThree"];
@@ -14003,6 +14171,7 @@ function createProfile() {
         objectives: { inventory: [] },
         hero: createDefaultHeroEquipment(),
         heroEquipment: { inventory: [] },
+        unlockedCards: { inventory: [] },
         materialCards: { inventory: [] },
         unlocks: { revealed: {}, notes: {}, setupSixChoices: {}, actionBoard: {} },
         hiddenPaths: { paths: {}, claimedPath: null, counters: {} },
@@ -14100,6 +14269,7 @@ function loadProfile() {
     ensureObjectiveState(resourceProfile);
     ensureHeroState(resourceProfile);
     ensureHeroEquipmentState(resourceProfile);
+    ensureUnlockedCardState(resourceProfile);
 ensureUnlockState(resourceProfile);
 renderRelics();
   renderObjectives();
@@ -14158,6 +14328,10 @@ function showView(view) {
   if (heroView) {
     heroView.style.display = view === "hero" ? "block" : "none";
   }
+  const unlockedCardsView = document.getElementById("unlockedCardsView");
+  if (unlockedCardsView) {
+    unlockedCardsView.style.display = view === "unlockedCards" ? "block" : "none";
+  }
   const unlocksView = document.getElementById("unlocksView");
   if (unlocksView) {
     unlocksView.style.display = view === "unlocks" ? "block" : "none";
@@ -14172,6 +14346,11 @@ function showView(view) {
   const heroEquipmentView = document.getElementById("heroEquipmentView");
   if (heroEquipmentView) {
     heroEquipmentView.style.display = view === "heroEquipment" && isHostMode ? "block" : "none";
+  }
+
+  const unlockCardLibraryView = document.getElementById("unlockCardLibraryView");
+  if (unlockCardLibraryView) {
+    unlockCardLibraryView.style.display = view === "unlockCardLibrary" && isHostMode ? "block" : "none";
   }
 
   const materialCardsView = document.getElementById("materialCardsView");
@@ -14249,6 +14428,9 @@ function showView(view) {
   }
   if (view === "hero") {
     renderHero();
+  }
+  if (view === "unlockedCards") {
+    renderUnlockedCards();
   }
   if (view === "heroEquipment" && isHostMode) {
     renderHeroEquipmentDeck();
@@ -23041,6 +23223,10 @@ returnToHubLanding();
 
 </body>
 </html>
+
+
+
+
 
 
 
