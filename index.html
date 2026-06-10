@@ -1989,6 +1989,7 @@ body.elves {
 
 <div id="mainNav" style="margin-bottom:15px; display:none; gap:10px; flex-wrap:wrap; align-items:center;">
   <button onclick="showView('factionInfo')">Faction Info</button>
+  <button onclick="showView('titleTracker')">Title Tracker</button>
   <button onclick="showView('skill')">Skill Trees</button>
   <button onclick="showView('resources')">Resources</button>
   <button onclick="showView('buildings')">Income</button>
@@ -2045,6 +2046,12 @@ body.elves {
 <div id="factionInfoView" style="display:none;">
   <div class="hub-panel">
     <div id="factionInfoApp"></div>
+  </div>
+</div>
+
+<div id="titleTrackerView" style="display:none;">
+  <div class="hub-panel">
+    <div id="titleTrackerApp"></div>
   </div>
 </div>
 
@@ -3146,7 +3153,7 @@ body.elves {
                 <p>Walls gain +2 Armour</p>
             </div>
 
-            <div class="node locked" data-id="mA2" data-cost="4" data-prereq="mA1">
+            <div class="node locked" data-id="mA2" data-cost="4" data-prereq="mA1" data-collection-income="+2 Gold">
                 <h3>Expanded Holdings</h3>
                 <p>Gain +2 Gold Collection</p>
             </div>
@@ -3166,7 +3173,7 @@ body.elves {
                 <p>Gain +1 Gold per kill</p>
             </div>
 
-            <div class="node locked" data-id="mA5" data-cost="4" data-prereq="mA4">
+            <div class="node locked" data-id="mA5" data-cost="4" data-prereq="mA4" data-collection-income="+1 Metal">
                 <h3>Vault Networks</h3>
                 <p>Gain +1 Metal Collection</p>
             </div>
@@ -4562,6 +4569,233 @@ function getOwnedRelicCollectionRows() {
     .filter(row => row.income);
 }
 
+function getOwnedTitleCollectionRows() {
+  if (!resourceProfile || !data[resourceProfile]) return [];
+
+  ensureHeroEquipmentState(resourceProfile);
+  return (data[resourceProfile].heroEquipment.inventory || [])
+    .filter(card => String(card?.type || "").toLowerCase().includes("title"))
+    .map((card, index) => {
+      const income = card.collectionIncome || "";
+      if (!income) return null;
+
+      return {
+        building: card.collectionRowName || card.name || `Title ${index + 1}`,
+        rowKey: `title:${card.id || card.name || index}:${index}`,
+        income,
+        limit: card.collectionLimit || "Owned",
+        size: "-",
+        source: "Title",
+        cost: "Owned",
+        hp: "-",
+        type: card.incomeMultiplierPercent ? "titleMultiplier" : "title",
+        defaultCollectEnabled: true,
+        collectionCountLabel: card.collectionCountLabel || "Title",
+        incomeMultiplierResource: card.incomeMultiplierResource || "",
+        incomeMultiplierPercent: Number(card.incomeMultiplierPercent || 0)
+      };
+    })
+    .filter(Boolean);
+}
+
+function ensureTitleTrackerState(profileName) {
+  if (!profileName || !data[profileName]) return;
+  if (!data[profileName].titleTracker) {
+    data[profileName].titleTracker = { progress: {}, awarded: {} };
+  }
+  if (!data[profileName].titleTracker.progress) {
+    data[profileName].titleTracker.progress = {};
+  }
+  if (!data[profileName].titleTracker.awarded) {
+    data[profileName].titleTracker.awarded = {};
+  }
+
+  titleTrackerDefinitions.forEach(definition => {
+    const value = Number(data[profileName].titleTracker.progress[definition.id] || 0);
+    data[profileName].titleTracker.progress[definition.id] = Math.max(0, value);
+    if (profileOwnsHeroEquipmentCard(profileName, definition.id)) {
+      data[profileName].titleTracker.awarded[definition.id] = true;
+    }
+  });
+}
+
+function getTitleTrackerProgressLabel(definition, value) {
+  const suffix = definition.unit ? ` ${definition.unit}` : "";
+  return `${value}${suffix} / ${definition.threshold}${suffix}`;
+}
+
+function awardTitleCardToProfile(profileName, titleId) {
+  if (!profileName || !data[profileName] || !titleId) return false;
+  ensureHeroEquipmentState(profileName);
+
+  if (profileOwnsHeroEquipmentCard(profileName, titleId)) return false;
+
+  const titleDeck = getHeroEquipmentDeckList(data.sharedHeroEquipment, "titles");
+  const deckIndex = titleDeck.findIndex(card => card.id === titleId);
+  const sourceCard = deckIndex >= 0
+    ? titleDeck.splice(deckIndex, 1)[0]
+    : titleHeroCards.find(card => card.id === titleId);
+
+  if (!sourceCard) return false;
+
+  data[profileName].heroEquipment.inventory.push({ ...sourceCard, pile: "titles" });
+  return true;
+}
+
+function checkTitleTrackerUnlock(profileName, titleId) {
+  if (!profileName || !data[profileName]) return;
+  ensureTitleTrackerState(profileName);
+
+  const definition = titleTrackerDefinitions.find(entry => entry.id === titleId);
+  if (!definition || !definition.card) return;
+
+  const tracker = data[profileName].titleTracker;
+  const progress = Number(tracker.progress[titleId] || 0);
+  if (progress < definition.threshold || tracker.awarded[titleId]) return;
+
+  const addedCard = awardTitleCardToProfile(profileName, titleId);
+  tracker.awarded[titleId] = true;
+
+  saveProfiles();
+  alert(`${definition.card.name} unlocked!\n\n${definition.card.text}`);
+
+  if (addedCard) {
+    renderInventory();
+    renderHero();
+    renderBuildings();
+  }
+}
+
+function changeTitleTrackerProgress(titleId, amount) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  ensureTitleTrackerState(resourceProfile);
+
+  const tracker = data[resourceProfile].titleTracker;
+  const currentValue = Number(tracker.progress[titleId] || 0);
+  tracker.progress[titleId] = Math.max(0, currentValue + amount);
+
+  saveProfiles();
+  checkTitleTrackerUnlock(resourceProfile, titleId);
+  renderTitleTracker();
+}
+
+function setTitleTrackerProgress(titleId, rawValue) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  ensureTitleTrackerState(resourceProfile);
+
+  const value = Math.max(0, Number(rawValue || 0));
+  data[resourceProfile].titleTracker.progress[titleId] = value;
+
+  saveProfiles();
+  checkTitleTrackerUnlock(resourceProfile, titleId);
+  renderTitleTracker();
+}
+
+function renderTitleTracker() {
+  const app = document.getElementById("titleTrackerApp");
+  if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+  ensureTitleTrackerState(resourceProfile);
+  const tracker = data[resourceProfile].titleTracker;
+
+  app.innerHTML = `
+    <div style="display:grid; gap:16px;">
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+        <div>
+          <h2 style="margin:0; color:gold;">Title Tracker</h2>
+          <p style="margin:6px 0 0 0; color:#bbb; line-height:1.45;">Track long-term campaign achievements. When a title reaches its requirement, the title card is added to this player's Hero inventory.</p>
+        </div>
+        <button onclick="renderTitleTracker()">Refresh</button>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(310px, 1fr)); gap:14px;">
+        ${titleTrackerDefinitions.map(definition => {
+          const card = definition.card;
+          if (!card) return "";
+
+          const value = Number(tracker.progress[definition.id] || 0);
+          const awarded = Boolean(tracker.awarded[definition.id]);
+          const percent = Math.min(100, Math.round((value / definition.threshold) * 100));
+          const idArg = JSON.stringify(definition.id).replace(/"/g, "&quot;");
+          const step = Number(definition.step || 1);
+          const requirement = (card.text || "").split("Reward:")[0].replace("Requirement:", "").trim();
+
+          return `
+            <div style="background:rgba(30,30,30,0.92); border:1px solid ${awarded ? "rgba(120,220,140,0.55)" : "rgba(255,255,255,0.12)"}; border-left:6px solid ${awarded ? "#78dc8c" : "#d4af37"}; border-radius:8px; padding:14px; display:grid; gap:10px;">
+              <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+                <div>
+                  <h3 style="margin:0; color:#ffe08a;">${escapeHeroValue(card.name)}</h3>
+                  <div style="color:#bbb; font-size:13px; margin-top:3px;">${escapeHeroValue(card.rarity || "Title")} Title</div>
+                </div>
+                <strong style="color:${awarded ? "#78dc8c" : "#fff"};">${awarded ? "Unlocked" : `${percent}%`}</strong>
+              </div>
+              <div style="color:#ddd; line-height:1.4;"><strong>Goal:</strong> ${escapeHeroValue(requirement || definition.metric)}</div>
+              <div style="color:#bbb; line-height:1.4;"><strong>Reward:</strong> ${escapeHeroValue((card.text || "").split("Reward:")[1] || card.text || "")}</div>
+              <div>
+                <div style="display:flex; justify-content:space-between; color:#eee; margin-bottom:5px;">
+                  <span>${escapeHeroValue(definition.metric)}</span>
+                  <strong>${escapeHeroValue(getTitleTrackerProgressLabel(definition, value))}</strong>
+                </div>
+                <div style="height:10px; border-radius:999px; background:rgba(255,255,255,0.12); overflow:hidden;">
+                  <div style="height:100%; width:${percent}%; background:${awarded ? "#78dc8c" : "#d4af37"};"></div>
+                </div>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px;">
+                <button onclick="changeTitleTrackerProgress(${idArg}, 1)">+1</button>
+                <button onclick="changeTitleTrackerProgress(${idArg}, ${step})">+${step}</button>
+                <button onclick="changeTitleTrackerProgress(${idArg}, -1)">-1</button>
+                <button onclick="changeTitleTrackerProgress(${idArg}, -${step})">-${step}</button>
+                <input type="number" min="0" value="${value}" onchange="setTitleTrackerProgress(${idArg}, this.value)" style="min-width:0; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:#111; color:white;">
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function getSkillNodeCollectionIncome(node) {
+  if (!node) return "";
+  if (node.dataset.collectionIncome) return node.dataset.collectionIncome;
+
+  const text = node.innerText || "";
+  const match = text.match(/gain\s+\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)\s+Collection/i);
+  return match ? `+${match[1]} ${match[2]}` : "";
+}
+
+function getUnlockedSkillCollectionRows() {
+  if (!resourceProfile || !data[resourceProfile]) return [];
+
+  return Object.keys(skillTreeRootIds).flatMap(treeId => {
+    ensureSkillTreeState(resourceProfile, treeId);
+    const tree = document.getElementById(treeId);
+    const skills = data[resourceProfile]?.[treeId]?.skills || {};
+    if (!tree) return [];
+
+    return [...tree.querySelectorAll(".node, .capstone")]
+      .filter(node => skills[node.dataset.id])
+      .map(node => {
+        const income = getSkillNodeCollectionIncome(node);
+        if (!income) return null;
+
+        const title = node.querySelector("h2, h3")?.textContent?.trim() || node.dataset.id;
+        return {
+          building: title,
+          rowKey: `skill:${treeId}:${node.dataset.id}`,
+          income,
+          limit: "Unlocked",
+          size: "-",
+          source: "Skill Tree",
+          cost: "Unlocked",
+          hp: "-",
+          type: "skill",
+          defaultCollectEnabled: true
+        };
+      })
+      .filter(Boolean);
+  });
+}
+
 function getBuildingTrackerRows() {
   const hub = getCurrentHub();
   const factionRows = (collectionTables[hub.family] || []).map(row => ({
@@ -4585,7 +4819,7 @@ function getBuildingTrackerRows() {
     type: "building"
   }));
 
-  return factionRows.concat(blueprintRows, chestRows, getOwnedRelicCollectionRows());
+  return factionRows.concat(blueprintRows, chestRows, getOwnedRelicCollectionRows(), getOwnedTitleCollectionRows(), getUnlockedSkillCollectionRows());
 }
 
 const factionAbilityCharts = {
@@ -9083,6 +9317,21 @@ function ensureUnlockState(profileName) {
   }
 }
 
+function getResourceValueSnapshot() {
+  return Object.fromEntries(resources.map(resource => [resource.name, Number(resource.value || 0)]));
+}
+
+function trackResourceGain(before, gainTotals) {
+  resources.forEach(resource => {
+    const previousValue = Number(before[resource.name] || 0);
+    const currentValue = Number(resource.value || 0);
+    const gained = currentValue - previousValue;
+    if (gained > 0) {
+      gainTotals[resource.name] = Number(gainTotals[resource.name] || 0) + gained;
+    }
+  });
+}
+
 function revealUnlockEnvelope(unlockId) {
   if (!resourceProfile || !data[resourceProfile]) return;
   ensureUnlockState(resourceProfile);
@@ -9431,6 +9680,7 @@ function isLeveledBuilding(row) {
 }
 
 function getBuildingLevelLabel(row) {
+  if (row?.collectionCountLabel) return row.collectionCountLabel;
   return isLeveledBuilding(row) ? "Level" : "Built";
 }
 
@@ -9442,15 +9692,24 @@ function getBuildingLimitLabel(row) {
 }
 
 function getBuildingCountLabel(row, count) {
+  if (row?.collectionCountLabel) return `${row.collectionCountLabel} ${count}`;
   return isLeveledBuilding(row) ? `Level ${count}` : count;
 }
 
-function toggleBuildingCollection(buildingName) {
+function isIncomeRowCollectEnabled(row, collectEnabled) {
+  const rowKey = getIncomeRowKey(row);
+  if (Object.prototype.hasOwnProperty.call(collectEnabled, rowKey)) {
+    return Boolean(collectEnabled[rowKey]);
+  }
+  return Boolean(row.defaultCollectEnabled);
+}
+
+function toggleBuildingCollection(buildingName, checked = null) {
   if (!resourceProfile || !data[resourceProfile]) return;
 
   ensureBuildingState(resourceProfile);
   const collectEnabled = data[resourceProfile].buildings.collectEnabled;
-  collectEnabled[buildingName] = !collectEnabled[buildingName];
+  collectEnabled[buildingName] = checked === null ? !collectEnabled[buildingName] : Boolean(checked);
 
   saveProfiles();
   renderBuildings();
@@ -9461,7 +9720,7 @@ function getIncomeRowKey(row) {
 }
 
 function getIncomeRowCount(row, constructed) {
-  return row.type === "relic" ? 1 : Number(constructed[row.building] || 0);
+  return row.type === "relic" || row.type === "skill" || row.type === "titleMultiplier" ? 1 : Number(constructed[row.building] || 0);
 }
 
 function collectCheckedBuildings() {
@@ -9475,17 +9734,39 @@ function collectCheckedBuildings() {
   const collectEnabled = data[resourceProfile].buildings.collectEnabled;
 
   let collectedCount = 0;
+  const gainTotals = {};
+  const multiplierRows = [];
 
   rows.forEach(row => {
     const rowKey = getIncomeRowKey(row);
     const count = getIncomeRowCount(row, constructed);
-    if (!collectEnabled[rowKey] || count <= 0) return;
+    if (!isIncomeRowCollectEnabled(row, collectEnabled) || count <= 0) return;
+
+    if (row.type === "titleMultiplier") {
+      multiplierRows.push(row);
+      collectedCount += count;
+      return;
+    }
 
     for (let i = 0; i < count; i++) {
+      const before = getResourceValueSnapshot();
       applyCollectionIncome(row.income, constructed);
+      trackResourceGain(before, gainTotals);
     }
 
     collectedCount += count;
+  });
+
+  multiplierRows.forEach(row => {
+    const resourceName = row.incomeMultiplierResource;
+    const percent = Number(row.incomeMultiplierPercent || 0);
+    const baseGain = Number(gainTotals[resourceName] || 0);
+    if (!resourceName || percent <= 0 || baseGain <= 0) return;
+
+    const bonus = Math.floor(baseGain * percent / 100);
+    if (bonus > 0) {
+      addResourceByName(resourceName, bonus);
+    }
   });
 
   if (collectedCount === 0) {
@@ -9538,17 +9819,19 @@ function renderBuildings() {
             ${collectionRows.map(row => {
               const rowKey = getIncomeRowKey(row);
               const count = getIncomeRowCount(row, constructed);
-              const checked = collectEnabled[rowKey] ? "checked" : "";
+              const checked = isIncomeRowCollectEnabled(row, collectEnabled) ? "checked" : "";
               const buildingArg = JSON.stringify(row.building).replace(/"/g, "&quot;");
               const collectionArg = JSON.stringify(rowKey).replace(/"/g, "&quot;");
               const limit = getBuildingLimit(row);
               const atLimit = limit !== null && count >= limit;
               const isRelic = row.type === "relic";
+              const isSkill = row.type === "skill";
+              const isOwnedTitleBonus = row.type === "titleMultiplier";
 
               return `
               <tr>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">
-                  <input type="checkbox" ${checked} onchange="toggleBuildingCollection(${collectionArg})">
+                  <input type="checkbox" ${checked} onchange="toggleBuildingCollection(${collectionArg}, this.checked)">
                 </td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.building}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.source || "Faction"}</td>
@@ -9559,7 +9842,7 @@ function renderBuildings() {
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${getBuildingLimitLabel(row)}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.size}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">
-                  ${isRelic ? "<span style=\"color:#bbb;\">Owned relic</span>" : `
+                  ${isRelic ? "<span style=\"color:#bbb;\">Owned relic</span>" : isSkill ? "<span style=\"color:#bbb;\">Unlocked skill</span>" : isOwnedTitleBonus ? "<span style=\"color:#bbb;\">Owned title</span>" : `
                     <button onclick="changeConstructedBuilding(${buildingArg}, -1)">- ${getBuildingLevelLabel(row)}</button>
                     <button onclick="changeConstructedBuilding(${buildingArg}, 1)" ${atLimit ? "disabled" : ""}>+ ${getBuildingLevelLabel(row)}</button>
                   `}
@@ -10124,12 +10407,41 @@ const titleHeroCards = [
   makeHeroEquipmentCard("title_keeper_of_secrets", "Keeper of Secrets", "Title", heroAccessorySlots, "titles", "Requirement: Discover 20 Secrets. Reward: +1 RC. Permanent.", "Rare"),
   makeHeroEquipmentCard("title_master_of_the_wild", "Master of the Wild", "Title", heroAccessorySlots, "titles", "Requirement: Tame or control 15 Beasts. Reward: Beasts under your control gain +10% HP. Permanent.", "Epic"),
   makeHeroEquipmentCard("title_explorer", "Explorer", "Title", heroAccessorySlots, "titles", "Requirement: Reveal 50% of the map. Reward: +1 Movement. Permanent.", "Common"),
-  makeHeroEquipmentCard("title_wealthy", "Wealthy", "Title", heroAccessorySlots, "titles", "Requirement: Accumulate 5000 Gold. Reward: +10% Gold income. Permanent.", "Rare"),
+  {
+    ...makeHeroEquipmentCard("title_wealthy", "Wealthy", "Title", heroAccessorySlots, "titles", "Requirement: Accumulate 5000 Gold. Reward: +10% Gold income. Permanent.", "Rare"),
+    collectionIncome: "+10% Gold income",
+    incomeMultiplierResource: "Gold",
+    incomeMultiplierPercent: 10
+  },
   makeHeroEquipmentCard("title_unbroken", "Unbroken", "Title", heroAccessorySlots, "titles", "Requirement: Win a battle with your Hero at 1 HP or less. Reward: Max HP +1. Permanent.", "Epic"),
   makeHeroEquipmentCard("title_justiciar", "Justiciar", "Title", heroAccessorySlots, "titles", "Requirement: Punish 50 evil acts (raids, ambushes, or atrocities). Reward: Gain +1 Retaliate. Permanent.", "Rare"),
-  makeHeroEquipmentCard("title_conqueror", "Conqueror", "Title", heroAccessorySlots, "titles", "Requirement: Own or capture 20 Settlements. Reward: All settlements you own generate +5 Gold.", "Epic"),
+  {
+    ...makeHeroEquipmentCard("title_conqueror", "Conqueror", "Title", heroAccessorySlots, "titles", "Requirement: Own or capture 20 Settlements. Reward: All settlements you own generate +5 Gold.", "Epic"),
+    collectionIncome: "+5 Gold",
+    collectionRowName: "Conqueror Settlements",
+    collectionLimit: "Owned settlements",
+    collectionCountLabel: "Settlement"
+  },
   makeHeroEquipmentCard("title_survivor", "Survivor", "Title", heroAccessorySlots, "titles", "Requirement: Survive 20 Turns in a single campaign. Reward: Heal 5 HP at the start of each Production Phase. Permanent.", "Common")
 ];
+
+const titleTrackerDefinitions = [
+  { id: "title_dragonslayer", metric: "Dragons slain", threshold: 1, step: 1 },
+  { id: "title_cave_delver", metric: "Caves completed", threshold: 5, step: 1 },
+  { id: "title_warlord", metric: "Enemy units destroyed", threshold: 25, step: 5 },
+  { id: "title_tyrant", metric: "Enemy Structures destroyed", threshold: 5, step: 1 },
+  { id: "title_keeper_of_secrets", metric: "Secrets discovered", threshold: 20, step: 5 },
+  { id: "title_master_of_the_wild", metric: "Beasts tamed or controlled", threshold: 15, step: 5 },
+  { id: "title_explorer", metric: "Map revealed", threshold: 50, step: 5, unit: "%" },
+  { id: "title_wealthy", metric: "Gold accumulated", threshold: 5000, step: 100, unit: "Gold" },
+  { id: "title_unbroken", metric: "Battles won at 1 HP or less", threshold: 1, step: 1 },
+  { id: "title_justiciar", metric: "Evil acts punished", threshold: 50, step: 5 },
+  { id: "title_conqueror", metric: "Settlements owned or captured", threshold: 20, step: 5 },
+  { id: "title_survivor", metric: "Turns survived in one campaign", threshold: 20, step: 5 }
+].map(definition => ({
+  ...definition,
+  card: titleHeroCards.find(card => card.id === definition.id)
+}));
 
 const trophyHeroCards = [
   makeHeroEquipmentCard("trophy_troll_skull", "Troll Skull", "Trophy", heroAccessorySlots, "trophies", "Gain +1 Armour.", "Minor"),
@@ -12381,6 +12693,7 @@ function sendHeroEquipmentCard(pileId, deckIndex, targetProfile = getGmTargetPro
   renderHeroEquipmentDeck();
   renderInventory();
   renderHero();
+  renderBuildings();
 }
 
 function unequipHeroEquipmentCard(card) {
@@ -12409,6 +12722,7 @@ function discardHeroEquipment(index) {
   renderHero();
   renderInventory();
   renderHeroEquipmentDeck();
+  renderBuildings();
 }
 
 function returnHeroEquipmentToDeck(index) {
@@ -12426,6 +12740,7 @@ function returnHeroEquipmentToDeck(index) {
   renderHero();
   renderInventory();
   renderHeroEquipmentDeck();
+  renderBuildings();
 }
 
 function shuffleHeroEquipmentDiscardIntoDeck() {
@@ -12462,6 +12777,7 @@ function resetHeroEquipmentDeck() {
   renderHeroEquipmentDeck();
   renderHero();
   renderInventory();
+  renderBuildings();
 }
 
 
@@ -14144,6 +14460,7 @@ function renderHubHome() {
   app.innerHTML = `
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
       <button onclick="showView('factionInfo')" class="hub-choice"><strong>Faction Info</strong><br>Play style, faction reminders, and booklet rules.</button>
+      <button onclick="showView('titleTracker')" class="hub-choice"><strong>Title Tracker</strong><br>Campaign goals, progress counters, and title unlocks.</button>
       <button onclick="showView('unlocks')" class="hub-choice"><strong>Unlocks</strong><br>Lore envelopes, secret units, and campaign reveals.</button>
       <button onclick="showView('skill')" class="hub-choice"><strong>Skill Trees</strong><br>${hub.trees.length} faction paths on one page.</button>
       <button onclick="showView('resources')" class="hub-choice"><strong>Resources</strong><br>Large resource counters for quick phone use.</button>
@@ -14174,6 +14491,7 @@ function createProfile() {
         heroEquipment: { inventory: [] },
         unlockedCards: { inventory: [] },
         materialCards: { inventory: [] },
+        titleTracker: { progress: {}, awarded: {} },
         unlocks: { revealed: {}, notes: {}, setupSixChoices: {}, actionBoard: {} },
         hiddenPaths: { paths: {}, claimedPath: null, counters: {} },
         keywords: { selected: {} },
@@ -14270,6 +14588,7 @@ function loadProfile() {
     ensureObjectiveState(resourceProfile);
     ensureHeroState(resourceProfile);
     ensureHeroEquipmentState(resourceProfile);
+    ensureTitleTrackerState(resourceProfile);
     ensureUnlockedCardState(resourceProfile);
 ensureUnlockState(resourceProfile);
 renderRelics();
@@ -14298,6 +14617,11 @@ function showView(view) {
   const factionInfoView = document.getElementById("factionInfoView");
   if (factionInfoView) {
     factionInfoView.style.display = view === "factionInfo" ? "block" : "none";
+  }
+
+  const titleTrackerView = document.getElementById("titleTrackerView");
+  if (titleTrackerView) {
+    titleTrackerView.style.display = view === "titleTracker" ? "block" : "none";
   }
 
   document.getElementById("skillTreeView").style.display =
@@ -14406,6 +14730,10 @@ function showView(view) {
 
   if (view === "factionInfo") {
     renderFactionInfo();
+  }
+
+  if (view === "titleTracker") {
+    renderTitleTracker();
   }
 
   if (view === "skill") {
@@ -15190,6 +15518,7 @@ document.querySelectorAll(".capstone").forEach(cap=>{
                 updateUI();
                 updateSM();
                 renderResources();
+                renderBuildings();
 
             } else {
                 alert("Not enough SM!");
@@ -15237,6 +15566,7 @@ document.querySelectorAll(".node").forEach(node=>{
         updateUI();
         updateSM();
         renderResources();
+        renderBuildings();
 
         
     });
