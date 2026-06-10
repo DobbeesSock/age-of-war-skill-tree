@@ -4588,11 +4588,9 @@ function getOwnedTitleCollectionRows() {
         source: "Title",
         cost: "Owned",
         hp: "-",
-        type: card.incomeMultiplierPercent ? "titleMultiplier" : "title",
+        type: "title",
         defaultCollectEnabled: true,
-        collectionCountLabel: card.collectionCountLabel || "Title",
-        incomeMultiplierResource: card.incomeMultiplierResource || "",
-        incomeMultiplierPercent: Number(card.incomeMultiplierPercent || 0)
+        collectionCountLabel: card.collectionCountLabel || ""
       };
     })
     .filter(Boolean);
@@ -4611,17 +4609,56 @@ function ensureTitleTrackerState(profileName) {
   }
 
   titleTrackerDefinitions.forEach(definition => {
-    const value = Number(data[profileName].titleTracker.progress[definition.id] || 0);
-    data[profileName].titleTracker.progress[definition.id] = Math.max(0, value);
+    const legacyValue = Number(data[profileName].titleTracker.progress[definition.id] || 0);
+    getTitleTrackerRequirements(definition).forEach((requirement, index) => {
+      const progressKey = getTitleTrackerProgressKey(definition.id, requirement.key);
+      const existingValue = data[profileName].titleTracker.progress[progressKey];
+      const nextValue = existingValue === undefined && index === 0 ? legacyValue : Number(existingValue || 0);
+      data[profileName].titleTracker.progress[progressKey] = Math.max(0, nextValue);
+    });
+    delete data[profileName].titleTracker.progress[definition.id];
+
     if (profileOwnsHeroEquipmentCard(profileName, definition.id)) {
       data[profileName].titleTracker.awarded[definition.id] = true;
     }
   });
 }
 
-function getTitleTrackerProgressLabel(definition, value) {
-  const suffix = definition.unit ? ` ${definition.unit}` : "";
-  return `${value}${suffix} / ${definition.threshold}${suffix}`;
+function getTitleTrackerRequirements(definition) {
+  return Array.isArray(definition.requirements) && definition.requirements.length
+    ? definition.requirements
+    : [{ key: "main", metric: definition.metric, threshold: definition.threshold, step: definition.step, unit: definition.unit }];
+}
+
+function getTitleTrackerProgressKey(titleId, requirementKey = "main") {
+  return `${titleId}:${requirementKey || "main"}`;
+}
+
+function getTitleTrackerProgressValue(tracker, titleId, requirementKey = "main") {
+  return Number(tracker.progress[getTitleTrackerProgressKey(titleId, requirementKey)] || 0);
+}
+
+function getTitleTrackerProgressLabel(requirement, value) {
+  const suffix = requirement.unit ? ` ${requirement.unit}` : "";
+  return `${value}${suffix} / ${requirement.threshold}${suffix}`;
+}
+
+function isTitleTrackerComplete(tracker, definition) {
+  return getTitleTrackerRequirements(definition)
+    .every(requirement => getTitleTrackerProgressValue(tracker, definition.id, requirement.key) >= Number(requirement.threshold || 0));
+}
+
+function getTitleTrackerPercent(tracker, definition) {
+  const requirements = getTitleTrackerRequirements(definition);
+  if (!requirements.length) return 0;
+
+  const totalPercent = requirements.reduce((total, requirement) => {
+    const threshold = Math.max(1, Number(requirement.threshold || 1));
+    const value = getTitleTrackerProgressValue(tracker, definition.id, requirement.key);
+    return total + Math.min(100, (value / threshold) * 100);
+  }, 0);
+
+  return Math.min(100, Math.round(totalPercent / requirements.length));
 }
 
 function awardTitleCardToProfile(profileName, titleId) {
@@ -4650,8 +4687,7 @@ function checkTitleTrackerUnlock(profileName, titleId) {
   if (!definition || !definition.card) return;
 
   const tracker = data[profileName].titleTracker;
-  const progress = Number(tracker.progress[titleId] || 0);
-  if (progress < definition.threshold || tracker.awarded[titleId]) return;
+  if (!isTitleTrackerComplete(tracker, definition) || tracker.awarded[titleId]) return;
 
   const addedCard = awardTitleCardToProfile(profileName, titleId);
   tracker.awarded[titleId] = true;
@@ -4666,25 +4702,26 @@ function checkTitleTrackerUnlock(profileName, titleId) {
   }
 }
 
-function changeTitleTrackerProgress(titleId, amount) {
+function changeTitleTrackerProgress(titleId, requirementKey, amount) {
   if (!resourceProfile || !data[resourceProfile]) return;
   ensureTitleTrackerState(resourceProfile);
 
   const tracker = data[resourceProfile].titleTracker;
-  const currentValue = Number(tracker.progress[titleId] || 0);
-  tracker.progress[titleId] = Math.max(0, currentValue + amount);
+  const progressKey = getTitleTrackerProgressKey(titleId, requirementKey);
+  const currentValue = Number(tracker.progress[progressKey] || 0);
+  tracker.progress[progressKey] = Math.max(0, currentValue + amount);
 
   saveProfiles();
   checkTitleTrackerUnlock(resourceProfile, titleId);
   renderTitleTracker();
 }
 
-function setTitleTrackerProgress(titleId, rawValue) {
+function setTitleTrackerProgress(titleId, requirementKey, rawValue) {
   if (!resourceProfile || !data[resourceProfile]) return;
   ensureTitleTrackerState(resourceProfile);
 
   const value = Math.max(0, Number(rawValue || 0));
-  data[resourceProfile].titleTracker.progress[titleId] = value;
+  data[resourceProfile].titleTracker.progress[getTitleTrackerProgressKey(titleId, requirementKey)] = value;
 
   saveProfiles();
   checkTitleTrackerUnlock(resourceProfile, titleId);
@@ -4712,12 +4749,36 @@ function renderTitleTracker() {
           const card = definition.card;
           if (!card) return "";
 
-          const value = Number(tracker.progress[definition.id] || 0);
           const awarded = Boolean(tracker.awarded[definition.id]);
-          const percent = Math.min(100, Math.round((value / definition.threshold) * 100));
+          const percent = getTitleTrackerPercent(tracker, definition);
           const idArg = JSON.stringify(definition.id).replace(/"/g, "&quot;");
-          const step = Number(definition.step || 1);
           const requirement = (card.text || "").split("Reward:")[0].replace("Requirement:", "").trim();
+          const requirementRows = getTitleTrackerRequirements(definition).map(requirementDef => {
+            const value = getTitleTrackerProgressValue(tracker, definition.id, requirementDef.key);
+            const threshold = Math.max(1, Number(requirementDef.threshold || 1));
+            const rowPercent = Math.min(100, Math.round((value / threshold) * 100));
+            const step = Number(requirementDef.step || 1);
+            const requirementArg = JSON.stringify(requirementDef.key || "main").replace(/"/g, "&quot;");
+
+            return `
+              <div>
+                <div style="display:flex; justify-content:space-between; color:#eee; margin-bottom:5px;">
+                  <span>${escapeHeroValue(requirementDef.metric)}</span>
+                  <strong>${escapeHeroValue(getTitleTrackerProgressLabel(requirementDef, value))}</strong>
+                </div>
+                <div style="height:10px; border-radius:999px; background:rgba(255,255,255,0.12); overflow:hidden;">
+                  <div style="height:100%; width:${rowPercent}%; background:${awarded ? "#78dc8c" : "#d4af37"};"></div>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px; margin-top:8px;">
+                  <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, 1)">+1</button>
+                  <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, ${step})">+${step}</button>
+                  <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, -1)">-1</button>
+                  <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, -${step})">-${step}</button>
+                  <input type="number" min="0" value="${value}" onchange="setTitleTrackerProgress(${idArg}, ${requirementArg}, this.value)" style="min-width:0; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:#111; color:white;">
+                </div>
+              </div>
+            `;
+          }).join("");
 
           return `
             <div style="background:rgba(30,30,30,0.92); border:1px solid ${awarded ? "rgba(120,220,140,0.55)" : "rgba(255,255,255,0.12)"}; border-left:6px solid ${awarded ? "#78dc8c" : "#d4af37"}; border-radius:8px; padding:14px; display:grid; gap:10px;">
@@ -4730,22 +4791,7 @@ function renderTitleTracker() {
               </div>
               <div style="color:#ddd; line-height:1.4;"><strong>Goal:</strong> ${escapeHeroValue(requirement || definition.metric)}</div>
               <div style="color:#bbb; line-height:1.4;"><strong>Reward:</strong> ${escapeHeroValue((card.text || "").split("Reward:")[1] || card.text || "")}</div>
-              <div>
-                <div style="display:flex; justify-content:space-between; color:#eee; margin-bottom:5px;">
-                  <span>${escapeHeroValue(definition.metric)}</span>
-                  <strong>${escapeHeroValue(getTitleTrackerProgressLabel(definition, value))}</strong>
-                </div>
-                <div style="height:10px; border-radius:999px; background:rgba(255,255,255,0.12); overflow:hidden;">
-                  <div style="height:100%; width:${percent}%; background:${awarded ? "#78dc8c" : "#d4af37"};"></div>
-                </div>
-              </div>
-              <div style="display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px;">
-                <button onclick="changeTitleTrackerProgress(${idArg}, 1)">+1</button>
-                <button onclick="changeTitleTrackerProgress(${idArg}, ${step})">+${step}</button>
-                <button onclick="changeTitleTrackerProgress(${idArg}, -1)">-1</button>
-                <button onclick="changeTitleTrackerProgress(${idArg}, -${step})">-${step}</button>
-                <input type="number" min="0" value="${value}" onchange="setTitleTrackerProgress(${idArg}, this.value)" style="min-width:0; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:#111; color:white;">
-              </div>
+              ${requirementRows}
             </div>
           `;
         }).join("")}
@@ -9720,7 +9766,7 @@ function getIncomeRowKey(row) {
 }
 
 function getIncomeRowCount(row, constructed) {
-  return row.type === "relic" || row.type === "skill" || row.type === "titleMultiplier" ? 1 : Number(constructed[row.building] || 0);
+  return row.type === "relic" || row.type === "skill" || row.type === "title" || row.type === "titleMultiplier" ? 1 : Number(constructed[row.building] || 0);
 }
 
 function collectCheckedBuildings() {
@@ -9826,7 +9872,7 @@ function renderBuildings() {
               const atLimit = limit !== null && count >= limit;
               const isRelic = row.type === "relic";
               const isSkill = row.type === "skill";
-              const isOwnedTitleBonus = row.type === "titleMultiplier";
+              const isOwnedTitleBonus = row.type === "title" || row.type === "titleMultiplier";
 
               return `
               <tr>
@@ -10214,7 +10260,7 @@ function removeUnlockedCard(index) {
 const heroWeaponSlots = ["mainHand", "offHand", "twoHanded"];
 const heroSpellSlots = ["spellOne", "spellTwo", "spellThree"];
 const heroAccessorySlots = ["accessoryOne", "accessoryTwo"];
-const heroRuneSlots = ["mainHand", "offHand", "twoHanded", "armour", "head"];
+const heroRuneSlots = ["mainHand", "offHand", "twoHanded", "armour", "head", "runeOne"];
 const heroOneHandedWeaponSlots = ["mainHand", "offHand"];
 
 function makeHeroEquipmentCard(id, name, type, slot, pile, text, rarity = "Common", faction = "any") {
@@ -10401,43 +10447,75 @@ const companionHeroCards = [
 
 const titleHeroCards = [
   makeHeroEquipmentCard("title_dragonslayer", "Dragonslayer", "Title", heroAccessorySlots, "titles", "Requirement: Slay a Dragon. Reward: +1 OD against Dragons. Permanent.", "Epic"),
-  makeHeroEquipmentCard("title_cave_delver", "Cave Delver", "Title", heroAccessorySlots, "titles", "Requirement: Complete 5 Caves. Reward: +2 Movement in Caves. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_cave_delver", "Cave Delver", "Title", heroAccessorySlots, "titles", "Requirement: Complete 5 Caves. Reward: Your Hero does not die when exploring a 3rd Level Cave. Permanent.", "Rare"),
   makeHeroEquipmentCard("title_warlord", "Warlord", "Title", heroAccessorySlots, "titles", "Requirement: Destroy 25 enemy units. Reward: Adjacent allies gain +1 OD. Permanent.", "Epic"),
   makeHeroEquipmentCard("title_tyrant", "Tyrant", "Title", heroAccessorySlots, "titles", "Requirement: Destroy 5 enemy Structures. Reward: Gain +2 RC against Structures. Permanent.", "Rare"),
   makeHeroEquipmentCard("title_keeper_of_secrets", "Keeper of Secrets", "Title", heroAccessorySlots, "titles", "Requirement: Discover 20 Secrets. Reward: +1 RC. Permanent.", "Rare"),
-  makeHeroEquipmentCard("title_master_of_the_wild", "Master of the Wild", "Title", heroAccessorySlots, "titles", "Requirement: Tame or control 15 Beasts. Reward: Beasts under your control gain +10% HP. Permanent.", "Epic"),
-  makeHeroEquipmentCard("title_explorer", "Explorer", "Title", heroAccessorySlots, "titles", "Requirement: Reveal 50% of the map. Reward: +1 Movement. Permanent.", "Common"),
+  makeHeroEquipmentCard("title_master_of_the_wild", "Master of the Wild", "Title", heroAccessorySlots, "titles", "Requirement: Tame or control 15 Creatures. Reward: Creatures under your control gain +5 HP. Permanent.", "Epic"),
+  makeHeroEquipmentCard("title_explorer", "Explorer", "Title", heroAccessorySlots, "titles", "Requirement: Explore 10 Caves. Discover 10 Points of Interest. Reward: +3 Movement. Permanent.", "Common"),
   {
-    ...makeHeroEquipmentCard("title_wealthy", "Wealthy", "Title", heroAccessorySlots, "titles", "Requirement: Accumulate 5000 Gold. Reward: +10% Gold income. Permanent.", "Rare"),
-    collectionIncome: "+10% Gold income",
-    incomeMultiplierResource: "Gold",
-    incomeMultiplierPercent: 10
+    ...makeHeroEquipmentCard("title_wealthy", "Wealthy", "Title", heroAccessorySlots, "titles", "Requirement: Accumulate 1500 Gold. Reward: +5 Metal Income during Production. Permanent.", "Rare"),
+    collectionIncome: "+5 Metal"
   },
   makeHeroEquipmentCard("title_unbroken", "Unbroken", "Title", heroAccessorySlots, "titles", "Requirement: Win a battle with your Hero at 1 HP or less. Reward: Max HP +1. Permanent.", "Epic"),
-  makeHeroEquipmentCard("title_justiciar", "Justiciar", "Title", heroAccessorySlots, "titles", "Requirement: Punish 50 evil acts (raids, ambushes, or atrocities). Reward: Gain +1 Retaliate. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_justiciar", "Justiciar", "Title", heroAccessorySlots, "titles", "Requirement: Survive 40 Attacks. Reward: +1 Retaliate. Permanent.", "Rare"),
   {
-    ...makeHeroEquipmentCard("title_conqueror", "Conqueror", "Title", heroAccessorySlots, "titles", "Requirement: Own or capture 20 Settlements. Reward: All settlements you own generate +5 Gold.", "Epic"),
+    ...makeHeroEquipmentCard("title_conqueror", "Conqueror", "Title", heroAccessorySlots, "titles", "Requirement: Control or Progress POIs for 30 total Rounds. Reward: Income increases by +5 Gold during Production. Permanent.", "Epic"),
     collectionIncome: "+5 Gold",
-    collectionRowName: "Conqueror Settlements",
-    collectionLimit: "Owned settlements",
-    collectionCountLabel: "Settlement"
+    collectionRowName: "Conqueror"
   },
-  makeHeroEquipmentCard("title_survivor", "Survivor", "Title", heroAccessorySlots, "titles", "Requirement: Survive 20 Turns in a single campaign. Reward: Heal 5 HP at the start of each Production Phase. Permanent.", "Common")
+  makeHeroEquipmentCard("title_survivor", "Survivor", "Title", heroAccessorySlots, "titles", "Requirement: Suffer at least 2 attacks each Phase for 5 Missions. Reward: Heal 5 HP at the start of each Production Phase.", "Common"),
+  makeHeroEquipmentCard("title_world_breaker", "World Breaker", "Title", heroAccessorySlots, "titles", "Requirement: Defeat 3 World Bosses. Reward: +2 OD against World Bosses. Permanent.", "Epic"),
+  {
+    ...makeHeroEquipmentCard("title_poi_master", "POI Master", "Title", heroAccessorySlots, "titles", "Requirement: Control or Progress 50 Points of Interest. Reward: +3 Gold Income during Production. Permanent.", "Rare"),
+    collectionIncome: "+3 Gold"
+  },
+  makeHeroEquipmentCard("title_harmony_keeper", "Harmony Keeper", "Title", heroAccessorySlots, "titles", "Requirement: Maintain 80 Harmony or higher for 10 Rounds. Reward: +5 Harmony. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_shadowmarked", "Shadowmarked", "Title", heroAccessorySlots, "titles", "Requirement: Collect 10 Shadow Marks. Reward: +1 RC. +10% Damage at Night. Permanent.", "Epic"),
+  makeHeroEquipmentCard("title_relic_hunter", "Relic Hunter", "Title", heroAccessorySlots, "titles", "Requirement: Obtain 10 Unique Relics. Reward: +1 OD. +1 RC. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_ancient_scourge", "Ancient Scourge", "Title", heroAccessorySlots, "titles", "Requirement: Destroy 15 Ancient Structures or Monoliths. Reward: +2 RC against Ancient. Permanent.", "Epic"),
+  makeHeroEquipmentCard("title_forge_master", "Forge Master", "Title", heroAccessorySlots, "titles", "Requirement: Craft 20 Epic or Legendary Items. Reward: +1 OD. +5% Crafting Success. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_beastslayer", "Beastslayer", "Title", heroAccessorySlots, "titles", "Requirement: Defeat or Tame 100 Creatures. Reward: +2 OD against Beasts. Permanent.", "Epic"),
+  makeHeroEquipmentCard("title_settlement_founder", "Settlement Founder", "Title", heroAccessorySlots, "titles", "Requirement: Establish 5 Settlements. Reward: +1 Population Limit. +5% Building Speed. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_elite_vanquisher", "Elite Vanquisher", "Title", heroAccessorySlots, "titles", "Requirement: Defeat 50 Elite Units. Reward: +1 OD. +1 Retaliate. Permanent.", "Epic"),
+  {
+    ...makeHeroEquipmentCard("title_reliquary", "Reliquary", "Title", heroAccessorySlots, "titles", "Requirement: Place 15 Relics in your Settlements. Reward: +2 Gold Income during Production. Permanent.", "Rare"),
+    collectionIncome: "+2 Gold"
+  },
+  makeHeroEquipmentCard("title_everlasting", "Everlasting", "Title", heroAccessorySlots, "titles", "Requirement: Complete 30 Missions. Do not fail a Mission. Reward: All Attributes +1. Permanent.", "Epic")
 ];
 
 const titleTrackerDefinitions = [
-  { id: "title_dragonslayer", metric: "Dragons slain", threshold: 1, step: 1 },
-  { id: "title_cave_delver", metric: "Caves completed", threshold: 5, step: 1 },
-  { id: "title_warlord", metric: "Enemy units destroyed", threshold: 25, step: 5 },
-  { id: "title_tyrant", metric: "Enemy Structures destroyed", threshold: 5, step: 1 },
-  { id: "title_keeper_of_secrets", metric: "Secrets discovered", threshold: 20, step: 5 },
-  { id: "title_master_of_the_wild", metric: "Beasts tamed or controlled", threshold: 15, step: 5 },
-  { id: "title_explorer", metric: "Map revealed", threshold: 50, step: 5, unit: "%" },
-  { id: "title_wealthy", metric: "Gold accumulated", threshold: 5000, step: 100, unit: "Gold" },
-  { id: "title_unbroken", metric: "Battles won at 1 HP or less", threshold: 1, step: 1 },
-  { id: "title_justiciar", metric: "Evil acts punished", threshold: 50, step: 5 },
-  { id: "title_conqueror", metric: "Settlements owned or captured", threshold: 20, step: 5 },
-  { id: "title_survivor", metric: "Turns survived in one campaign", threshold: 20, step: 5 }
+  { id: "title_dragonslayer", requirements: [{ key: "dragons", metric: "Dragons slain", threshold: 1, step: 1 }] },
+  { id: "title_cave_delver", requirements: [{ key: "caves", metric: "Caves completed", threshold: 5, step: 1 }] },
+  { id: "title_warlord", requirements: [{ key: "enemyUnits", metric: "Enemy units destroyed", threshold: 25, step: 5 }] },
+  { id: "title_tyrant", requirements: [{ key: "structures", metric: "Enemy Structures destroyed", threshold: 5, step: 1 }] },
+  { id: "title_keeper_of_secrets", requirements: [{ key: "secrets", metric: "Secrets discovered", threshold: 20, step: 5 }] },
+  { id: "title_master_of_the_wild", requirements: [{ key: "creaturesControlled", metric: "Creatures tamed or controlled", threshold: 15, step: 5 }] },
+  { id: "title_explorer", requirements: [
+    { key: "cavesExplored", metric: "Caves explored", threshold: 10, step: 1 },
+    { key: "poisDiscovered", metric: "Points of Interest discovered", threshold: 10, step: 1 }
+  ] },
+  { id: "title_wealthy", requirements: [{ key: "gold", metric: "Gold accumulated", threshold: 1500, step: 100, unit: "Gold" }] },
+  { id: "title_unbroken", requirements: [{ key: "lowHpWins", metric: "Battles won with Hero at 1 HP or less", threshold: 1, step: 1 }] },
+  { id: "title_justiciar", requirements: [{ key: "attacksSurvived", metric: "Attacks survived", threshold: 40, step: 5 }] },
+  { id: "title_conqueror", requirements: [{ key: "poiRounds", metric: "Rounds controlling or progressing POIs", threshold: 30, step: 5 }] },
+  { id: "title_survivor", requirements: [{ key: "missions", metric: "Missions with 2+ attacks suffered each Phase", threshold: 5, step: 1 }] },
+  { id: "title_world_breaker", requirements: [{ key: "worldBosses", metric: "World Bosses defeated", threshold: 3, step: 1 }] },
+  { id: "title_poi_master", requirements: [{ key: "poisControlled", metric: "Points of Interest controlled or progressed", threshold: 50, step: 5 }] },
+  { id: "title_harmony_keeper", requirements: [{ key: "harmonyRounds", metric: "Rounds at 80+ Harmony", threshold: 10, step: 1 }] },
+  { id: "title_shadowmarked", requirements: [{ key: "shadowMarks", metric: "Shadow Marks collected", threshold: 10, step: 1 }] },
+  { id: "title_relic_hunter", requirements: [{ key: "uniqueRelics", metric: "Unique Relics obtained", threshold: 10, step: 1 }] },
+  { id: "title_ancient_scourge", requirements: [{ key: "ancientStructures", metric: "Ancient Structures or Monoliths destroyed", threshold: 15, step: 5 }] },
+  { id: "title_forge_master", requirements: [{ key: "craftedItems", metric: "Epic or Legendary Items crafted", threshold: 20, step: 5 }] },
+  { id: "title_beastslayer", requirements: [{ key: "creaturesDefeatedTamed", metric: "Creatures defeated or tamed", threshold: 100, step: 10 }] },
+  { id: "title_settlement_founder", requirements: [{ key: "settlements", metric: "Settlements established", threshold: 5, step: 1 }] },
+  { id: "title_elite_vanquisher", requirements: [{ key: "eliteUnits", metric: "Elite Units defeated", threshold: 50, step: 5 }] },
+  { id: "title_reliquary", requirements: [{ key: "settlementRelics", metric: "Relics placed in Settlements", threshold: 15, step: 5 }] },
+  { id: "title_everlasting", requirements: [
+    { key: "missionsCompleted", metric: "Missions completed", threshold: 30, step: 5 },
+    { key: "noFailedMission", metric: "No failed Mission", threshold: 1, step: 1 }
+  ] }
 ].map(definition => ({
   ...definition,
   card: titleHeroCards.find(card => card.id === definition.id)
@@ -11588,7 +11666,7 @@ const defaultHeroEquipmentCards = [
   }
 ];
 
-const heroEquipmentDeckVersion = 19;
+const heroEquipmentDeckVersion = 21;
 
 const heroEquipmentPiles = [
   { id: "basic", label: "Basic", backImage: "assets/hero-cards/basic-back.png" },
@@ -11671,7 +11749,8 @@ const heroCardCatalog = {
   spellTwo: [],
   spellThree: [],
   accessoryOne: [],
-  accessoryTwo: []
+  accessoryTwo: [],
+  runeOne: []
 };
 
 const heroEquipmentSlots = [
@@ -11686,7 +11765,8 @@ const heroUtilitySlots = [
   { id: "spellTwo", label: "Spell 2", hint: "Prepared spell or power" },
   { id: "spellThree", label: "Spell 3", hint: "Prepared spell or power" },
   { id: "accessoryOne", label: "Accessory 1", hint: "Rings, charms, relic gear" },
-  { id: "accessoryTwo", label: "Accessory 2", hint: "Rings, charms, relic gear" }
+  { id: "accessoryTwo", label: "Accessory 2", hint: "Rings, charms, relic gear" },
+  { id: "runeOne", label: "Rune Slot", hint: "Slottable rune bonus for the custom hero" }
 ];
 
 function createDefaultHeroEquipment() {
@@ -11709,12 +11789,14 @@ function createDefaultHeroEquipment() {
       spellTwo: "",
       spellThree: "",
       accessoryOne: "",
-      accessoryTwo: ""
+      accessoryTwo: "",
+      runeOne: ""
     },
     statUpgrades: {
       hp: "",
       od: "",
       move: "",
+      armour: "",
       battleTable: {}
     },
     notes: ""
@@ -11854,9 +11936,29 @@ function migrateHeroFactionSpecificDecks(sharedState) {
   delete sharedState.decks.factionSpecific;
 }
 
+function refreshHeroEquipmentCardMetadata(card) {
+  if (!card?.id) return card;
+  const defaultCard = allDefaultHeroEquipmentCards.find(entry => entry.id === card.id);
+  return defaultCard ? { ...defaultCard, ...card, slot: defaultCard.slot } : card;
+}
+
 function updateHeroEquipmentDeckVersion() {
   if (!data.sharedHeroEquipment) return;
   if (data.sharedHeroEquipment.version === heroEquipmentDeckVersion) return;
+
+  Object.keys(data.sharedHeroEquipment.decks || {}).forEach(pileId => {
+    data.sharedHeroEquipment.decks[pileId] = (data.sharedHeroEquipment.decks[pileId] || [])
+      .map(refreshHeroEquipmentCardMetadata);
+  });
+
+  data.sharedHeroEquipment.discard = (data.sharedHeroEquipment.discard || [])
+    .map(refreshHeroEquipmentCardMetadata);
+
+  Object.keys(data).forEach(profileName => {
+    if (isSharedDataKey(profileName) || !data[profileName]?.heroEquipment?.inventory) return;
+    data[profileName].heroEquipment.inventory = data[profileName].heroEquipment.inventory
+      .map(refreshHeroEquipmentCardMetadata);
+  });
 
   const existingIds = getExistingHeroEquipmentIds();
   allDefaultHeroEquipmentCards.forEach(card => {
@@ -12160,6 +12262,7 @@ const heroBaseStats = {
   hp: 10,
   od: 4,
   move: 10,
+  armour: 0,
   rc: "4-6",
   battleDie: "D6",
   battleTable: [
@@ -12177,14 +12280,70 @@ const heroBaseStats = {
   ]
 };
 
+function getEquippedHeroCards(hero) {
+  return Object.entries(hero.slots || {})
+    .map(([slotId, value]) => findHeroSlotCard(slotId, value))
+    .filter(Boolean);
+}
+
+function getRuneStatBonuses(hero) {
+  const bonuses = {
+    hp: 0,
+    od: 0,
+    move: 0,
+    armour: 0,
+    rc: 0,
+    notes: []
+  };
+
+  getEquippedHeroCards(hero)
+    .filter(card => String(card.type || "").toLowerCase().includes("rune"))
+    .forEach(card => {
+      const text = card.text || "";
+
+      if (/all\s+stats\s+\+1/i.test(text)) {
+        bonuses.hp += 1;
+        bonuses.od += 1;
+        bonuses.move += 1;
+        bonuses.armour += 1;
+        bonuses.rc += 1;
+      }
+
+      [
+        ["hp", /(?:\+(\d+)\s*HP|\+(\d+)\s*Health)/gi],
+        ["od", /\+(\d+)\s*OD/gi],
+        ["move", /\+(\d+)\s*Movement/gi],
+        ["armour", /\+(\d+)\s*Armou?r/gi],
+        ["rc", /\+(\d+)\s*RC/gi]
+      ].forEach(([key, pattern]) => {
+        [...text.matchAll(pattern)].forEach(match => {
+          bonuses[key] += Number(match[1] || match[2] || 0);
+        });
+      });
+
+      bonuses.notes.push(`${card.name}: ${text.replace(/^Socket into Weapons, Armour, Shields, and Helms\.\s*/i, "")}`);
+    });
+
+  return bonuses;
+}
+
+function formatHeroStatValue(key, baseValue, runeBonuses) {
+  const bonus = Number(runeBonuses[key] || 0);
+  if (!bonus) return baseValue;
+  if (typeof baseValue === "number") return `${baseValue + bonus} (+${bonus} Rune)`;
+  return `${baseValue} (+${bonus} Rune)`;
+}
+
 function renderHeroStatsPanel(hero) {
   const selectedRole = getHeroRoleCard(hero.roleId) || getHeroRoleCardByName(hero.className);
   const statUpgrades = hero.statUpgrades || {};
   const battleTableUpgrades = statUpgrades.battleTable || {};
+  const runeBonuses = getRuneStatBonuses(hero);
   const statRows = [
     ["?", "Health", "hp", heroBaseStats.hp],
     ["??", "Output Damage", "od", heroBaseStats.od],
     ["??", "Movement", "move", heroBaseStats.move],
+    ["?", "Armour", "armour", heroBaseStats.armour],
     ["?", "Roll Check", "", heroBaseStats.rc]
   ];
 
@@ -12203,7 +12362,7 @@ function renderHeroStatsPanel(hero) {
           <div class="hero-stat-tile" title="${label}">
             <div class="hero-stat-symbol">${symbol}</div>
             <div>
-              <div class="hero-stat-value">${value}</div>
+              <div class="hero-stat-value">${formatHeroStatValue(upgradeKey || "rc", value, runeBonuses)}</div>
             </div>
             ${upgradeKey ? `
               <input
@@ -12240,6 +12399,12 @@ function renderHeroStatsPanel(hero) {
       </table>
 
       <div class="hero-ability-list">
+        ${runeBonuses.notes.length ? `
+          <div class="hero-ability-card">
+            <strong style="color:#ffe08a;">Rune Bonuses</strong>
+            <div>${runeBonuses.notes.map(escapeHeroValue).join("<br>")}</div>
+          </div>
+        ` : ""}
         ${heroBaseStats.abilities.map(ability => `
           <div class="hero-ability-card">
             <strong style="color:#ffe08a;">${ability.title}</strong>
@@ -12280,12 +12445,12 @@ function renderHero() {
       <div class="hero-layout">
         <div style="display:grid; gap:12px;">
           ${heroEquipmentSlots.map(renderHeroSelect).join("")}
-          ${heroUtilitySlots.filter(slot => slot.id.startsWith("accessory")).map(renderHeroSelect).join("")}
+          ${heroUtilitySlots.filter(slot => slot.id.startsWith("accessory") || slot.id.startsWith("rune")).map(renderHeroSelect).join("")}
         </div>
         ${renderHeroPaperDoll(hero)}
         <div style="display:grid; gap:12px;">
           ${renderHeroWeaponFields()}
-          ${heroUtilitySlots.filter(slot => !slot.id.startsWith("accessory")).map(renderHeroSelect).join("")}
+          ${heroUtilitySlots.filter(slot => !slot.id.startsWith("accessory") && !slot.id.startsWith("rune")).map(renderHeroSelect).join("")}
         </div>
       </div>
 
