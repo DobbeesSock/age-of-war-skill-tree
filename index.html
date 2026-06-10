@@ -1194,7 +1194,8 @@ h1 {
     display: none;
     justify-content: center;
     align-items: center;
-    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .cave-randomizer-card {
@@ -1220,7 +1221,7 @@ h1 {
     text-shadow: 0 0 10px rgba(212,175,55,0.7);
 }
 
-#remaining {
+.cave-randomizer-remaining {
     margin-top: 12px;
     font-size: 14px;
     opacity: 0.85;
@@ -1235,7 +1236,7 @@ h1 {
     margin-top: 16px;
 }
 
-#manualInput {
+.cave-randomizer-row input {
     width: 150px;
     padding: 8px;
     background: #2a2017;
@@ -3556,7 +3557,7 @@ body.elves {
 
         <button onclick="generateCave()">Discover Cave</button>
 
-        <div id="remaining">Remaining: 261</div>
+        <div class="cave-randomizer-remaining" id="remaining">Remaining: 261</div>
 
         <div class="cave-randomizer-row">
             <input id="manualInput" placeholder="Enter cave # 0-260">
@@ -3567,6 +3568,27 @@ body.elves {
             <button onclick="resetCaves()">Reset</button>
             <button onclick="exportCaveSave()">Export Save</button>
             <button onclick="importCaveSave()">Import Save</button>
+        </div>
+    </div>
+
+    <div class="cave-randomizer-card">
+        <h1>HERO CAVE DISCOVERY</h1>
+
+        <div class="cave-randomizer-number" id="heroCaveNumber">--</div>
+
+        <button onclick="generateHeroCave()">Discover Hero Cave</button>
+
+        <div class="cave-randomizer-remaining" id="heroCaveRemaining">Remaining: 100</div>
+
+        <div class="cave-randomizer-row">
+            <input id="heroCaveManualInput" placeholder="Enter hero cave # 1-100">
+            <button onclick="goToHeroCave()">Go</button>
+        </div>
+
+        <div class="cave-randomizer-actions">
+            <button onclick="resetHeroCaves()">Reset</button>
+            <button onclick="exportHeroCaveSave()">Export Save</button>
+            <button onclick="importHeroCaveSave()">Import Save</button>
         </div>
     </div>
 </div>
@@ -23532,9 +23554,13 @@ function renderTrackers() {
 
 let availableCaves = [];
 let lastCave = null;
+let availableHeroCaves = [];
+let lastHeroCave = null;
 
 const cavePoolKey = "ageOfWarCavePool";
 const lastCaveKey = "ageOfWarLastCave";
+const heroCavePoolKey = "ageOfWarHeroCavePool";
+const lastHeroCaveKey = "ageOfWarLastHeroCave";
 
 function initializeCaves() {
     const savedPool = localStorage.getItem(cavePoolKey);
@@ -23559,6 +23585,25 @@ function initializeCaves() {
     updateRemaining();
 }
 
+function initializeHeroCaves() {
+    const savedPool = localStorage.getItem(heroCavePoolKey);
+    const savedLast = localStorage.getItem(lastHeroCaveKey);
+
+    if (savedPool) {
+        availableHeroCaves = JSON.parse(savedPool);
+    } else {
+        resetHeroCaves(false);
+    }
+
+    if (savedLast && savedLast !== "null") {
+        lastHeroCave = savedLast;
+        const heroCaveNumber = document.getElementById("heroCaveNumber");
+        if (heroCaveNumber) heroCaveNumber.innerText = lastHeroCave;
+    }
+
+    updateHeroCaveRemaining();
+}
+
 function saveCaveData() {
     localStorage.setItem(cavePoolKey, JSON.stringify(availableCaves));
     localStorage.setItem(lastCaveKey, lastCave);
@@ -23569,6 +23614,18 @@ function updateRemaining() {
     if (!remaining) return;
 
     remaining.innerText = "Remaining: " + availableCaves.length;
+}
+
+function saveHeroCaveData() {
+    localStorage.setItem(heroCavePoolKey, JSON.stringify(availableHeroCaves));
+    localStorage.setItem(lastHeroCaveKey, lastHeroCave);
+}
+
+function updateHeroCaveRemaining() {
+    const remaining = document.getElementById("heroCaveRemaining");
+    if (!remaining) return;
+
+    remaining.innerText = "Remaining: " + availableHeroCaves.length;
 }
 
 function generateCave() {
@@ -23674,6 +23731,110 @@ function importCaveSave() {
     }
 }
 
+function generateHeroCave() {
+    if (availableHeroCaves.length === 0) {
+        alert("All Hero Caves discovered! Resetting...");
+        resetHeroCaves();
+        return;
+    }
+
+    const index = Math.floor(Math.random() * availableHeroCaves.length);
+    const num = availableHeroCaves.splice(index, 1)[0];
+
+    setHeroCave(num);
+}
+
+function goToHeroCave() {
+    const inputEl = document.getElementById("heroCaveManualInput");
+    const input = inputEl.value;
+
+    inputEl.value = "";
+
+    if (input === "") return;
+
+    const num = parseInt(input, 10);
+
+    if (isNaN(num) || num < 1 || num > 100) {
+        alert("Enter a number between 1 and 100");
+        return;
+    }
+
+    if (!availableHeroCaves.includes(num)) {
+        alert("This Hero Cave was already discovered!");
+        return;
+    }
+
+    const index = availableHeroCaves.indexOf(num);
+    if (index !== -1) {
+        availableHeroCaves.splice(index, 1);
+    }
+
+    setHeroCave(num);
+}
+
+function setHeroCave(num) {
+    const formatted = num.toString().padStart(2, "0");
+
+    lastHeroCave = formatted;
+
+    const heroCaveNumber = document.getElementById("heroCaveNumber");
+    if (heroCaveNumber) heroCaveNumber.innerText = formatted;
+
+    saveHeroCaveData();
+    updateHeroCaveRemaining();
+}
+
+function resetHeroCaves(updateDisplay = true) {
+    availableHeroCaves = [];
+
+    for (let i = 1; i <= 100; i++) {
+        availableHeroCaves.push(i);
+    }
+
+    lastHeroCave = null;
+
+    saveHeroCaveData();
+
+    if (updateDisplay) {
+        const heroCaveNumber = document.getElementById("heroCaveNumber");
+        if (heroCaveNumber) heroCaveNumber.innerText = "--";
+        updateHeroCaveRemaining();
+    }
+}
+
+function exportHeroCaveSave() {
+    const data = {
+        pool: availableHeroCaves,
+        last: lastHeroCave
+    };
+
+    const encoded = btoa(JSON.stringify(data));
+    navigator.clipboard.writeText(encoded);
+    alert("Hero Cave randomizer save code copied to clipboard!");
+}
+
+function importHeroCaveSave() {
+    const input = prompt("Paste your Hero Cave randomizer save code:");
+
+    if (!input) return;
+
+    try {
+        const decoded = JSON.parse(atob(input));
+
+        availableHeroCaves = Array.isArray(decoded.pool) ? decoded.pool : [];
+        lastHeroCave = decoded.last;
+
+        saveHeroCaveData();
+
+        const heroCaveNumber = document.getElementById("heroCaveNumber");
+        if (heroCaveNumber) heroCaveNumber.innerText = lastHeroCave ? lastHeroCave : "--";
+
+        updateHeroCaveRemaining();
+    } catch {
+        alert("Invalid Hero Cave randomizer save code");
+    }
+}
+
 function ensureShopState(profileName) {
   if (!profileName || !data[profileName]) return;
 
@@ -23705,6 +23866,7 @@ setFaction(currentFaction);
 updateSM();
 updateFury();
 initializeCaves();
+initializeHeroCaves();
 
 if (document.getElementById("skillProfileSelect").options.length > 0) {
     loadProfile();
