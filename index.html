@@ -3448,7 +3448,7 @@ body.elves {
 <div id="unlockCardLibraryView" style="display:none;">
   <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
     <label style="color:white;">Give to: <select id="gmUnlockCardTargetSelect"></select></label>
-    <label style="color:white;">Faction: <select id="unlockCardFactionFilter" onchange="renderUnlockCardLibrary()"><option value="all">All Factions</option><option value="Dwarves">Dwarves</option></select></label>
+    <label style="color:white;">Faction: <select id="unlockCardFactionFilter" onchange="renderUnlockCardLibrary()"><option value="all">All Factions</option><option value="Dwarves">Dwarves</option><option value="Men">Men</option></select></label>
     <input id="unlockCardSearch" type="search" placeholder="Search unlock cards..." oninput="renderUnlockCardLibrary()" style="min-width:260px;">
   </div>
   <div id="unlockCardLibraryApp"></div>
@@ -9049,7 +9049,7 @@ const factionUnlockEnvelopes = {
   men: [
     { id: "men_secret_t", title: "Secret Card T - Men", type: "Unique Unit Unlock", lore: "The old kingdoms open a war-pen sealed since the first border wars. The army is no longer only marching with soldiers and banners; it is gathering the hard-bred beasts of a greater realm.", unlocks: ["Unlock unique unit: Battle Boar.", "The GM gives this faction the Battle Boar stat card when this envelope is revealed.", "Battle Boar becomes available to this faction for future army building once unlocked."], ...secretCardTImages },
     { id: "men_belief_path", pathId: "men_belief", title: "Path of Belief", type: "Hidden Path", lore: "The people gather beneath one banner. Roads, churches, taxes, and armies begin moving as a single imperial body.", unlocks: ["Reveal when the Men unlock or claim Path I - Belief.", "New Skill Tree: Imperial Doctrine.", "Use the Imperial Doctrine skill tree card as the faction reference."], revealedImage: "assets/path-unlocks/men/path-1/imperial-doctrine.png" },
-    { id: "men_ascension_path", pathId: "men_ascension", title: "Path of Ascension", type: "Hidden Path", lore: "Only a kingdom that remembers mercy, duty, and protection can become eternal. The banners rise cleaner with every noble choice.", unlocks: ["Reveal when the Men unlock or claim Path II - Ascension.", "Unlock enhanced unit stat cards.", "The GM gives the upgraded stat cards to the Men player when this path is chosen."] },
+    { id: "men_ascension_path", pathId: "men_ascension", title: "Path of Ascension", type: "Hidden Path", lore: "Only a kingdom that remembers mercy, duty, and protection can become eternal. The banners rise cleaner with every noble choice.", unlocks: ["Reveal when the Men unlock or claim Path II - Ascension.", "Unlock enhanced unit stat cards.", "The GM may send the Men Path II stat cards from the Unlocked Cards library when this path is chosen."] },
     { id: "men_awakening_path", pathId: "men_awakening", title: "Path of Awakening", type: "Hidden Path", lore: "The heavens answer slowly at first: a feather in ash, a hymn after battle, a blade of light seen beyond the veil.", unlocks: ["Reveal when the Men unlock or claim Path III - Awakening.", "New Skill Tree: Angelic Ascension.", "Use the Angelic Ascension skill tree card as the faction reference."], revealedImage: "assets/path-unlocks/men/path-3/angelic-ascension.png" }
   ],
   dwarves: [
@@ -10142,7 +10142,27 @@ const unlockableCards = [
   { id: "dwarves_path2_lord", faction: "Dwarves", category: "Path II Stat Card", name: "Lord", summary: "Updated Dwarven stat card.", frontImage: "assets/unlocked-cards/dwarves/path2-lord.png" },
   { id: "dwarves_path2_ram", faction: "Dwarves", category: "Path II Stat Card", name: "Ram", summary: "Updated Dwarven stat card.", frontImage: "assets/unlocked-cards/dwarves/path2-ram.png" },
   { id: "dwarves_path2_spawn_of_the_deep", faction: "Dwarves", category: "Path II Stat Card", name: "Spawn of the Deep", summary: "Updated Dwarven stat card.", frontImage: "assets/unlocked-cards/dwarves/path2-spawn-of-the-deep.png" },
-  { id: "dwarves_path3_stone_speaker", faction: "Dwarves", category: "Path III Unlock", name: "Stone Speaker", summary: "Path III Stone Speaker unlock card.", frontImage: "assets/unlocked-cards/dwarves/path3-stone-speaker.png" }
+  { id: "dwarves_path3_stone_speaker", faction: "Dwarves", category: "Path III Unlock", name: "Stone Speaker", summary: "Path III Stone Speaker unlock card.", frontImage: "assets/unlocked-cards/dwarves/path3-stone-speaker.png" },
+  { id: "men_action_board_crownshield", faction: "Men", category: "Action Board Unlock", name: "The Crownshield Bastion", summary: "Forward operating base card unlocked from the Men action board requirement.", frontImage: "assets/unlocked-cards/men/action-board-men-front.png", backImage: "assets/unlocked-cards/men/action-board-men-back.png" },
+  { id: "men_setup6_great_church", faction: "Men", category: "Setup 6 Secret", name: "The Great Church", summary: "Men secret unlock option. Unlock Church construction and the Faith Meter.", frontImage: "assets/unlocked-cards/men/church.png", backImage: "assets/unlocked-cards/men/church-back.png" },
+  { id: "men_setup6_crusader_orders", faction: "Men", category: "Setup 6 Secret", name: "The Crusader Orders", summary: "Men secret unlock option. Gain Crusader Knight Orders and Faith generation.", frontImage: "assets/unlocked-cards/men/crusader.png", backImage: "assets/unlocked-cards/men/crusader-back.png" },
+  { id: "men_setup6_templar_ascendant", faction: "Men", category: "Setup 6 Secret", name: "The Templar Ascendant", summary: "Men secret unlock option. Gain The Mounted Knight Templar.", frontImage: "assets/unlocked-cards/men/templar.png", backImage: "assets/unlocked-cards/men/templar-back.png" },
+  { id: "men_secret_faith_reference", faction: "Men", category: "Secret Reward Card", name: "Faith", summary: "Faith reference card for Men secret unlocks.", frontImage: "assets/unlocked-cards/men/faith.png" },
+  { id: "men_secret_seraphim", faction: "Men", category: "Secret Reward Card", name: "Angelic Seraphim", summary: "Summon card unlocked through The Great Church.", frontImage: "assets/unlocked-cards/men/seraphim.png" },
+  { id: "men_secret_knight_templar", faction: "Men", category: "Secret Reward Card", name: "Mounted Knight Templar", summary: "Unique unit card gained from The Templar Ascendant.", frontImage: "assets/unlocked-cards/men/knight-templar.png" },
+  { id: "men_secret_order_flame", faction: "Men", category: "Secret Reward Card", name: "Crusader Knight - Order of the Flame", summary: "Crusader order card gained from The Crusader Orders.", frontImage: "assets/unlocked-cards/men/flame.png" },
+  { id: "men_secret_order_wall", faction: "Men", category: "Secret Reward Card", name: "Crusader Knight - Order of the Wall", summary: "Crusader order card gained from The Crusader Orders.", frontImage: "assets/unlocked-cards/men/wall.png" },
+  { id: "men_path2_ranger", faction: "Men", category: "Path II Stat Card", name: "Ranger", summary: "Updated Men stat card.", frontImage: "assets/unlocked-cards/men/path2-archer.png" },
+  { id: "men_path2_angelic_soldier", faction: "Men", category: "Path II Stat Card", name: "Angelic Soldier", summary: "Updated Men stat card.", frontImage: "assets/unlocked-cards/men/path2-angelic.png" },
+  { id: "men_path2_swordsman", faction: "Men", category: "Path II Stat Card", name: "Swordsman", summary: "Updated Men stat card.", frontImage: "assets/unlocked-cards/men/path2-sword.png" },
+  { id: "men_path2_banner_carrier", faction: "Men", category: "Path II Stat Card", name: "Banner Carrier", summary: "Updated Men stat card.", frontImage: "assets/unlocked-cards/men/path2-banner.png" },
+  { id: "men_path2_cleric", faction: "Men", category: "Path II Stat Card", name: "Cleric", summary: "Updated Men stat card.", frontImage: "assets/unlocked-cards/men/path2-cleric.png" },
+  { id: "men_path2_ferocious_bear", faction: "Men", category: "Path II Stat Card", name: "Ferocious Bear", summary: "Updated Men stat card.", frontImage: "assets/unlocked-cards/men/path2-bear.png" },
+  { id: "men_path2_war_horse", faction: "Men", category: "Path II Stat Card", name: "War Horse", summary: "Updated Men stat card.", frontImage: "assets/unlocked-cards/men/path2-horse.png" },
+  { id: "men_path2_vicious_hound", faction: "Men", category: "Path II Stat Card", name: "Vicious Hound", summary: "Updated Men stat card.", frontImage: "assets/unlocked-cards/men/path2-hound.png" },
+  { id: "men_path2_paladin", faction: "Men", category: "Path II Stat Card", name: "Paladin", summary: "Updated Men stat card.", frontImage: "assets/unlocked-cards/men/path2-paladin.png" },
+  { id: "men_path2_legionary", faction: "Men", category: "Path II Stat Card", name: "Legionary", summary: "Updated Men stat card.", frontImage: "assets/unlocked-cards/men/path2-legionary.png" },
+  { id: "men_path2_king", faction: "Men", category: "Path II Stat Card", name: "King", summary: "Updated Men stat card.", frontImage: "assets/unlocked-cards/men/path2-king.png" }
 ];
 
 function getUnlockableCardById(cardId) {
@@ -15435,6 +15455,7 @@ function renderGeneratedCreatureCard(creature) {
           <li>At the end of each Phase, during Production cleanup, this creature may move and/or attack once.</li>
           <li>Priority: attack the faction that attacked it.</li>
           <li>Only switch focus if adjacent to multiple targets, or if another faction attacks it.</li>
+          ${creature.tier === "boss" ? "<li>World Bosses cannot be controlled, tamed, or suffer negative effects.</li>" : ""}
         </ul>
       </div>
       <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; margin-bottom:10px;">
