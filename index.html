@@ -873,6 +873,71 @@ h1 {
   color: #ffd98f;
 }
 
+.crafting-reference {
+  display: grid;
+  gap: 18px;
+  color: #eee;
+}
+
+.crafting-reference-section {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(24, 24, 24, 0.94), rgba(8, 8, 8, 0.94));
+  padding: 16px;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.25);
+}
+
+.crafting-reference-section h2 {
+  margin: 0 0 10px 0;
+  color: #ffe08a;
+  font-size: 24px;
+}
+
+.crafting-reference-note {
+  margin: 0 0 12px 0;
+  color: #cfcfcf;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.crafting-reference-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.crafting-reference-table th,
+.crafting-reference-table td {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 9px 10px;
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.35;
+}
+
+.crafting-reference-table th {
+  color: #ffe08a;
+  background: rgba(255, 224, 138, 0.08);
+}
+
+.crafting-reference-rules {
+  display: grid;
+  gap: 12px;
+}
+
+.crafting-reference-rule h3 {
+  margin: 0 0 4px 0;
+  color: #fff1c7;
+  font-size: 17px;
+}
+
+.crafting-reference-rule p {
+  margin: 0;
+  color: #ddd;
+  line-height: 1.45;
+}
+
 
 
 @media (max-width: 900px) {
@@ -2042,6 +2107,7 @@ body.elves {
   <button onclick="showView('unlockCardLibrary')">Unlock Cards</button>
   
   <button onclick="showView('materialCards')">Materials</button>
+  <button onclick="showView('materialCrafting')">Material Crafting</button>
   <button onclick="showView('objectives')">Objective Deck</button>
 
 
@@ -3473,6 +3539,145 @@ body.elves {
     <input id="materialCardSearch" type="search" placeholder="Search materials..." oninput="renderMaterialCards()" style="min-width:260px;">
   </div>
   <div id="materialCardsApp"></div>
+</div>
+
+<div id="materialCraftingView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1500px; margin:0 auto;">
+    <div class="crafting-reference">
+      <section class="crafting-reference-section">
+        <h2>Equipment Crafting</h2>
+        <table class="crafting-reference-table">
+          <thead>
+            <tr>
+              <th style="width:20%;">Item Type</th>
+              <th>Materials Required</th>
+              <th style="width:14%;">Craft Check</th>
+              <th style="width:32%;">On Failure</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Common Equipment</strong></td><td>2 Wood, 1 Iron Ore</td><td><strong>3-6</strong></td><td>Retain 1 material of choice</td></tr>
+            <tr><td><strong>Rare Equipment</strong></td><td>2 Iron Ore, 1 Steel Ingot, 1 Plant Fibre</td><td><strong>4-6</strong></td><td>Retain 2 materials</td></tr>
+            <tr><td><strong>Legendary Equipment</strong></td><td>2 Steel Ingots, 1 Crystal Shard, 1 Legendary Material</td><td><strong>5-6</strong></td><td>Retain 3 materials</td></tr>
+            <tr><td><strong>Mythic Equipment</strong></td><td>2 Legendary Materials, 1 Mythic Material</td><td><strong>6</strong></td><td>Retain all Mythic Materials. Lose 1 non-Mythic material.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="crafting-reference-section">
+        <h2>Potion Crafting</h2>
+        <table class="crafting-reference-table">
+          <thead>
+            <tr>
+              <th style="width:24%;">Potion Tier</th>
+              <th>Materials Required</th>
+              <th style="width:16%;">Craft Check</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Common Potion</strong></td><td>1 Plant Fibre, 1 Beast Part</td><td><strong>3-6</strong></td></tr>
+            <tr><td><strong>Rare Potion</strong></td><td>2 Plant Fibres, 1 Moon Blossom</td><td><strong>4-6</strong></td></tr>
+            <tr><td><strong>Legendary Potion</strong></td><td>2 Moon Blossoms, 1 Worldroot Fragment</td><td><strong>5-6</strong></td></tr>
+            <tr><td><strong>Mythic Potion</strong></td><td>2 Legendary Materials, 1 Mythic Material</td><td><strong>6</strong></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="crafting-reference-section">
+        <h2>Mount Crafting</h2>
+        <table class="crafting-reference-table">
+          <thead>
+            <tr>
+              <th style="width:24%;">Mount Tier</th>
+              <th>Materials Required</th>
+              <th style="width:16%;">Craft Check</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Rare Mount</strong></td><td>2 Steel Ingots, 1 Beast Part, 1 Crystal Shard</td><td><strong>5-6</strong></td></tr>
+            <tr><td><strong>Legendary Mount</strong></td><td>1 Dragon Scale, 2 Steel Ingots, 1 Crystal Shard</td><td><strong>6</strong></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="crafting-reference-section">
+        <h2>Armour Set Crafting</h2>
+        <p class="crafting-reference-note">Armour Sets are more powerful than standard Equipment and require specialized crafting.</p>
+        <table class="crafting-reference-table">
+          <thead>
+            <tr>
+              <th style="width:20%;">Item Type</th>
+              <th>Materials Required</th>
+              <th style="width:14%;">Craft Check</th>
+              <th style="width:32%;">On Failure</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Set Piece</strong></td><td>2 Steel Ingots, 1 Crystal Shard, 1 Legendary Material</td><td><strong>6</strong></td><td>Retain all Legendary Materials</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="crafting-reference-section">
+        <h2>Relic Crafting</h2>
+        <p class="crafting-reference-note">Relics represent some of the rarest treasures in the world.</p>
+        <table class="crafting-reference-table">
+          <thead>
+            <tr>
+              <th style="width:20%;">Item Type</th>
+              <th>Materials Required</th>
+              <th style="width:14%;">Craft Check</th>
+              <th style="width:32%;">On Failure</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Relic</strong></td><td>2 Ancient Relic Fragments, 1 Void Essence, 1 Mythic Material</td><td><strong>6</strong></td><td>Retain all Ancient Relic Fragments</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="crafting-reference-section">
+        <h2>Crafting Station Reference</h2>
+        <table class="crafting-reference-table">
+          <thead>
+            <tr>
+              <th>Crafting Station</th>
+              <th>Allows Crafting Of</th>
+              <th>Automatic Success</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Campfire</strong></td><td>Potions</td><td>Common Crafts</td></tr>
+            <tr><td><strong>Furnace</strong></td><td>Weapons, Armour</td><td>Rare Crafts</td></tr>
+            <tr><td><strong>Ironworks</strong></td><td>Mounts, Armour Sets</td><td>Legendary Crafts</td></tr>
+            <tr><td><strong>Steelworks</strong></td><td>Relics, Ultimate Components</td><td>Mythic Crafts</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="crafting-reference-section">
+        <h2>Crafting Rules</h2>
+        <div class="crafting-reference-rules">
+          <div class="crafting-reference-rule">
+            <h3>Crafting Attempt</h3>
+            <p>A Faction that has a Crafting Station constructed or an ally who has a constructed crafting station may spend the required Materials and attempt the listed Craft Check.</p>
+          </div>
+          <div class="crafting-reference-rule">
+            <h3>Success</h3>
+            <p>Draw 1 card from the appropriate deck.</p>
+          </div>
+          <div class="crafting-reference-rule">
+            <h3>Failure</h3>
+            <p>Apply the failure effect listed in the Crafting Chart.</p>
+          </div>
+          <div class="crafting-reference-rule">
+            <h3>Automatic Success</h3>
+            <p>If the Hero is using a Crafting Station whose Passive grants automatic success for that item's tier, no Craft Check is required.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
 </div>
 
 <div id="objectivesView" style="display:none;">
@@ -14902,6 +15107,11 @@ function showView(view) {
   const materialCardsView = document.getElementById("materialCardsView");
   if (materialCardsView) {
     materialCardsView.style.display = view === "materialCards" && isHostMode ? "block" : "none";
+  }
+
+  const materialCraftingView = document.getElementById("materialCraftingView");
+  if (materialCraftingView) {
+    materialCraftingView.style.display = view === "materialCrafting" && isHostMode ? "block" : "none";
   }
 
   const objectivesView = document.getElementById("objectivesView");
