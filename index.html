@@ -829,6 +829,16 @@ h1 {
   color: #dcecff;
 }
 
+.keyword-chip.hero {
+  border-color: rgba(215, 170, 84, 0.48);
+}
+
+.keyword-chip.hero.active {
+  background: rgba(215, 170, 84, 0.22);
+  border-color: #d7aa54;
+  color: #fff1cf;
+}
+
 .keyword-chip.elves-hidden-path-pull {
   border-color: rgba(126, 226, 178, 0.72);
   box-shadow: 0 0 10px rgba(90, 220, 140, 0.34), inset 0 0 14px rgba(65, 160, 95, 0.14);
@@ -857,6 +867,10 @@ h1 {
 
 .keyword-chip.campaign .keyword-chip-impact {
   color: #9bc5ff;
+}
+
+.keyword-chip.hero .keyword-chip-impact {
+  color: #ffd98f;
 }
 
 
@@ -19066,6 +19080,54 @@ volumeThreeActKeywordAdditions.campaign.forEach(keyword => {
   virtueKeywordSet.delete(keyword);
   corruptionKeywordSet.delete(keyword);
 });
+
+const heroKeywordSet = new Set([
+  "ABYSS WALKER", "ALPHA MARKED", "ALPHA SLAYER", "ARENA CHAMPION", "ASHEN SOUL",
+  "BEAST FRIEND", "BEAST LORD", "BEAST LORE", "BEAST TRAPPER", "BEAST WHISPERER",
+  "BEASTMASTER", "BELL OF FEATHERS", "BELL RINGER", "BEYOND THE VEIL", "BLACK WING",
+  "BLESSED BY NATURE", "BONE DELVER", "BONE KING", "BROODMASTER", "CELESTIAL FORGED",
+  "CHAIN BREAKER", "CHAINBREAKER", "CONQUEROR", "CROWN CLAIMANT", "CROWN OF AGES",
+  "CROWNBEARER", "CRYSTAL TOUCHED", "DEEP CHOSEN", "DISCIPLINED", "DOOR WALKER",
+  "Draconic Whisper", "DRAGON EMPEROR", "DRAGON FRIEND", "DRAGON HEIR", "DRAGON HUNTER",
+  "DRAGON KEEPER", "DRAGON REMEMBERED", "DRAGON SCALED", "DRAGON SCHOLAR", "DRAGONMARKED",
+  "ECLIPSE CHOSEN", "ELDER SCALE", "ETERNAL NAME", "EYE WALKER", "FACELESS",
+  "FATE BREAKER", "FATE SEEN", "FATEBOUND", "FEASTED", "FIRST BLOODLINE",
+  "FIRST KING", "FIRST LIGHT", "FIRST OF THE PACK", "FIRST SCALE", "FIRST WYRM",
+  "FLAME TOUCHED", "FOREST FRIEND", "FORGE ETERNAL", "FORGE LORE", "FORGED",
+  "FORGOTTEN", "FORTUNE'S FOOL", "FRIEND OF FEATHERS", "FUTURE MARKED", "GREED TOUCHED",
+  "HE WHO REMEMBERS", "HEART OF ROOTS", "HEART TOUCHED", "HEARTBREAKER", "HEARTWOOD CHOSEN",
+  "HEARTWOOD WALKER", "HEIR OF KINGS", "HEIR OF ROOTS", "HEIR OF STARS", "HISTORY REMEMBERED",
+  "HOARD WALKER", "Humble", "KEY SEEKER", "KINGMAKER", "KING'S HEIR",
+  "KINGSBANE", "LABYRINTH WALKER", "LAST BROOD", "LAST DRAGON KING", "LAST DRAGONSLAYER",
+  "LAST HUNTER", "LAST MONARCH", "LAST SMITH", "LAST WITNESS", "LAST WITNESS OF CREATION",
+  "LEGEND BREAKER", "LEGEND SPEAKER", "LEGENDARY", "LOCKBREAKER", "LORD OF BEASTS",
+  "LORE SEEKER", "MACHINIST", "MARBLE FRIEND", "Marked", "MASK OF FATE",
+  "MASKED", "MASTER CRAFTER", "MASTER HUNTER", "MASTER OF BEASTS", "MASTER OF FANGS",
+  "MAW SURVIVOR", "MOON TOUCHED", "MOON WALKER", "MOONSWORN", "OATHBREAKER",
+  "OBELISK BREAKER", "OBELISK TOUCHED", "PACK LORD", "PACK SPEAKER", "RAVEN KING'S FAVOR",
+  "RAVEN LORD", "RAVEN SLAYER", "RAVENSWORN", "REALITY WALKER", "Reflected",
+  "RELIC BEARER", "REMEMBERED", "ROAD BETWEEN WORLDS", "ROAD WALKER", "ROOT BURNER",
+  "ROOT CLAIMANT", "ROOT KING", "ROOT KING'S FRIEND", "ROOT OF CREATION", "ROOTBOUND",
+  "ROYAL CLAIM", "SCHOLAR KING", "SEEN TWICE", "SELF KNOWN", "SKY CLIMBER",
+  "SKY KING", "SKY TYRANT", "SKY WALKER", "SONG HEARD", "STAR BORN",
+  "STAR SEEKER", "STAR WALKER", "STARFORGED", "STONE LORE", "STONE TWIN",
+  "Tempered", "THE ANSWERED", "THE DEEP ANSWERS", "THE ECLIPSE REMEMBERS", "THE FINAL HUNT",
+  "THE FIRST DEAD", "The Freed One", "THE HUNTER", "THE NAMELESS ONE", "THE OTHER SIDE",
+  "THE VEIL REMEMBERS", "THE WISE", "THE WORTHY", "THEIR BETTER", "THIEF OF ROOTS",
+  "THORN KING", "THREAD CUTTER", "THRONE OF SHADOWS", "TITAN SPOKEN", "TITAN WITNESSED",
+  "TREASURE SEEKER", "UNBLINKING", "VAULT DELVER", "VEIL ASCENDANT", "VEIL KEEPER",
+  "VEIL PROPHET", "VEIL SEER", "VEIL SPEAKER", "VEIL TOUCHED", "VEIL WALKER",
+  "VEIL WARDEN", "VEILED MERCHANT", "VEILED REALM ASCENDANT", "WANDERER", "WARDEN",
+  "WEAVER MARKED", "WORLDBREAKER", "WORLDMARKED", "WORLDROOT WALKER", "WYRM KING",
+  "WYRMBLOODED"
+]);
+
+heroKeywordSet.forEach(keyword => {
+  virtueKeywordSet.delete(keyword);
+  corruptionKeywordSet.delete(keyword);
+  campaignKeywordSet.delete(keyword);
+});
+
 const allKeywords = [...new Set([
   ...keywordSourceSections.flatMap(section => section.keywords),
   ...mythologicalCaveKeywordAdditions.virtue,
@@ -19080,7 +19142,8 @@ const allKeywords = [...new Set([
   ...volumeOneCaveKeywordAdditions.campaign,
   ...volumeThreeActKeywordAdditions.virtue,
   ...volumeThreeActKeywordAdditions.corruption,
-  ...volumeThreeActKeywordAdditions.campaign
+  ...volumeThreeActKeywordAdditions.campaign,
+  ...heroKeywordSet
 ])]
   .sort((a, b) => a.localeCompare(b));
 
@@ -19103,8 +19166,14 @@ const keywordSections = [
     description: "Long-term campaign identity, prophecy, faction history, cave outcomes, and endgame scoring hooks.",
     keywords: allKeywords.filter(keyword =>
       campaignKeywordSet.has(keyword) ||
-      (!virtueKeywordSet.has(keyword) && !corruptionKeywordSet.has(keyword))
+      (!virtueKeywordSet.has(keyword) && !corruptionKeywordSet.has(keyword) && !heroKeywordSet.has(keyword))
     )
+  },
+  {
+    title: "Hero Keywords",
+    category: "hero",
+    description: "Hero Cave marks, personal discoveries, legendary paths, and long-term hero identity hooks.",
+    keywords: allKeywords.filter(keyword => heroKeywordSet.has(keyword))
   }
 ];
 
@@ -21047,6 +21116,7 @@ function calculateKeywordAlignment(selected) {
     virtue: 0,
     corruption: 0,
     campaign: 0,
+    hero: 0,
     score: 0
   };
 
@@ -21067,6 +21137,11 @@ function calculateKeywordAlignment(selected) {
       return;
     }
 
+    if (category === "hero") {
+      totals.hero += 1;
+      return;
+    }
+
     totals.campaign += 1;
   });
 
@@ -21084,6 +21159,7 @@ function getKeywordAlignmentTitle(score) {
 function getKeywordImpactLabel(category) {
   if (category === "virtue") return "+1";
   if (category === "corruption") return "-1";
+  if (category === "hero") return "Hero";
   return "Story";
 }
 
@@ -21117,7 +21193,7 @@ function renderKeywordScale(selected) {
 
       <div class="keyword-scale-counts">
         <span>${alignment.corruption} corruption</span>
-        <span>${alignment.campaign} campaign/story</span>
+        <span>${alignment.campaign} campaign/story | ${alignment.hero} hero</span>
         <span>${alignment.virtue} virtue</span>
       </div>
     </div>
