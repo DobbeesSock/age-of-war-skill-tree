@@ -2070,6 +2070,7 @@ body.elves {
 <div id="mainNav" style="margin-bottom:15px; display:none; gap:10px; flex-wrap:wrap; align-items:center;">
   <button onclick="showView('factionInfo')">Faction Info</button>
   <button onclick="showView('titleTracker')">Title Tracker</button>
+  <button onclick="showView('materialCrafting')">Material Crafting</button>
   <button onclick="showView('skill')">Skill Trees</button>
   <button onclick="showView('resources')">Resources</button>
   <button onclick="showView('buildings')">Income</button>
@@ -2107,7 +2108,6 @@ body.elves {
   <button onclick="showView('unlockCardLibrary')">Unlock Cards</button>
   
   <button onclick="showView('materialCards')">Materials</button>
-  <button onclick="showView('materialCrafting')">Material Crafting</button>
   <button onclick="showView('objectives')">Objective Deck</button>
 
 
@@ -15111,7 +15111,7 @@ function showView(view) {
 
   const materialCraftingView = document.getElementById("materialCraftingView");
   if (materialCraftingView) {
-    materialCraftingView.style.display = view === "materialCrafting" && isHostMode ? "block" : "none";
+    materialCraftingView.style.display = view === "materialCrafting" ? "block" : "none";
   }
 
   const objectivesView = document.getElementById("objectivesView");
