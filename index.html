@@ -12823,6 +12823,7 @@ function lockHeroRole() {
   hero.className = selectedRole.name;
 
   saveProfiles();
+  flushLiveCampaignSave({ profileName: resourceProfile });
   renderHero();
 }
 
@@ -13116,6 +13117,7 @@ function sendHeroEquipmentCard(pileId, deckIndex, targetProfile = getGmTargetPro
     .filter(entry => !(entry.pile.id === pileId && entry.index === deckIndex));
 
   saveProfiles();
+  flushLiveCampaignSave({ profileName: targetProfile, includeShared: true });
   renderHeroEquipmentDeck();
   renderInventory();
   renderHero();
@@ -14613,6 +14615,8 @@ function refreshAfterRemoteCampaignUpdate() {
 
   if (resourceProfile) {
     loadResourceProfile(resourceProfile);
+    ensureHeroState(resourceProfile);
+    ensureHeroEquipmentState(resourceProfile);
     ensurePotionState(resourceProfile);
     ensureRelicState(resourceProfile);
     ensureObjectiveState(resourceProfile);
@@ -14627,6 +14631,7 @@ ensureKeywordState(resourceProfile);
   renderResources();
   renderBuildings();
   renderInventory();
+  renderHero();
   renderPotions();
   renderRelics();
   renderObjectives();
