@@ -13117,7 +13117,11 @@ function sendHeroEquipmentCard(pileId, deckIndex, targetProfile = getGmTargetPro
     .filter(entry => !(entry.pile.id === pileId && entry.index === deckIndex));
 
   saveProfiles();
-  flushLiveCampaignSave({ profileName: targetProfile, includeShared: true });
+  flushLiveCampaignSave({
+    profileName: targetProfile,
+    includeShared: true,
+    sharedKeys: ["sharedHeroEquipment"]
+  });
   renderHeroEquipmentDeck();
   renderInventory();
   renderHero();
@@ -14550,7 +14554,8 @@ function captureLiveSaveOptions(options = {}) {
   const captured = {
     profileName,
     includeShared: Boolean(options.includeShared),
-    fullData: Boolean(options.fullData)
+    fullData: Boolean(options.fullData),
+    sharedKeys: Array.isArray(options.sharedKeys) ? [...options.sharedKeys] : null
   };
 
   if (captured.fullData) {
@@ -14565,7 +14570,7 @@ function captureLiveSaveOptions(options = {}) {
   if (captured.includeShared) {
     captured.sharedSnapshots = {};
     Object.keys(data).forEach(key => {
-      if (isSharedDataKey(key)) {
+      if (isSharedDataKey(key) && (!captured.sharedKeys || captured.sharedKeys.includes(key))) {
         captured.sharedSnapshots[key] = cloneCampaignValue(data[key]);
       }
     });
@@ -22767,6 +22772,11 @@ function getGmTargetProfile(selectId) {
     return select?.value || resourceProfile;
 }
 
+function saveProfileWithSharedCards(profileName = resourceProfile, sharedKeys = null) {
+    saveProfiles();
+    flushLiveCampaignSave({ profileName, includeShared: true, sharedKeys });
+}
+
 
 function renderPotions() {
     const app = document.getElementById("potionsApp");
@@ -22983,7 +22993,7 @@ function gainRandomPotionByRarity(rarity, targetProfile = getGmTargetProfile("gm
     const card = sharedPotionState.deck.splice(randomPick.index, 1)[0];
 
     playerPotionState.inventory.push(card);
-    saveProfiles();
+    saveProfileWithSharedCards(targetProfile, ["sharedPotions"]);
     renderPotions();
     renderInventory();
 }
@@ -23273,7 +23283,7 @@ function gainRandomRelic(targetProfile = getGmTargetProfile("gmRelicTargetSelect
 
     playerRelicState.inventory.push(card);
 
-    saveProfiles();
+    saveProfileWithSharedCards(targetProfile, ["sharedRelics"]);
     renderRelics();
   renderObjectives();
 renderInventory();
@@ -23297,7 +23307,7 @@ function gainRandomRelicByType(type, targetProfile = getGmTargetProfile("gmRelic
 
     playerRelicState.inventory.push(card);
 
-    saveProfiles();
+    saveProfileWithSharedCards(targetProfile, ["sharedRelics"]);
     renderRelics();
   renderObjectives();
 renderInventory();
