@@ -13509,6 +13509,9 @@ let liveCampaignCode = "";
 let liveCampaignUnsubscribe = null;
 let isApplyingRemoteCampaign = false;
 let liveSaveTimer = null;
+let liveQueuedSave = null;
+let liveSaveOverlayId = 0;
+const liveSaveOverlays = new Map();
 const liveClientId = localStorage.getItem("veiledRealmClientId") || crypto.randomUUID();
 localStorage.setItem("veiledRealmClientId", liveClientId);
 
@@ -14502,6 +14505,10 @@ function disconnectLiveCampaign() {
     liveCampaignUnsubscribe();
   }
 
+  clearTimeout(liveSaveTimer);
+  liveSaveTimer = null;
+  liveQueuedSave = null;
+  liveSaveOverlays.clear();
   liveCampaignUnsubscribe = null;
   liveCampaignCode = "";
   setSyncStatus("Disconnected. Local changes will stay on this device.", "#f0c36a");
@@ -14516,14 +14523,19 @@ function subscribeToLiveCampaign(code) {
     if (!snapshot.exists) return;
 
     const remote = snapshot.data();
-    if (!remote || remote.updatedBy === liveClientId || !remote.data) return;
+    if (!remote || !remote.data) return;
 
     isApplyingRemoteCampaign = true;
-    data = remote.data;
+    data = applyLiveSaveOverlays(cloneCampaignValue(remote.data));
     localStorage.setItem("skillTreeData", JSON.stringify(data));
     refreshAfterRemoteCampaignUpdate();
     isApplyingRemoteCampaign = false;
-    setSyncStatus(`Live campaign ${code} synced.`, "#84c46a");
+    setSyncStatus(
+      liveSaveOverlays.size
+        ? `Live campaign ${code} synced. Saving local changes...`
+        : `Live campaign ${code} synced.`,
+      "#84c46a"
+    );
   }, error => {
     setSyncStatus(`Live sync error: ${error.message}`, "#ff8a8a");
   });
@@ -14533,23 +14545,70 @@ function cloneCampaignValue(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function getLiveSavePayload(remoteData = {}, options = {}) {
-  if (options.fullData) return cloneCampaignValue(data);
-
-  const nextData = { ...remoteData };
+function captureLiveSaveOptions(options = {}) {
   const profileName = options.profileName === undefined ? resourceProfile : options.profileName;
+  const captured = {
+    profileName,
+    includeShared: Boolean(options.includeShared),
+    fullData: Boolean(options.fullData)
+  };
 
-  if (profileName && data[profileName] && !isSharedDataKey(profileName)) {
-    nextData[profileName] = cloneCampaignValue(data[profileName]);
+  if (captured.fullData) {
+    captured.fullDataSnapshot = cloneCampaignValue(data);
+    return captured;
   }
 
-  if (options.includeShared) {
+  if (profileName && data[profileName] && !isSharedDataKey(profileName)) {
+    captured.profileSnapshot = cloneCampaignValue(data[profileName]);
+  }
+
+  if (captured.includeShared) {
+    captured.sharedSnapshots = {};
     Object.keys(data).forEach(key => {
       if (isSharedDataKey(key)) {
-        nextData[key] = cloneCampaignValue(data[key]);
+        captured.sharedSnapshots[key] = cloneCampaignValue(data[key]);
       }
     });
   }
+
+  return captured;
+}
+
+function applyLiveSaveOverlay(targetData, saveOptions) {
+  if (saveOptions.fullDataSnapshot) {
+    return cloneCampaignValue(saveOptions.fullDataSnapshot);
+  }
+
+  if (saveOptions.profileName && saveOptions.profileSnapshot) {
+    targetData[saveOptions.profileName] = cloneCampaignValue(saveOptions.profileSnapshot);
+  }
+
+  Object.entries(saveOptions.sharedSnapshots || {}).forEach(([key, value]) => {
+    targetData[key] = cloneCampaignValue(value);
+  });
+
+  return targetData;
+}
+
+function applyLiveSaveOverlays(targetData) {
+  return [...liveSaveOverlays.entries()]
+    .sort(([leftId], [rightId]) => leftId - rightId)
+    .reduce((nextData, [, saveOptions]) => applyLiveSaveOverlay(nextData, saveOptions), targetData);
+}
+
+function getLiveSavePayload(remoteData = {}, options = {}) {
+  if (options.fullDataSnapshot) return cloneCampaignValue(options.fullDataSnapshot);
+
+  const nextData = { ...remoteData };
+  const profileName = options.profileName;
+
+  if (profileName && options.profileSnapshot && !isSharedDataKey(profileName)) {
+    nextData[profileName] = cloneCampaignValue(options.profileSnapshot);
+  }
+
+  Object.entries(options.sharedSnapshots || {}).forEach(([key, value]) => {
+    nextData[key] = cloneCampaignValue(value);
+  });
 
   return nextData;
 }
@@ -14558,14 +14617,19 @@ function flushLiveCampaignSave(options = {}) {
   if (isApplyingRemoteCampaign || !liveCampaignCode || !liveSyncDb) return Promise.resolve(false);
 
   clearTimeout(liveSaveTimer);
+  liveSaveTimer = null;
 
-  const saveOptions = {
-    profileName: options.profileName === undefined ? resourceProfile : options.profileName,
-    includeShared: Boolean(options.includeShared),
-    fullData: Boolean(options.fullData)
-  };
+  if (liveQueuedSave) {
+    liveSaveOverlays.delete(liveQueuedSave.overlayId);
+    liveQueuedSave = null;
+  }
 
-  if (!saveOptions.fullData && !saveOptions.includeShared && (!saveOptions.profileName || !data[saveOptions.profileName])) {
+  const saveOptions = captureLiveSaveOptions(options);
+  const overlayId = ++liveSaveOverlayId;
+  liveSaveOverlays.set(overlayId, saveOptions);
+
+  if (!saveOptions.fullDataSnapshot && !saveOptions.sharedSnapshots && !saveOptions.profileSnapshot) {
+    liveSaveOverlays.delete(overlayId);
     return Promise.resolve(false);
   }
 
@@ -14585,9 +14649,11 @@ function flushLiveCampaignSave(options = {}) {
       }, { merge: true });
     });
   }).then(() => {
+    liveSaveOverlays.delete(overlayId);
     setSyncStatus(`Live campaign ${code} saved.`, "#84c46a");
     return true;
   }).catch(error => {
+    liveSaveOverlays.delete(overlayId);
     setSyncStatus(`Live save failed: ${error.message}`, "#ff8a8a");
     return false;
   });
@@ -14597,10 +14663,41 @@ function queueLiveCampaignSave(options = {}) {
   if (isApplyingRemoteCampaign || !liveCampaignCode || !liveSyncDb) return;
 
   clearTimeout(liveSaveTimer);
-  const saveOptions = { ...options };
+  if (liveQueuedSave) {
+    liveSaveOverlays.delete(liveQueuedSave.overlayId);
+  }
+
+  const saveOptions = captureLiveSaveOptions(options);
+  const overlayId = ++liveSaveOverlayId;
+  liveSaveOverlays.set(overlayId, saveOptions);
+  liveQueuedSave = { overlayId, saveOptions };
 
   liveSaveTimer = setTimeout(() => {
-    flushLiveCampaignSave(saveOptions);
+    liveSaveTimer = null;
+    liveQueuedSave = null;
+
+    const code = liveCampaignCode;
+    const campaignRef = getCampaignDoc(code);
+
+    liveSyncDb.runTransaction(transaction => {
+      return transaction.get(campaignRef).then(snapshot => {
+        const remote = snapshot.exists ? snapshot.data() : {};
+        const remoteData = remote?.data || {};
+        const nextData = getLiveSavePayload(remoteData, saveOptions);
+
+        transaction.set(campaignRef, {
+          data: nextData,
+          updatedAt: Date.now(),
+          updatedBy: liveClientId
+        }, { merge: true });
+      });
+    }).then(() => {
+      liveSaveOverlays.delete(overlayId);
+      setSyncStatus(`Live campaign ${code} saved.`, "#84c46a");
+    }).catch(error => {
+      liveSaveOverlays.delete(overlayId);
+      setSyncStatus(`Live save failed: ${error.message}`, "#ff8a8a");
+    });
   }, 250);
 }
 
