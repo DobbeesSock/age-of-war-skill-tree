@@ -2351,7 +2351,7 @@ body.elves {
                 <p>Gain +2 Gold when discovering a POI or Cave</p>
             </div>
 
-            <div class="node locked" data-id="d8" data-cost="4" data-prereq="d7">
+            <div class="node locked" data-id="d8" data-cost="4" data-prereq="d7" data-collection-income="+2 Metal per 50 Gold">
                 <h3>Ancestral Vaults</h3>
                 <p>Gain +2 Metal per 50 Gold</p>
             </div>
@@ -4739,6 +4739,22 @@ function applyCollectionIncome(incomeText, constructed = null) {
   };
 
   function applyPart(part) {
+    const proportionalMatch = part.match(/^\+(\d+)\s+(.+?)\s+per\s+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)$/i);
+    if (proportionalMatch) {
+      const rewardAmount = parseInt(proportionalMatch[1], 10);
+      const rewardName = resourceMap[proportionalMatch[2].trim().toLowerCase()];
+      const thresholdAmount = parseInt(proportionalMatch[3], 10);
+      const thresholdName = resourceMap[proportionalMatch[4].trim().toLowerCase()];
+      const thresholdResource = resources.find(resource => resource.name === thresholdName);
+      if (!rewardName || !thresholdResource || thresholdAmount <= 0) return;
+
+      const multiplier = Math.floor(Number(thresholdResource.value || 0) / thresholdAmount);
+      if (multiplier > 0) {
+        addResourceByName(rewardName, rewardAmount * multiplier);
+      }
+      return;
+    }
+
     const match = part.match(/^\+(\d+)\s+(.+?)(?:\s+per\s+(.+))?$/i);
     if (!match) return;
 
@@ -5046,6 +5062,11 @@ function getSkillNodeCollectionIncome(node) {
   if (node.dataset.collectionIncome) return node.dataset.collectionIncome;
 
   const text = node.innerText || "";
+  const proportionalMatch = text.match(/gain\s+\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)\s+per\s+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)/i);
+  if (proportionalMatch) {
+    return `+${proportionalMatch[1]} ${proportionalMatch[2]} per ${proportionalMatch[3]} ${proportionalMatch[4]}`;
+  }
+
   const match = text.match(/gain\s+\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)\s+Collection/i);
   return match ? `+${match[1]} ${match[2]}` : "";
 }
