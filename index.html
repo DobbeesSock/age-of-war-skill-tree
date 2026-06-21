@@ -23725,6 +23725,12 @@ function ensureRelicState(profileName) {
             inventory: data[profileName].relics.inventory || []
         };
     }
+
+    if (!Array.isArray(data.sharedRelics.deck)) data.sharedRelics.deck = [];
+    if (!Array.isArray(data.sharedRelics.discard)) data.sharedRelics.discard = [];
+    if (!Array.isArray(data.sharedRelics.unlocked)) {
+        data.sharedRelics.unlocked = relicCards.filter(card => card.startsUnlocked).map(card => card.id);
+    }
 }
 
 function renderRelics() {
@@ -23849,11 +23855,59 @@ function renderLockedRelicPile(type, cards) {
 }
 
 
-function unlockRelicType(type) {
+async function unlockRelicType(type) {
     if (!resourceProfile) return;
     ensureRelicState(resourceProfile);
     ensureObjectiveState(resourceProfile);
-const sharedRelicState = data.sharedRelics;
+    const sharedRelicState = data.sharedRelics;
+
+    if (liveCampaignCode && liveSyncDb) {
+        const campaignRef = getCampaignDoc(liveCampaignCode);
+
+        try {
+            const result = await liveSyncDb.runTransaction(async transaction => {
+                const snapshot = await transaction.get(campaignRef);
+                if (!snapshot.exists || !snapshot.data()?.data) {
+                    throw new Error("Campaign data was not found.");
+                }
+
+                const remoteSharedRelics = cloneCampaignValue(snapshot.data().data.sharedRelics || {});
+                if (!Array.isArray(remoteSharedRelics.deck)) remoteSharedRelics.deck = [];
+                if (!Array.isArray(remoteSharedRelics.unlocked)) remoteSharedRelics.unlocked = [];
+
+                const cardsToUnlock = relicCards.filter(card =>
+                    card.type === type && !remoteSharedRelics.unlocked.includes(card.id)
+                );
+                if (!cardsToUnlock.length) return { sharedRelics: remoteSharedRelics, unlockedCount: 0 };
+
+                cardsToUnlock.forEach(card => {
+                    if (!remoteSharedRelics.unlocked.includes(card.id)) remoteSharedRelics.unlocked.push(card.id);
+                    remoteSharedRelics.deck.push({ ...card });
+                });
+
+                const deckPath = new firebase.firestore.FieldPath("data", "sharedRelics", "deck");
+                const unlockedPath = new firebase.firestore.FieldPath("data", "sharedRelics", "unlocked");
+                transaction.update(campaignRef, deckPath, remoteSharedRelics.deck, unlockedPath, remoteSharedRelics.unlocked, "updatedAt", Date.now(), "updatedBy", liveClientId);
+                return { sharedRelics: remoteSharedRelics, unlockedCount: cardsToUnlock.length };
+            });
+
+            data.sharedRelics = {
+                ...data.sharedRelics,
+                ...result.sharedRelics
+            };
+            localStorage.setItem("skillTreeData", JSON.stringify(data));
+            renderRelics();
+            renderObjectives();
+            setSyncStatus(result.unlockedCount
+                ? `Unlocked ${result.unlockedCount} ${type} card${result.unlockedCount === 1 ? "" : "s"}.`
+                : `${type} are already unlocked.`, "#84c46a");
+        } catch (error) {
+            console.error("Relic unlock failed:", error);
+            setSyncStatus(`Relic unlock failed: ${error.message}`, "#ff8a8a");
+            alert(`Relic unlock failed: ${error.message}`);
+        }
+        return;
+    }
 
     const cardsToUnlock = relicCards.filter(card =>
         card.type === type && !sharedRelicState.unlocked.includes(card.id)
@@ -23887,7 +23941,7 @@ const playerRelicState = data[resourceProfile].relics;
 
     sharedRelicState.discard.push(card);
 
-    saveProfiles();
+    saveProfileWithSharedCards(resourceProfile, ["sharedRelics"]);
     renderRelics();
   renderObjectives();
 renderInventory();
