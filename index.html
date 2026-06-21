@@ -14471,15 +14471,34 @@ async function createLiveCampaign() {
     return;
   }
 
-  liveCampaignCode = code;
-  await getCampaignDoc(code).set({
-    data,
-    updatedAt: Date.now(),
-    updatedBy: liveClientId
-  }, { merge: true });
+  const campaignRef = getCampaignDoc(code);
 
-  subscribeToLiveCampaign(code);
-  setSyncStatus(`Hosting live campaign ${code}.`, "#84c46a");
+  try {
+    const snapshot = await campaignRef.get({ source: "server" });
+    liveCampaignCode = code;
+
+    if (snapshot.exists && snapshot.data()?.data) {
+      data = cloneCampaignValue(snapshot.data().data);
+      localStorage.setItem("skillTreeData", JSON.stringify(data));
+      refreshAfterRemoteCampaignUpdate();
+      subscribeToLiveCampaign(code);
+      setSyncStatus(`Hosting existing live campaign ${code}.`, "#84c46a");
+      return;
+    }
+
+    await campaignRef.set({
+      data,
+      updatedAt: Date.now(),
+      updatedBy: liveClientId
+    });
+
+    subscribeToLiveCampaign(code);
+    setSyncStatus(`Created and hosting live campaign ${code}.`, "#84c46a");
+  } catch (error) {
+    liveCampaignCode = "";
+    setSyncStatus(`Could not host campaign: ${error.message}`, "#ff8a8a");
+    alert(`Could not host campaign: ${error.message}`);
+  }
 }
 
 async function joinLiveCampaign() {
