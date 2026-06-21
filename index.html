@@ -22805,43 +22805,48 @@ async function transferRandomSharedDeckCard(targetProfile, sharedKey, inventoryK
     const campaignRef = getCampaignDoc(code);
 
     try {
-        const result = await liveSyncDb.runTransaction(async transaction => {
-            const snapshot = await transaction.get(campaignRef);
-            if (!snapshot.exists || !snapshot.data()?.data) {
-                throw new Error("Campaign data was not found.");
-            }
+        const snapshot = await campaignRef.get({ source: "server" });
+        if (!snapshot.exists || !snapshot.data()?.data) {
+            throw new Error("Campaign data was not found.");
+        }
 
-            const nextData = cloneCampaignValue(snapshot.data().data);
-            const sharedState = nextData[sharedKey];
-            const targetState = nextData[targetProfile];
-            if (!sharedState || !Array.isArray(sharedState.deck)) {
-                throw new Error("The shared card deck is unavailable.");
-            }
-            if (!targetState) {
-                throw new Error(`Player profile ${targetProfile} was not found in the live campaign.`);
-            }
+        const nextData = cloneCampaignValue(snapshot.data().data);
+        const sharedState = nextData[sharedKey];
+        const targetState = nextData[targetProfile];
+        if (!sharedState || !Array.isArray(sharedState.deck)) {
+            throw new Error("The shared card deck is unavailable.");
+        }
+        if (!targetState) {
+            throw new Error(`Player profile ${targetProfile} was not found in the live campaign.`);
+        }
 
-            const eligibleIndexes = sharedState.deck
-                .map((card, index) => ({ card, index }))
-                .filter(entry => !matchField || entry.card?.[matchField] === matchValue);
-            if (!eligibleIndexes.length) {
-                throw new Error(`No matching cards remain in the live ${sharedKey === "sharedPotions" ? "Potion" : "Relic"} deck.`);
-            }
+        const eligibleIndexes = sharedState.deck
+            .map((card, index) => ({ card, index }))
+            .filter(entry => !matchField || entry.card?.[matchField] === matchValue);
+        if (!eligibleIndexes.length) {
+            throw new Error(`No matching cards remain in the live ${sharedKey === "sharedPotions" ? "Potion" : "Relic"} deck.`);
+        }
 
-            const chosen = eligibleIndexes[Math.floor(Math.random() * eligibleIndexes.length)];
-            const card = sharedState.deck.splice(chosen.index, 1)[0];
-            if (!targetState[inventoryKey]) targetState[inventoryKey] = { inventory: [] };
-            if (!Array.isArray(targetState[inventoryKey].inventory)) targetState[inventoryKey].inventory = [];
-            targetState[inventoryKey].inventory.push(card);
+        const chosen = eligibleIndexes[Math.floor(Math.random() * eligibleIndexes.length)];
+        const card = sharedState.deck.splice(chosen.index, 1)[0];
+        if (!targetState[inventoryKey]) targetState[inventoryKey] = { inventory: [] };
+        if (!Array.isArray(targetState[inventoryKey].inventory)) targetState[inventoryKey].inventory = [];
+        targetState[inventoryKey].inventory.push(card);
 
-            transaction.set(campaignRef, {
-                data: nextData,
-                updatedAt: Date.now(),
-                updatedBy: liveClientId
-            }, { merge: true });
+        const deckPath = new firebase.firestore.FieldPath("data", sharedKey, "deck");
+        const inventoryPath = new firebase.firestore.FieldPath("data", targetProfile, inventoryKey, "inventory");
+        await campaignRef.update(
+            deckPath,
+            sharedState.deck,
+            inventoryPath,
+            targetState[inventoryKey].inventory,
+            "updatedAt",
+            Date.now(),
+            "updatedBy",
+            liveClientId
+        );
 
-            return { nextData, card };
-        });
+        const result = { nextData, card };
 
         data = applyLiveSaveOverlays(result.nextData);
         localStorage.setItem("skillTreeData", JSON.stringify(data));
