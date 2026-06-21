@@ -4911,7 +4911,7 @@ function awardTitleCardToProfile(profileName, titleId) {
   const titleDeck = getHeroEquipmentDeckList(data.sharedHeroEquipment, "titles");
   const deckIndex = titleDeck.findIndex(card => card.id === titleId);
   const sourceCard = deckIndex >= 0
-    ? titleDeck.splice(deckIndex, 1)[0]
+    ? titleDeck[deckIndex]
     : titleHeroCards.find(card => card.id === titleId);
 
   if (!sourceCard) return false;
@@ -11927,7 +11927,7 @@ const defaultHeroEquipmentCards = [
   }
 ];
 
-const heroEquipmentDeckVersion = 21;
+const heroEquipmentDeckVersion = 22;
 
 const heroEquipmentPiles = [
   { id: "basic", label: "Basic", backImage: "assets/hero-cards/basic-back.png" },
@@ -12232,6 +12232,27 @@ function updateHeroEquipmentDeckVersion() {
   data.sharedHeroEquipment.version = heroEquipmentDeckVersion;
 }
 
+function ensureReusableTitleDeck() {
+  if (!data.sharedHeroEquipment?.decks) return;
+
+  const currentTitleDeck = getHeroEquipmentDeckList(data.sharedHeroEquipment, "titles");
+  const currentById = new Map(
+    currentTitleDeck
+      .filter(card => card?.id)
+      .map(card => [card.id, card])
+  );
+  const defaultTitleIds = new Set(titleHeroCards.map(card => card.id));
+  const reusableTitles = titleHeroCards.map(defaultCard => ({
+    ...defaultCard,
+    ...(currentById.get(defaultCard.id) || {}),
+    slot: defaultCard.slot,
+    pile: "titles"
+  }));
+  const customTitles = currentTitleDeck.filter(card => card?.id && !defaultTitleIds.has(card.id));
+
+  data.sharedHeroEquipment.decks.titles = [...reusableTitles, ...customTitles];
+}
+
 function ensureHeroEquipmentState(profileName) {
   if (!data.sharedHeroEquipment) {
     data.sharedHeroEquipment = {
@@ -12264,6 +12285,7 @@ function ensureHeroEquipmentState(profileName) {
   });
 
   updateHeroEquipmentDeckVersion();
+  ensureReusableTitleDeck();
 
   if (!profileName || !data[profileName]) return;
 
@@ -13103,11 +13125,17 @@ function sendHeroEquipmentCard(pileId, deckIndex, targetProfile = getGmTargetPro
 
   const sharedState = data.sharedHeroEquipment;
   const deck = getHeroEquipmentDeckList(sharedState, pileId);
-  const card = deck.splice(deckIndex, 1)[0];
+  const isReusableTitle = pileId === "titles";
+  const card = isReusableTitle ? deck[deckIndex] : deck.splice(deckIndex, 1)[0];
   if (!card) return;
 
+  if (isReusableTitle && profileOwnsHeroEquipmentCard(targetProfile, card.id)) {
+    alert(`${targetProfile} already owns ${card.name}.`);
+    return;
+  }
+
   if (!heroCardCanGoToProfile(card, targetProfile)) {
-    deck.splice(deckIndex, 0, card);
+    if (!isReusableTitle) deck.splice(deckIndex, 0, card);
     alert("That card is faction-specific and cannot be sent to this profile.");
     return;
   }
