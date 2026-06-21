@@ -23005,9 +23005,52 @@ function renderDiscardPileByRarity(rarity, discardCards) {
 }
 
 
-function returnDiscardPileToDeck(rarity) {
+async function returnDiscardPileToDeck(rarity) {
     if (!resourceProfile) return;
     ensurePotionState(resourceProfile);
+
+    if (liveCampaignCode && liveSyncDb) {
+        const campaignRef = getCampaignDoc(liveCampaignCode);
+
+        try {
+            const snapshot = await campaignRef.get({ source: "server" });
+            const remoteData = snapshot.data()?.data;
+            const sharedPotionState = cloneCampaignValue(remoteData?.sharedPotions || {});
+            if (!Array.isArray(sharedPotionState.deck) || !Array.isArray(sharedPotionState.discard)) {
+                throw new Error("The live Potion deck is unavailable.");
+            }
+
+            const returningCards = sharedPotionState.discard.filter(card => card.rarity === rarity);
+            if (!returningCards.length) {
+                throw new Error(`No ${rarity} Potions remain in the live discard pile.`);
+            }
+
+            sharedPotionState.deck = sharedPotionState.deck.concat(returningCards);
+            sharedPotionState.discard = sharedPotionState.discard.filter(card => card.rarity !== rarity);
+
+            const deckPath = new firebase.firestore.FieldPath("data", "sharedPotions", "deck");
+            const discardPath = new firebase.firestore.FieldPath("data", "sharedPotions", "discard");
+            await campaignRef.update(
+                deckPath,
+                sharedPotionState.deck,
+                discardPath,
+                sharedPotionState.discard,
+                "updatedAt",
+                Date.now(),
+                "updatedBy",
+                liveClientId
+            );
+
+            data.sharedPotions = sharedPotionState;
+            localStorage.setItem("skillTreeData", JSON.stringify(data));
+            renderPotions();
+            setSyncStatus(`Returned ${returningCards.length} ${rarity} Potion card${returningCards.length === 1 ? "" : "s"} to the deck.`, "#84c46a");
+        } catch (error) {
+            setSyncStatus(`Potion return failed: ${error.message}`, "#ff8a8a");
+            alert(`Potion return failed: ${error.message}`);
+        }
+        return;
+    }
 
     const sharedPotionState = data.sharedPotions;
 
