@@ -4904,6 +4904,42 @@ function getTitleTrackerProgressValue(tracker, titleId, requirementKey = "main")
   return Number(tracker.progress[getTitleTrackerProgressKey(titleId, requirementKey)] || 0);
 }
 
+function syncResourceTrackedTitles(profileName) {
+  if (!profileName || !data[profileName]) return [];
+  ensureTitleTrackerState(profileName);
+  const profileResources = getProfileResources(profileName);
+  const tracker = data[profileName].titleTracker;
+  const trackedTitleIds = [];
+
+  titleTrackerDefinitions.forEach(definition => {
+    getTitleTrackerRequirements(definition).forEach(requirement => {
+      if (!requirement.resourceName) return;
+      const resource = profileResources.find(entry => entry.name === requirement.resourceName);
+      const progressKey = getTitleTrackerProgressKey(definition.id, requirement.key);
+      const currentProgress = Number(tracker.progress[progressKey] || 0);
+      const resourceValue = Number(resource?.value || 0);
+      tracker.progress[progressKey] = Math.max(currentProgress, resourceValue);
+      if (!trackedTitleIds.includes(definition.id)) trackedTitleIds.push(definition.id);
+    });
+  });
+
+  return trackedTitleIds;
+}
+
+function checkResourceTrackedTitleUnlocks(profileName, titleIds) {
+  const check = () => {
+    if (!profileName || !data[profileName]) return;
+    titleIds.forEach(titleId => checkTitleTrackerUnlock(profileName, titleId));
+    renderTitleTracker();
+  };
+
+  if (isApplyingRemoteCampaign) {
+    setTimeout(check, 0);
+  } else {
+    check();
+  }
+}
+
 function getTitleTrackerProgressLabel(requirement, value) {
   const suffix = requirement.unit ? ` ${requirement.unit}` : "";
   return `${value}${suffix} / ${requirement.threshold}${suffix}`;
@@ -5026,6 +5062,20 @@ function renderTitleTracker() {
             const step = Number(requirementDef.step || 1);
             const requirementArg = JSON.stringify(requirementDef.key || "main").replace(/"/g, "&quot;");
 
+            const controls = requirementDef.resourceName ? `
+              <div style="margin-top:8px; padding:8px 10px; border-radius:6px; background:rgba(99,180,255,0.10); border:1px solid rgba(99,180,255,0.24); color:#bfe2ff; font-size:13px;">
+                Automatically tracks the highest ${escapeHeroValue(requirementDef.resourceName)} total reached in the Resources tab.
+              </div>
+            ` : `
+              <div style="display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px; margin-top:8px;">
+                <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, 1)">+1</button>
+                <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, ${step})">+${step}</button>
+                <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, -1)">-1</button>
+                <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, -${step})">-${step}</button>
+                <input type="number" min="0" value="${value}" onchange="setTitleTrackerProgress(${idArg}, ${requirementArg}, this.value)" style="min-width:0; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:#111; color:white;">
+              </div>
+            `;
+
             return `
               <div>
                 <div style="display:flex; justify-content:space-between; color:#eee; margin-bottom:5px;">
@@ -5035,13 +5085,7 @@ function renderTitleTracker() {
                 <div style="height:10px; border-radius:999px; background:rgba(255,255,255,0.12); overflow:hidden;">
                   <div style="height:100%; width:${rowPercent}%; background:${awarded ? "#78dc8c" : "#d4af37"};"></div>
                 </div>
-                <div style="display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px; margin-top:8px;">
-                  <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, 1)">+1</button>
-                  <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, ${step})">+${step}</button>
-                  <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, -1)">-1</button>
-                  <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, -${step})">-${step}</button>
-                  <input type="number" min="0" value="${value}" onchange="setTitleTrackerProgress(${idArg}, ${requirementArg}, this.value)" style="min-width:0; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:#111; color:white;">
-                </div>
+                ${controls}
               </div>
             `;
           }).join("");
@@ -10787,7 +10831,7 @@ const titleTrackerDefinitions = [
     { key: "cavesExplored", metric: "Caves explored", threshold: 10, step: 1 },
     { key: "poisDiscovered", metric: "Points of Interest discovered", threshold: 10, step: 1 }
   ] },
-  { id: "title_wealthy", requirements: [{ key: "gold", metric: "Gold accumulated", threshold: 1500, step: 100, unit: "Gold" }] },
+  { id: "title_wealthy", requirements: [{ key: "gold", metric: "Gold accumulated", threshold: 1500, step: 100, unit: "Gold", resourceName: "Gold" }] },
   { id: "title_unbroken", requirements: [{ key: "lowHpWins", metric: "Battles won with Hero at 1 HP or less", threshold: 1, step: 1 }] },
   { id: "title_justiciar", requirements: [{ key: "attacksSurvived", metric: "Attacks survived", threshold: 40, step: 5 }] },
   { id: "title_conqueror", requirements: [{ key: "poiRounds", metric: "Rounds controlling or progressing POIs", threshold: 30, step: 5 }] },
@@ -10795,7 +10839,7 @@ const titleTrackerDefinitions = [
   { id: "title_world_breaker", requirements: [{ key: "worldBosses", metric: "World Bosses defeated", threshold: 3, step: 1 }] },
   { id: "title_poi_master", requirements: [{ key: "poisControlled", metric: "Points of Interest controlled or progressed", threshold: 50, step: 5 }] },
   { id: "title_harmony_keeper", requirements: [{ key: "harmonyRounds", metric: "Rounds at 80+ Harmony", threshold: 10, step: 1 }] },
-  { id: "title_shadowmarked", requirements: [{ key: "shadowMarks", metric: "Shadow Marks collected", threshold: 10, step: 1 }] },
+  { id: "title_shadowmarked", requirements: [{ key: "shadowMarks", metric: "Shadow Marks collected", threshold: 10, step: 1, resourceName: "Shadow Marks" }] },
   { id: "title_relic_hunter", requirements: [{ key: "uniqueRelics", metric: "Unique Relics obtained", threshold: 10, step: 1 }] },
   { id: "title_ancient_scourge", requirements: [{ key: "ancientStructures", metric: "Ancient Structures or Monoliths destroyed", threshold: 15, step: 5 }] },
   { id: "title_forge_master", requirements: [{ key: "craftedItems", metric: "Epic or Legendary Items crafted", threshold: 20, step: 5 }] },
@@ -13440,7 +13484,9 @@ function saveResourceProfile() {
     if (!resourceProfile || !data[resourceProfile]) return;
     data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
     data[resourceProfile].craftingMaterials = JSON.parse(JSON.stringify(craftingMaterials));
+    const resourceTrackedTitles = syncResourceTrackedTitles(resourceProfile);
     saveProfiles();
+    checkResourceTrackedTitleUnlocks(resourceProfile, resourceTrackedTitles);
     updateProfileList();
 }
 
@@ -13455,6 +13501,8 @@ function loadResourceProfile(profileName = resourceProfile) {
     data[profileName].resources = JSON.parse(JSON.stringify(resources));
     craftingMaterials = normalizeCraftingMaterialGroups(data[profileName].craftingMaterials);
     data[profileName].craftingMaterials = JSON.parse(JSON.stringify(craftingMaterials));
+    const resourceTrackedTitles = syncResourceTrackedTitles(profileName);
+    checkResourceTrackedTitleUnlocks(profileName, resourceTrackedTitles);
 
     const select = document.getElementById("resourceProfileSelect");
     if (select) {
