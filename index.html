@@ -5105,6 +5105,10 @@ function renderTitleTracker() {
               <div style="margin-top:8px; padding:8px 10px; border-radius:6px; background:rgba(99,180,255,0.10); border:1px solid rgba(99,180,255,0.24); color:#bfe2ff; font-size:13px;">
                 Automatically tracks the highest ${escapeHeroValue(requirementDef.resourceName)} total reached in the Resources tab.
               </div>
+              <div style="display:grid; grid-template-columns:repeat(${step === 1 ? 1 : 2}, minmax(70px, 110px)); gap:8px; margin-top:8px; align-items:center;">
+                <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, 1)" title="Record an off-app gain">+1</button>
+                ${step === 1 ? "" : `<button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, ${step})" title="Record an off-app gain">+${step}</button>`}
+              </div>
             ` : `
               <div style="display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px; margin-top:8px;">
                 <button onclick="changeTitleTrackerProgress(${idArg}, ${requirementArg}, 1)">+1</button>
