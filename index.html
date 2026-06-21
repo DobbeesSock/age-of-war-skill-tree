@@ -2093,6 +2093,7 @@ body.elves {
 </div>
 
 <div id="tradeNotificationBar" style="display:none; margin:0 20px 12px 20px;"></div>
+<div id="gmPathNotificationBar" style="display:none; margin:0 20px 12px 20px;"></div>
 
 <div id="hostTabs" style="display:none; margin-bottom:15px;">
   <button onclick="showView('memories')">Memories</button>
@@ -2100,6 +2101,7 @@ body.elves {
   <button onclick="showView('breachEvents')">Breach Events</button>
   <button onclick="showView('creatureGenerator')">Creature Generator</button>
   <button onclick="showView('trackers')">Trackers</button>
+  <button id="gmNotificationsTabBtn" onclick="showView('gmNotifications')">Path Notifications <span id="gmNotificationCount" style="display:none; margin-left:4px; padding:1px 6px; border-radius:10px; background:#b91c1c; color:white; font-weight:bold;">0</span></button>
   <button onclick="showView('caveRandomizer')">Cave Randomizer</button>
   <button onclick="showView('mythologicalCaves')">Mythological Caves</button>
   <button onclick="showView('potions')">Potion Deck</button>
@@ -3757,6 +3759,13 @@ body.elves {
   <div style="max-width:1400px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px;">
     <h2 style="margin-top:0; color:#e8d7ae;">Trackers</h2>
     <div id="trackersApp"></div>
+  </div>
+</div>
+
+<div id="gmNotificationsView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1200px; margin:0 auto; background:rgba(30,30,30,0.92); padding:20px; border-radius:8px; border:1px solid rgba(255,224,138,0.25);">
+    <h2 style="margin-top:0; color:#ffe08a;">Player Path Notifications</h2>
+    <div id="gmNotificationsApp"></div>
   </div>
 </div>
 
@@ -13496,7 +13505,8 @@ function isSharedDataKey(name) {
         name === "sharedHeroEquipment" ||
         name === "sharedMaterialCards" ||
         name === "sharedAlliances" ||
-        name === "sharedTrades";
+        name === "sharedTrades" ||
+        name === "sharedGmNotifications";
 }
 
 
@@ -14815,6 +14825,7 @@ ensureKeywordState(resourceProfile);
 renderKeywords();
   renderAllianceTrading();
   renderTradeNotification();
+  renderGmNotifications();
   renderShop();
 }
 
@@ -15323,6 +15334,11 @@ function showView(view) {
 
   document.getElementById("trackersView").style.display =
     view === "trackers" && isHostMode ? "block" : "none";
+
+  const gmNotificationsView = document.getElementById("gmNotificationsView");
+  if (gmNotificationsView) {
+    gmNotificationsView.style.display = view === "gmNotifications" && isHostMode ? "block" : "none";
+  }
   
   document.getElementById("caveRandomizerView").style.display =
     view === "caveRandomizer" ? "flex" : "none";
@@ -15437,6 +15453,10 @@ function showView(view) {
 
   if (view === "trackers" && isHostMode) {
     renderTrackers();
+  }
+
+  if (view === "gmNotifications" && isHostMode) {
+    renderGmNotifications();
   }
 
   if (view === "keywords") {
@@ -15925,6 +15945,7 @@ function toggleHostMode() {
   if (hostTabs) hostTabs.style.display = "block";
   if (loginBtn) loginBtn.style.display = "none";
   if (logoutBtn) logoutBtn.style.display = "inline-block";
+  renderGmNotifications();
 }
 
 function disableHostMode() {
@@ -15937,12 +15958,15 @@ function disableHostMode() {
   if (hostTabs) hostTabs.style.display = "none";
   if (loginBtn) loginBtn.style.display = "inline-block";
   if (logoutBtn) logoutBtn.style.display = "none";
+  const gmPathNotificationBar = document.getElementById("gmPathNotificationBar");
+  if (gmPathNotificationBar) gmPathNotificationBar.style.display = "none";
 
  if (
   document.getElementById("memoriesView").style.display === "block" ||
   document.getElementById("worldEventsView").style.display === "block" ||
   document.getElementById("breachEventsView").style.display === "block" ||
   document.getElementById("trackersView").style.display === "block" ||
+  document.getElementById("gmNotificationsView").style.display === "block" ||
   document.getElementById("mythologicalCavesView").style.display === "block"
  
   
@@ -21004,6 +21028,142 @@ function calculateHiddenPathScore(pathId, selected) {
   }, { score: 0, matches: [] });
 }
 
+function ensureGmNotificationState() {
+  if (!data.sharedGmNotifications || typeof data.sharedGmNotifications !== "object") {
+    data.sharedGmNotifications = { pathUnlocks: [] };
+  }
+  if (!Array.isArray(data.sharedGmNotifications.pathUnlocks)) {
+    data.sharedGmNotifications.pathUnlocks = [];
+  }
+  return data.sharedGmNotifications;
+}
+
+function getPathUnlockEnvelope(pathId) {
+  return Object.values(factionUnlockEnvelopes)
+    .flat()
+    .find(envelope => envelope.pathId === pathId) || null;
+}
+
+async function persistGmNotificationState(options = {}) {
+  ensureGmNotificationState();
+  localStorage.setItem("skillTreeData", JSON.stringify(data));
+  if (!liveCampaignCode || !liveSyncDb) return;
+
+  const campaignRef = getCampaignDoc(liveCampaignCode);
+  const sharedPath = new firebase.firestore.FieldPath("data", "sharedGmNotifications");
+  const localItems = JSON.parse(JSON.stringify(data.sharedGmNotifications.pathUnlocks));
+  const removedId = options.removedId || "";
+  try {
+    await liveSyncDb.runTransaction(async transaction => {
+      const snapshot = await transaction.get(campaignRef);
+      if (!snapshot.exists) throw new Error("Campaign not found.");
+      const remoteState = snapshot.data()?.data?.sharedGmNotifications || { pathUnlocks: [] };
+      const merged = (remoteState.pathUnlocks || []).filter(item => item.id !== removedId);
+      localItems.forEach(item => {
+        const index = merged.findIndex(existing => existing.id === item.id);
+        if (index === -1) merged.push(item);
+        else merged[index] = item;
+      });
+      transaction.update(campaignRef, sharedPath, { pathUnlocks: merged }, "updatedAt", Date.now(), "updatedBy", liveClientId);
+    });
+  } catch (error) {
+    console.error("GM path notification save failed:", error);
+    setSyncStatus(`Path notification save failed: ${error.message}`, "#ff8a8a");
+  }
+}
+
+function notifyGmOfPathUnlock(profileName, pathId) {
+  if (!profileName || !pathId || !data[profileName]) return;
+  const definition = hiddenPathDefinitions[pathId];
+  if (!definition) return;
+  const state = ensureGmNotificationState();
+  const id = `${profileName}:${pathId}:unlocked`;
+  if (state.pathUnlocks.some(item => item.id === id)) return;
+
+  const hubKey = data[profileName].hubFaction || definition.hubKey;
+  const envelope = getPathUnlockEnvelope(pathId);
+  state.pathUnlocks.push({
+    id,
+    profileName,
+    pathId,
+    pathTitle: definition.title,
+    faction: factionHubs[hubKey]?.label || hubKey,
+    cardReminder: envelope?.unlocks?.join(" ") || definition.reward || "Review this path's unlock rewards and send any matching cards.",
+    createdAt: new Date().toISOString(),
+    read: false
+  });
+  persistGmNotificationState();
+  renderGmNotifications();
+}
+
+function renderGmNotifications() {
+  const state = ensureGmNotificationState();
+  const items = [...state.pathUnlocks].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  const unread = items.filter(item => !item.read).length;
+  const count = document.getElementById("gmNotificationCount");
+  if (count) {
+    count.textContent = unread;
+    count.style.display = unread ? "inline-block" : "none";
+  }
+
+  const banner = document.getElementById("gmPathNotificationBar");
+  if (banner) {
+    banner.style.display = isHostMode && unread ? "block" : "none";
+    banner.innerHTML = unread ? `<button type="button" onclick="showView('gmNotifications')" style="width:100%; padding:11px 14px; border:1px solid #d6a84b; background:#3b2b12; color:#ffe08a; text-align:left; font-weight:bold;">${unread} unread player path notification${unread === 1 ? "" : "s"}. Open GM inbox</button>` : "";
+  }
+
+  const app = document.getElementById("gmNotificationsApp");
+  if (!app) return;
+  app.innerHTML = items.length ? `<div style="display:grid; gap:12px;">${items.map(item => `
+    <article style="padding:14px; border-radius:8px; border:1px solid ${item.read ? "rgba(255,255,255,0.12)" : "#d6a84b"}; background:${item.read ? "rgba(42,42,42,0.9)" : "rgba(62,45,20,0.94)"};">
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+        <div>
+          <h3 style="margin:0 0 5px; color:#ffe08a;">${escapeHeroValue(item.profileName)} unlocked ${escapeHeroValue(item.pathTitle)}</h3>
+          <div style="color:#ddd;">${escapeHeroValue(item.faction)} faction</div>
+        </div>
+        <small style="color:#aaa;">${new Date(item.createdAt).toLocaleString()}</small>
+      </div>
+      <p style="margin:12px 0; line-height:1.45; color:#e8dfc8;">${escapeHeroValue(item.cardReminder)}</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" onclick="openUnlockCardsForNotification('${item.id}')">Open Unlock Cards</button>
+        ${item.read ? "" : `<button type="button" onclick="markGmPathNotificationRead('${item.id}')">Mark Read</button>`}
+        <button type="button" onclick="dismissGmPathNotification('${item.id}')">Dismiss</button>
+      </div>
+    </article>`).join("")}</div>` : `<p style="color:#bbb;">No player path unlocks have been reported yet.</p>`;
+}
+
+function markGmPathNotificationRead(id) {
+  const item = ensureGmNotificationState().pathUnlocks.find(entry => entry.id === id);
+  if (!item) return;
+  item.read = true;
+  persistGmNotificationState();
+  renderGmNotifications();
+}
+
+function dismissGmPathNotification(id) {
+  const state = ensureGmNotificationState();
+  state.pathUnlocks = state.pathUnlocks.filter(item => item.id !== id);
+  persistGmNotificationState({ removedId: id });
+  renderGmNotifications();
+}
+
+function openUnlockCardsForNotification(id) {
+  const item = ensureGmNotificationState().pathUnlocks.find(entry => entry.id === id);
+  if (!item) return;
+  item.read = true;
+  persistGmNotificationState();
+  showView("unlockCardLibrary");
+  const target = document.getElementById("gmUnlockCardTargetSelect");
+  if (target) target.value = item.profileName;
+  const factionFilter = document.getElementById("unlockCardFactionFilter");
+  if (factionFilter && [...factionFilter.options].some(option => option.value === item.faction)) {
+    factionFilter.value = item.faction;
+    renderUnlockCardLibrary();
+    const refreshedTarget = document.getElementById("gmUnlockCardTargetSelect");
+    if (refreshedTarget) refreshedTarget.value = item.profileName;
+  }
+}
+
 function updateHiddenPathUnlocks(profileName) {
   if (!profileName || !data[profileName]) return;
   ensureKeywordState(profileName);
@@ -21024,6 +21184,7 @@ function updateHiddenPathUnlocks(profileName) {
     if (!entry.unlocked && progress.score >= definition.threshold) {
       entry.unlocked = true;
       entry.unlockedAt = new Date().toISOString();
+      notifyGmOfPathUnlock(profileName, pathId);
       newlyUnlocked = true;
     }
   });
@@ -21090,6 +21251,7 @@ function checkHiddenCounterMilestones(pathId, value) {
   if (!entry.unlocked && value >= definition.threshold) {
     entry.unlocked = true;
     entry.unlockedAt = new Date().toISOString();
+    notifyGmOfPathUnlock(resourceProfile, pathId);
   }
 }
 
