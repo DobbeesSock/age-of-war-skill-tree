@@ -2013,11 +2013,42 @@ body.elves {
   font-size: 13px;
 }
 
+.campaign-presence-overlay {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 1200;
+  width: min(360px, calc(100vw - 28px));
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  background: rgba(18,18,18,0.97);
+  color: white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+  overflow: hidden;
+}
+
+.campaign-presence-person {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255,255,255,0.09);
+}
+
+.campaign-presence-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
 </style>
 </head>
 <body>
 
 <h1>The Veiled Realm Companion</h1>
+
+<aside id="campaignPresenceOverlay" class="campaign-presence-overlay" aria-live="polite"></aside>
 
 <div id="hubLanding">
   <div class="hub-panel">
@@ -13625,6 +13656,13 @@ let liveSaveOverlayId = 0;
 const liveSaveOverlays = new Map();
 const liveClientId = localStorage.getItem("veiledRealmClientId") || crypto.randomUUID();
 localStorage.setItem("veiledRealmClientId", liveClientId);
+let livePresence = {};
+let livePresenceHeartbeatTimer = null;
+let livePresenceRenderTimer = null;
+let liveLastContactAt = 0;
+let liveLastAppliedCampaignUpdateAt = null;
+let liveConnectionRole = localStorage.getItem("veiledRealmConnectionRole") || "Player";
+let liveConnectionState = "disconnected";
 
 const factionInfoContent = {
   Men: {
@@ -14536,6 +14574,139 @@ function setSyncStatus(message, color = "#bbb") {
 
   status.textContent = message;
   status.style.color = color;
+  renderCampaignPresenceOverlay();
+}
+
+function getPresenceProfileName() {
+  return resourceProfile && data[resourceProfile] ? resourceProfile : (liveConnectionRole === "GM" ? "Game Master" : "Selecting profile");
+}
+
+function setLiveConnectionRole(role) {
+  liveConnectionRole = role === "GM" ? "GM" : "Player";
+  localStorage.setItem("veiledRealmConnectionRole", liveConnectionRole);
+}
+
+function toggleCampaignPresenceOverlay() {
+  const collapsed = localStorage.getItem("veiledRealmPresenceCollapsed") === "true";
+  localStorage.setItem("veiledRealmPresenceCollapsed", collapsed ? "false" : "true");
+  renderCampaignPresenceOverlay();
+}
+
+function renderCampaignPresenceOverlay() {
+  const overlay = document.getElementById("campaignPresenceOverlay");
+  if (!overlay) return;
+  const now = Date.now();
+  const collapsed = localStorage.getItem("veiledRealmPresenceCollapsed") === "true";
+  const connected = Boolean(liveCampaignCode && liveConnectionState === "connected" && navigator.onLine && now - liveLastContactAt < 75000);
+  const connecting = Boolean(liveCampaignCode && !connected && liveConnectionState !== "error");
+  const statusLabel = connected ? "Connected" : connecting ? "Reconnecting" : "Disconnected";
+  const statusColor = connected ? "#78dc8c" : connecting ? "#f0c36a" : "#ff7f7f";
+  const lastCode = normalizeCampaignCode(localStorage.getItem("veiledRealmLastCampaignCode") || "");
+  const people = Object.values(livePresence || {})
+    .filter(person => person && now - Number(person.lastSeen || 0) < 120000)
+    .sort((a, b) => (a.role === "GM" ? -1 : b.role === "GM" ? 1 : String(a.profileName).localeCompare(String(b.profileName))));
+
+  overlay.innerHTML = `
+    <button type="button" onclick="toggleCampaignPresenceOverlay()" style="width:100%; display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 12px; border:0; border-radius:0; background:#272727; color:white; text-align:left;">
+      <span style="display:flex; align-items:center; gap:8px;"><span class="campaign-presence-dot" style="background:${statusColor}; box-shadow:0 0 8px ${statusColor};"></span><strong>Campaign Connection</strong></span>
+      <span style="color:${statusColor}; font-size:12px; white-space:nowrap;">${statusLabel} ${collapsed ? "+" : "-"}</span>
+    </button>
+    ${collapsed ? "" : `<div style="padding:11px 12px 12px;">
+      <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:8px;">
+        <span style="color:#bbb;">${liveCampaignCode ? `Campaign <strong style="color:#ffe08a;">${escapeHeroValue(liveCampaignCode)}</strong>` : "Not connected to a campaign"}</span>
+        ${!liveCampaignCode && lastCode ? `<button type="button" onclick="reconnectLiveCampaign()">Reconnect</button>` : ""}
+      </div>
+      ${liveCampaignCode ? `<div style="color:#aaa; font-size:12px; margin-bottom:5px;">Connected people</div>${people.length ? people.map(person => {
+        const active = now - Number(person.lastSeen || 0) < 60000;
+        const color = active ? "#78dc8c" : "#f0c36a";
+        const isYou = person.clientId === liveClientId;
+        const detail = [person.role, person.faction].filter(Boolean).join(" - ");
+        return `<div class="campaign-presence-person"><span class="campaign-presence-dot" style="background:${color};"></span><div style="min-width:0;"><strong style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHeroValue(person.profileName || "Unknown")} ${isYou ? "(You)" : ""}</strong><small style="color:#aaa;">${escapeHeroValue(detail)}</small></div><small style="color:${color};">${active ? "Live" : "Uncertain"}</small></div>`;
+      }).join("") : `<div style="padding:9px 0; color:#aaa;">Waiting for presence updates...</div>`}` : `<div style="color:#aaa; line-height:1.4;">Your changes are local. Reconnect before continuing campaign play.</div>`}
+    </div>`}
+  `;
+}
+
+function getCurrentPresenceRecord() {
+  const hubKey = resourceProfile && data[resourceProfile] ? (data[resourceProfile].hubFaction || currentHubFaction) : "";
+  return {
+    clientId: liveClientId,
+    profileName: getPresenceProfileName(),
+    role: liveConnectionRole,
+    faction: factionHubs[hubKey]?.label || "",
+    lastSeen: Date.now()
+  };
+}
+
+async function writeLivePresence() {
+  if (!liveCampaignCode || !liveSyncDb) return;
+  const campaignRef = getCampaignDoc(liveCampaignCode);
+  const record = getCurrentPresenceRecord();
+  try {
+    await liveSyncDb.runTransaction(async transaction => {
+      const snapshot = await transaction.get(campaignRef);
+      if (!snapshot.exists) throw new Error("Campaign not found.");
+      const presence = { ...(snapshot.data()?.presence || {}), [liveClientId]: record };
+      transaction.update(campaignRef, "presence", presence);
+    });
+    livePresence[liveClientId] = record;
+    liveLastContactAt = Date.now();
+    liveConnectionState = "connected";
+    renderCampaignPresenceOverlay();
+  } catch (error) {
+    console.error("Campaign presence update failed:", error);
+    liveConnectionState = "error";
+    renderCampaignPresenceOverlay();
+  }
+}
+
+function startLivePresence() {
+  clearInterval(livePresenceHeartbeatTimer);
+  clearInterval(livePresenceRenderTimer);
+  liveConnectionState = "connecting";
+  renderCampaignPresenceOverlay();
+  writeLivePresence();
+  livePresenceHeartbeatTimer = setInterval(writeLivePresence, 25000);
+  livePresenceRenderTimer = setInterval(renderCampaignPresenceOverlay, 5000);
+}
+
+function stopLivePresence() {
+  clearInterval(livePresenceHeartbeatTimer);
+  clearInterval(livePresenceRenderTimer);
+  livePresenceHeartbeatTimer = null;
+  livePresenceRenderTimer = null;
+}
+
+async function removeLivePresence(code) {
+  if (!code || !liveSyncDb) return;
+  const campaignRef = getCampaignDoc(code);
+  try {
+    await liveSyncDb.runTransaction(async transaction => {
+      const snapshot = await transaction.get(campaignRef);
+      if (!snapshot.exists) return;
+      const presence = { ...(snapshot.data()?.presence || {}) };
+      delete presence[liveClientId];
+      transaction.update(campaignRef, "presence", presence);
+    });
+  } catch (error) {
+    console.warn("Could not clear campaign presence:", error);
+  }
+}
+
+async function reconnectLiveCampaign() {
+  if (!initializeLiveSync()) return;
+  const code = normalizeCampaignCode(localStorage.getItem("veiledRealmLastCampaignCode") || "");
+  if (!code) return;
+  const snapshot = await getCampaignDoc(code).get();
+  if (!snapshot.exists) {
+    setSyncStatus(`Campaign ${code} was not found.`, "#ff8a8a");
+    return;
+  }
+  liveCampaignCode = code;
+  const input = document.getElementById("campaignCodeInput");
+  if (input) input.value = code;
+  subscribeToLiveCampaign(code);
+  setSyncStatus(`Reconnected to live campaign ${code}.`, "#84c46a");
 }
 
 function isFirebaseConfigured() {
@@ -14579,6 +14750,8 @@ async function createLiveCampaign() {
   }
 
   const campaignRef = getCampaignDoc(code);
+  setLiveConnectionRole("GM");
+  localStorage.setItem("veiledRealmLastCampaignCode", code);
 
   try {
     const snapshot = await campaignRef.get({ source: "server" });
@@ -14595,6 +14768,7 @@ async function createLiveCampaign() {
 
     await campaignRef.set({
       data,
+      presence: {},
       updatedAt: Date.now(),
       updatedBy: liveClientId
     });
@@ -14625,12 +14799,17 @@ async function joinLiveCampaign() {
     return;
   }
 
+  setLiveConnectionRole("Player");
+  localStorage.setItem("veiledRealmLastCampaignCode", code);
   liveCampaignCode = code;
   subscribeToLiveCampaign(code);
   setSyncStatus(`Joined live campaign ${code}.`, "#84c46a");
 }
 
 function disconnectLiveCampaign() {
+  const disconnectedCode = liveCampaignCode;
+  removeLivePresence(disconnectedCode);
+  stopLivePresence();
   if (liveCampaignUnsubscribe) {
     liveCampaignUnsubscribe();
   }
@@ -14641,6 +14820,10 @@ function disconnectLiveCampaign() {
   liveSaveOverlays.clear();
   liveCampaignUnsubscribe = null;
   liveCampaignCode = "";
+  livePresence = {};
+  liveLastContactAt = 0;
+  liveLastAppliedCampaignUpdateAt = null;
+  liveConnectionState = "disconnected";
   setSyncStatus("Disconnected. Local changes will stay on this device.", "#f0c36a");
 }
 
@@ -14649,11 +14832,25 @@ function subscribeToLiveCampaign(code) {
     liveCampaignUnsubscribe();
   }
 
+  stopLivePresence();
+  liveLastAppliedCampaignUpdateAt = null;
+  liveConnectionState = "connecting";
+  renderCampaignPresenceOverlay();
+
   liveCampaignUnsubscribe = getCampaignDoc(code).onSnapshot(snapshot => {
     if (!snapshot.exists) return;
 
     const remote = snapshot.data();
     if (!remote || !remote.data) return;
+
+    livePresence = remote.presence || {};
+    liveLastContactAt = Date.now();
+    liveConnectionState = "connected";
+    renderCampaignPresenceOverlay();
+
+    const remoteUpdateAt = Number(remote.updatedAt || 0);
+    if (liveLastAppliedCampaignUpdateAt !== null && remoteUpdateAt === liveLastAppliedCampaignUpdateAt) return;
+    liveLastAppliedCampaignUpdateAt = remoteUpdateAt;
 
     isApplyingRemoteCampaign = true;
     try {
@@ -14674,8 +14871,11 @@ function subscribeToLiveCampaign(code) {
       "#84c46a"
     );
   }, error => {
+    liveConnectionState = "error";
+    renderCampaignPresenceOverlay();
     setSyncStatus(`Live sync error: ${error.message}`, "#ff8a8a");
   });
+  startLivePresence();
 }
 
 function cloneCampaignValue(value) {
@@ -14857,6 +15057,7 @@ function refreshAfterRemoteCampaignUpdate() {
     ensureObjectiveState(resourceProfile);
 ensureKeywordState(resourceProfile);
     ensureShopState(resourceProfile);
+    writeLivePresence();
   }
 
   applySkills();
@@ -15985,6 +16186,8 @@ function toggleHostMode() {
   }
 
   isHostMode = true;
+  setLiveConnectionRole("GM");
+  writeLivePresence();
 
   const hostTabs = document.getElementById("hostTabs");
   const loginBtn = document.getElementById("hostLoginBtn");
@@ -24712,6 +24915,22 @@ if (document.getElementById("skillProfileSelect").options.length > 0) {
 
 syncLandingProfileSelect();
 returnToHubLanding();
+
+const rememberedCampaignCode = normalizeCampaignCode(localStorage.getItem("veiledRealmLastCampaignCode") || "");
+const rememberedCampaignInput = document.getElementById("campaignCodeInput");
+if (rememberedCampaignInput && rememberedCampaignCode) rememberedCampaignInput.value = rememberedCampaignCode;
+window.addEventListener("online", () => {
+  if (liveCampaignCode) writeLivePresence();
+  renderCampaignPresenceOverlay();
+});
+window.addEventListener("offline", () => {
+  liveConnectionState = "error";
+  renderCampaignPresenceOverlay();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && liveCampaignCode) writeLivePresence();
+});
+renderCampaignPresenceOverlay();
 
 
 
