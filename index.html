@@ -12170,7 +12170,7 @@ function createDefaultHeroEquipment() {
       hp: "",
       od: "",
       move: "",
-      armour: "",
+      range: "",
       battleTable: {}
     },
     notes: ""
@@ -12201,6 +12201,7 @@ function ensureHeroState(profileName) {
     statUpgrades: {
       ...defaults.statUpgrades,
       ...(current.statUpgrades || {}),
+      range: current.statUpgrades?.range ?? current.statUpgrades?.armour ?? "",
       battleTable: {
         ...defaults.statUpgrades.battleTable,
         ...((current.statUpgrades && current.statUpgrades.battleTable) || {})
@@ -12658,7 +12659,7 @@ const heroBaseStats = {
   hp: 10,
   od: 4,
   move: 10,
-  armour: 0,
+  range: 0,
   rc: "4-6",
   battleDie: "D6",
   battleTable: [
@@ -12672,7 +12673,7 @@ const heroBaseStats = {
   abilities: [
     { title: "Hero Training", text: "May equip earned Hero Equipment and 1 locked Hero Class." },
     { title: "Class Focus", text: "Apply the equipped Hero Class bonus while that class is selected." },
-    { title: "Equipment Scaling", text: "Use equipped cards to fine tune HP, OD, Movement, RC, Battle Table results, and abilities." }
+    { title: "Equipment Scaling", text: "Use equipped cards to fine tune HP, OD, Movement, Range, RC, Battle Table results, and abilities." }
   ]
 };
 
@@ -12687,7 +12688,7 @@ function getRuneStatBonuses(hero) {
     hp: 0,
     od: 0,
     move: 0,
-    armour: 0,
+    range: 0,
     rc: 0,
     notes: []
   };
@@ -12701,7 +12702,7 @@ function getRuneStatBonuses(hero) {
         bonuses.hp += 1;
         bonuses.od += 1;
         bonuses.move += 1;
-        bonuses.armour += 1;
+        bonuses.range += 1;
         bonuses.rc += 1;
       }
 
@@ -12709,7 +12710,7 @@ function getRuneStatBonuses(hero) {
         ["hp", /(?:\+(\d+)\s*HP|\+(\d+)\s*Health)/gi],
         ["od", /\+(\d+)\s*OD/gi],
         ["move", /\+(\d+)\s*Movement/gi],
-        ["armour", /\+(\d+)\s*Armou?r/gi],
+        ["range", /\+(\d+)\s*Range/gi],
         ["rc", /\+(\d+)\s*RC/gi]
       ].forEach(([key, pattern]) => {
         [...text.matchAll(pattern)].forEach(match => {
@@ -12736,11 +12737,11 @@ function renderHeroStatsPanel(hero) {
   const battleTableUpgrades = statUpgrades.battleTable || {};
   const runeBonuses = getRuneStatBonuses(hero);
   const statRows = [
-    ["?", "Health", "hp", heroBaseStats.hp],
-    ["??", "Output Damage", "od", heroBaseStats.od],
-    ["??", "Movement", "move", heroBaseStats.move],
-    ["?", "Armour", "armour", heroBaseStats.armour],
-    ["?", "Roll Check", "", heroBaseStats.rc]
+    ["HP", "Health", "hp", heroBaseStats.hp],
+    ["OD", "Output Damage", "od", heroBaseStats.od],
+    ["Movement", "Movement", "move", heroBaseStats.move],
+    ["Range", "Range", "range", heroBaseStats.range],
+    ["RC", "Roll Check", "", heroBaseStats.rc]
   ];
 
   return `
@@ -12756,7 +12757,7 @@ function renderHeroStatsPanel(hero) {
       <div class="hero-stats-grid">
         ${statRows.map(([symbol, label, upgradeKey, value]) => `
           <div class="hero-stat-tile" title="${label}">
-            <div class="hero-stat-symbol">${symbol}</div>
+            <div class="hero-stat-symbol" style="font-size:${symbol.length > 5 ? "9px" : symbol.length > 3 ? "11px" : "14px"};">${symbol}</div>
             <div>
               <div class="hero-stat-value">${formatHeroStatValue(upgradeKey || "rc", value, runeBonuses)}</div>
             </div>
