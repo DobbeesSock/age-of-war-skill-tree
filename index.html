@@ -4910,8 +4910,16 @@ function ensureTitleTrackerState(profileName) {
     getTitleTrackerRequirements(definition).forEach((requirement, index) => {
       const progressKey = getTitleTrackerProgressKey(definition.id, requirement.key);
       const existingValue = data[profileName].titleTracker.progress[progressKey];
-      const nextValue = existingValue === undefined && index === 0 ? legacyValue : Number(existingValue || 0);
+      const renamedProgress = (requirement.legacyKeys || []).reduce((highest, legacyKey) => {
+        return Math.max(highest, Number(data[profileName].titleTracker.progress[getTitleTrackerProgressKey(definition.id, legacyKey)] || 0));
+      }, 0);
+      const nextValue = existingValue === undefined
+        ? Math.max(index === 0 ? legacyValue : 0, renamedProgress)
+        : Number(existingValue || 0);
       data[profileName].titleTracker.progress[progressKey] = Math.max(0, nextValue);
+      (requirement.legacyKeys || []).forEach(legacyKey => {
+        delete data[profileName].titleTracker.progress[getTitleTrackerProgressKey(definition.id, legacyKey)];
+      });
     });
     delete data[profileName].titleTracker.progress[definition.id];
 
@@ -10839,10 +10847,10 @@ const titleHeroCards = [
   makeHeroEquipmentCard("title_harmony_keeper", "Harmony Keeper", "Title", heroAccessorySlots, "titles", "Requirement: Maintain 80 Harmony or higher for 10 Rounds. Reward: +5 Harmony. Permanent.", "Rare"),
   makeHeroEquipmentCard("title_shadowmarked", "Shadowmarked", "Title", heroAccessorySlots, "titles", "Requirement: Collect 10 Shadow Marks. Reward: +1 RC. +10% Damage at Night. Permanent.", "Epic"),
   makeHeroEquipmentCard("title_relic_hunter", "Relic Hunter", "Title", heroAccessorySlots, "titles", "Requirement: Obtain 10 Unique Relics. Reward: +1 OD. +1 RC. Permanent.", "Rare"),
-  makeHeroEquipmentCard("title_ancient_scourge", "Ancient Scourge", "Title", heroAccessorySlots, "titles", "Requirement: Destroy 15 Ancient Structures or Monoliths. Reward: +2 RC against Ancient. Permanent.", "Epic"),
-  makeHeroEquipmentCard("title_forge_master", "Forge Master", "Title", heroAccessorySlots, "titles", "Requirement: Craft 20 Epic or Legendary Items. Reward: +1 OD. +5% Crafting Success. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_ancient_scourge", "Ancient Scourge", "Title", heroAccessorySlots, "titles", "Requirement: Destroy Points of Interest. Reward: May Target Walls & Gates at +1 RC & +1 OD. Permanent.", "Epic"),
+  makeHeroEquipmentCard("title_forge_master", "Forge Master", "Title", heroAccessorySlots, "titles", "Requirement: Craft 20 Legendary or Mythic Items. Reward: +1 RC. Permanent.", "Rare"),
   makeHeroEquipmentCard("title_beastslayer", "Beastslayer", "Title", heroAccessorySlots, "titles", "Requirement: Defeat or Tame 100 Creatures. Reward: +2 OD against Beasts. Permanent.", "Epic"),
-  makeHeroEquipmentCard("title_settlement_founder", "Settlement Founder", "Title", heroAccessorySlots, "titles", "Requirement: Establish 5 Settlements. Reward: +1 Population Limit. +5% Building Speed. Permanent.", "Rare"),
+  makeHeroEquipmentCard("title_settlement_founder", "Settlement Founder", "Title", heroAccessorySlots, "titles", "Requirement: Build 5 Chest Blueprint Structures. Reward: Increase setup Point Allocation by +10.", "Rare"),
   makeHeroEquipmentCard("title_elite_vanquisher", "Elite Vanquisher", "Title", heroAccessorySlots, "titles", "Requirement: Defeat 50 Elite Units. Reward: +1 OD. +1 Retaliate. Permanent.", "Epic"),
   {
     ...makeHeroEquipmentCard("title_reliquary", "Reliquary", "Title", heroAccessorySlots, "titles", "Requirement: Place 15 Relics in your Settlements. Reward: +2 Gold Income during Production. Permanent.", "Rare"),
@@ -10872,10 +10880,10 @@ const titleTrackerDefinitions = [
   { id: "title_harmony_keeper", requirements: [{ key: "harmonyRounds", metric: "Rounds at 80+ Harmony", threshold: 10, step: 1 }] },
   { id: "title_shadowmarked", requirements: [{ key: "shadowMarks", metric: "Shadow Marks collected", threshold: 10, step: 1, resourceName: "Shadow Marks" }] },
   { id: "title_relic_hunter", requirements: [{ key: "uniqueRelics", metric: "Unique Relics obtained", threshold: 10, step: 1 }] },
-  { id: "title_ancient_scourge", requirements: [{ key: "ancientStructures", metric: "Ancient Structures or Monoliths destroyed", threshold: 15, step: 5 }] },
-  { id: "title_forge_master", requirements: [{ key: "craftedItems", metric: "Epic or Legendary Items crafted", threshold: 20, step: 5 }] },
+  { id: "title_ancient_scourge", requirements: [{ key: "pointsOfInterest", legacyKeys: ["ancientStructures"], metric: "Destroyed Points of Interest", threshold: 15, step: 5 }] },
+  { id: "title_forge_master", requirements: [{ key: "craftedItems", metric: "Legendary or Mythic Items Crafted", threshold: 20, step: 5 }] },
   { id: "title_beastslayer", requirements: [{ key: "creaturesDefeatedTamed", metric: "Creatures defeated or tamed", threshold: 100, step: 10 }] },
-  { id: "title_settlement_founder", requirements: [{ key: "settlements", metric: "Settlements established", threshold: 5, step: 1 }] },
+  { id: "title_settlement_founder", requirements: [{ key: "chestBlueprintStructures", legacyKeys: ["settlements"], metric: "Chest Blueprint Structures Constructed", threshold: 5, step: 1 }] },
   { id: "title_elite_vanquisher", requirements: [{ key: "eliteUnits", metric: "Elite Units defeated", threshold: 50, step: 5 }] },
   { id: "title_reliquary", requirements: [{ key: "settlementRelics", metric: "Relics placed in Settlements", threshold: 15, step: 5 }] },
   { id: "title_everlasting", requirements: [
