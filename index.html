@@ -14530,10 +14530,17 @@ function subscribeToLiveCampaign(code) {
     if (!remote || !remote.data) return;
 
     isApplyingRemoteCampaign = true;
-    data = applyLiveSaveOverlays(cloneCampaignValue(remote.data));
-    localStorage.setItem("skillTreeData", JSON.stringify(data));
-    refreshAfterRemoteCampaignUpdate();
-    isApplyingRemoteCampaign = false;
+    try {
+      data = applyLiveSaveOverlays(cloneCampaignValue(remote.data));
+      localStorage.setItem("skillTreeData", JSON.stringify(data));
+      refreshAfterRemoteCampaignUpdate();
+    } catch (error) {
+      console.error("Live campaign refresh failed:", error);
+      setSyncStatus(`Live refresh failed: ${error.message}`, "#ff8a8a");
+      return;
+    } finally {
+      isApplyingRemoteCampaign = false;
+    }
     setSyncStatus(
       liveSaveOverlays.size
         ? `Live campaign ${code} synced. Saving local changes...`
@@ -22778,7 +22785,14 @@ function saveProfileWithSharedCards(profileName = resourceProfile, sharedKeys = 
 }
 
 async function transferRandomSharedDeckCard(targetProfile, sharedKey, inventoryKey, matchField = "", matchValue = "") {
-    if (!targetProfile || !liveCampaignCode || !liveSyncDb || isApplyingRemoteCampaign) return null;
+    if (!targetProfile) {
+        alert("Choose a player before sending a card.");
+        return null;
+    }
+    if (!liveCampaignCode || !liveSyncDb) {
+        alert("Connect to a live campaign before sending a card.");
+        return null;
+    }
 
     clearTimeout(liveSaveTimer);
     liveSaveTimer = null;
