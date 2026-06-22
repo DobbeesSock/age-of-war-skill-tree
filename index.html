@@ -5032,6 +5032,7 @@ function checkTitleTrackerUnlock(profileName, titleId) {
 
   const addedCard = awardTitleCardToProfile(profileName, titleId);
   tracker.awarded[titleId] = true;
+  recordPresenceEvent(1, `${definition.card.name} Title completed by ${profileName}`, `title:${profileName}:${titleId}`);
 
   saveProfiles();
   alert(`${definition.card.name} unlocked!\n\n${definition.card.text}`);
@@ -8620,6 +8621,7 @@ function drawWorldEvent() {
   }
 
   worldEventState.current = worldEventState.deck.pop();
+  recordPresenceCounter("worldEvents", 2, 1, "Every second World Event triggered");
 
   const matchingCreature = worldEventCreatureCards.find(
     creature => creature.eventId === worldEventState.current.id
@@ -8695,6 +8697,7 @@ function advanceWorldTension(amount = 1, triggerId = null) {
 
       if (!worldEventState.current && worldEventState.deck.length > 0) {
         worldEventState.current = worldEventState.deck.pop();
+        recordPresenceCounter("worldEvents", 2, 1, "Every second World Event triggered");
 
         const matchingCreature = worldEventCreatureCards.find(
           creature => creature.eventId === worldEventState.current.id
@@ -13598,7 +13601,8 @@ function isSharedDataKey(name) {
         name === "sharedMaterialCards" ||
         name === "sharedAlliances" ||
         name === "sharedTrades" ||
-        name === "sharedGmNotifications";
+        name === "sharedGmNotifications" ||
+        name === "sharedTrackers";
 }
 
 
@@ -14860,6 +14864,7 @@ function subscribeToLiveCampaign(code) {
     liveLastContactAt = Date.now();
     liveConnectionState = "connected";
     renderCampaignPresenceOverlay();
+    applyRemoteTrackerState(remote.data.sharedTrackers);
 
     const remoteUpdateAt = Number(remote.updatedAt || 0);
     if (liveLastAppliedCampaignUpdateAt !== null && remoteUpdateAt === liveLastAppliedCampaignUpdateAt) return;
@@ -19963,6 +19968,7 @@ function drawMythologicalCave(trigger = "Manual Draw") {
     cave: mythologicalCaveState.current.title,
     time: new Date().toLocaleString()
   });
+  recordPresenceEvent(3, `Mythological Cave generated: ${mythologicalCaveState.current.title}`, `mythological:${crypto.randomUUID()}`);
 
   saveMythologicalCaves();
   renderMythologicalCaves();
@@ -19993,6 +19999,13 @@ function triggerMythologicalCave(triggerName) {
   drawMythologicalCave(triggerName);
 }
 
+function resolveHarmonicOverflow() {
+  drawMythologicalCave("Harmonic Overflow");
+  mutateCampaignTrackers(state => {
+    state.harmonic = 5;
+  }, "Harmonic Overflow resolved");
+}
+
 function renderMythologicalCaveCard(card) {
   if (!card) {
     return `
@@ -20020,7 +20033,7 @@ function renderMythologicalCaves() {
       label: "Harmonic Overflow",
       triggerName: "Harmonic Overflow",
       context: "Triggers when the Harmonic Tracker reaches 10+.",
-      spawn: "Spawn the Steel Door at the center of the map, reset Harmonic to 5, and increase Presence by 1."
+      spawn: "Spawn the Steel Door at the center of the map, reset Harmonic to 5, and increase Presence by 3."
     },
     {
       label: "Broken Accord",
@@ -22335,7 +22348,8 @@ function dissolveAlliance(pairKey, breaker) {
 
   if (!confirm("Dissolve this alliance? These factions cannot ally again during the current mission.")) return;
 
-  persistTradeMutation(() => {
+  const presenceEventId = `alliance:${pairKey}:${crypto.randomUUID()}`;
+  const dissolveResult = persistTradeMutation(() => {
     ensureAllianceState();
     const current = data.sharedAlliances.active[pairKey];
     if (!current) return;
@@ -22357,6 +22371,9 @@ function dissolveAlliance(pairKey, breaker) {
     addKeywordToProfile(breakingFaction, "Breaker of Oath");
     addKeywordToProfile(breakingFaction, "Abandoned");
     addKeywordToProfile(otherFaction, "Fractured Trust");
+  });
+  Promise.resolve(dissolveResult).then(() => {
+    recordPresenceEvent(1, "An alliance was broken", presenceEventId);
   });
 }
 
@@ -24398,7 +24415,13 @@ function renderRelicDeck(deckCards) {
 let trackerState = {
   presence: 1,
   harmonic: 0,
-  convergence: 1
+  convergence: 1,
+  automation: {
+    caveGenerations: 0,
+    worldEvents: 0,
+    processedEvents: []
+  },
+  lastChangeReason: ""
 };
 
 const presenceBands = [
@@ -24408,7 +24431,8 @@ const presenceBands = [
   { label: "Manifestation", min: 7, max: 8 },
   { label: "Breach", min: 9, max: 10 },
   { label: "Convergence", min: 11, max: 12 },
-  { label: "Cataclysm", min: 13, max: 99 }
+  { label: "Cataclysm", min: 13, max: 15 },
+  { label: "Tribute to the Land", min: 16, max: 99 }
 ];
 
 
@@ -24433,11 +24457,101 @@ function getBandLabel(value, bands) {
   return band ? band.label : "";
 }
 
-function changeTracker(key, amount, min = 0, max = 99) {
-  trackerState[key] += amount;
-  if (trackerState[key] < min) trackerState[key] = min;
-  if (trackerState[key] > max) trackerState[key] = max;
+function normalizeSharedTrackerState(state = {}) {
+  return {
+    presence: Math.max(1, Number(state.presence ?? 1)),
+    harmonic: Math.max(0, Number(state.harmonic ?? 0)),
+    convergence: Math.max(1, Number(state.convergence ?? 1)),
+    automation: {
+      caveGenerations: Math.max(0, Number(state.automation?.caveGenerations || 0)),
+      worldEvents: Math.max(0, Number(state.automation?.worldEvents || 0)),
+      processedEvents: Array.isArray(state.automation?.processedEvents) ? state.automation.processedEvents.slice(-500) : []
+    },
+    lastChangeReason: String(state.lastChangeReason || "")
+  };
+}
+
+function ensureSharedTrackerState() {
+  if (!data.sharedTrackers) data.sharedTrackers = normalizeSharedTrackerState(trackerState);
+  data.sharedTrackers = normalizeSharedTrackerState(data.sharedTrackers);
+  trackerState = normalizeSharedTrackerState(data.sharedTrackers);
+  return data.sharedTrackers;
+}
+
+function notifyGmOfPresenceThreshold(previousPresence, nextPresence, reason = "") {
+  if (nextPresence <= previousPresence || !(isHostMode || liveConnectionRole === "GM")) return;
+  const previousBand = getBandLabel(previousPresence, presenceBands);
+  const nextBand = getBandLabel(nextPresence, presenceBands);
+  if (!nextBand || nextBand === previousBand) return;
+  alert(`Presence reached ${nextPresence} - ${nextBand}.\n\nReference Presence Thresholds & Effects in Host Trackers.${reason ? `\n\nTrigger: ${reason}` : ""}`);
+}
+
+function applyRemoteTrackerState(remoteState) {
+  if (!remoteState) return;
+  const previousPresence = Number(trackerState.presence || 1);
+  trackerState = normalizeSharedTrackerState(remoteState);
+  data.sharedTrackers = JSON.parse(JSON.stringify(trackerState));
+  notifyGmOfPresenceThreshold(previousPresence, trackerState.presence, trackerState.lastChangeReason);
   renderTrackers();
+}
+
+async function mutateCampaignTrackers(mutator, reason = "") {
+  ensureSharedTrackerState();
+
+  if (liveCampaignCode && liveSyncDb) {
+    const campaignRef = getCampaignDoc(liveCampaignCode);
+    try {
+      let committedState = null;
+      await liveSyncDb.runTransaction(async transaction => {
+        const snapshot = await transaction.get(campaignRef);
+        if (!snapshot.exists || !snapshot.data()?.data) throw new Error("Campaign data was not found.");
+        const nextState = normalizeSharedTrackerState(snapshot.data().data.sharedTrackers || trackerState);
+        mutator(nextState);
+        nextState.lastChangeReason = reason;
+        committedState = normalizeSharedTrackerState(nextState);
+        const trackerPath = new firebase.firestore.FieldPath("data", "sharedTrackers");
+        transaction.update(campaignRef, trackerPath, committedState);
+      });
+      applyRemoteTrackerState(committedState);
+      localStorage.setItem("skillTreeData", JSON.stringify(data));
+      return committedState;
+    } catch (error) {
+      console.error("Campaign tracker update failed:", error);
+      setSyncStatus(`Tracker update failed: ${error.message}`, "#ff8a8a");
+      return null;
+    }
+  }
+
+  const nextState = normalizeSharedTrackerState(trackerState);
+  mutator(nextState);
+  nextState.lastChangeReason = reason;
+  applyRemoteTrackerState(nextState);
+  localStorage.setItem("skillTreeData", JSON.stringify(data));
+  return nextState;
+}
+
+function changeTracker(key, amount, min = 0, max = 99) {
+  mutateCampaignTrackers(state => {
+    state[key] = Math.max(min, Math.min(max, Number(state[key] || 0) + amount));
+  }, `GM adjusted ${key} by ${amount > 0 ? "+" : ""}${amount}`);
+}
+
+function recordPresenceCounter(counterKey, interval, presenceAmount, reason) {
+  mutateCampaignTrackers(state => {
+    state.automation[counterKey] = Number(state.automation[counterKey] || 0) + 1;
+    if (state.automation[counterKey] % interval === 0) {
+      state.presence = Math.max(1, state.presence + presenceAmount);
+    }
+  }, reason);
+}
+
+function recordPresenceEvent(amount, reason, eventId = "") {
+  mutateCampaignTrackers(state => {
+    if (eventId && state.automation.processedEvents.includes(eventId)) return;
+    if (eventId) state.automation.processedEvents.push(eventId);
+    state.automation.processedEvents = state.automation.processedEvents.slice(-500);
+    state.presence = Math.max(1, state.presence + amount);
+  }, reason);
 }
 
 function renderTrackerScale(title, key, value, bands, start, end, accent) {
@@ -24538,28 +24652,20 @@ function renderPresenceThresholdCard(title, text, min, max) {
 function renderTrackers() {
   const app = document.getElementById("trackersApp");
   if (!app) return;
+  ensureSharedTrackerState();
 
     app.innerHTML = `
     <div style="display:grid; gap:20px;">
 
-      <div style="display:grid; grid-template-columns:repeat(2, minmax(280px, 1fr)); gap:20px;">
+      <div style="display:grid; grid-template-columns:1fr; gap:20px;">
         <div style="background:rgba(226, 205, 171, 0.92); color:#24170d; border:1px solid rgba(90,65,40,0.8); border-radius:10px; padding:16px;">
-          <h4 style="margin-top:0;">Presence Increases When</h4>
+          <h4 style="margin-top:0;">Automatic Presence Triggers</h4>
           <ul style="margin:0; padding-left:18px; line-height:1.5;">
-            <li>The same cave is explored 3 times: +1</li>
-            <li>The first World Event is triggered each Mission: +1</li>
-            <li>A cave Chest Card is looted by a player: +1</li>
-            <li>A cave involving multiple factions is explored: +1</li>
-            <li>The first time a Blueprint is collected each Mission: +1</li>
-          </ul>
-        </div>
-
-        <div style="background:rgba(226, 205, 171, 0.92); color:#24170d; border:1px solid rgba(90,65,40,0.8); border-radius:10px; padding:16px;">
-          <h4 style="margin-top:0;">Presence Decreases When</h4>
-          <ul style="margin:0; padding-left:18px; line-height:1.5;">
-            <li>A cave is exited early: -1</li>
-            <li>A Mythological Cave is successful: -2</li>
-            <li>A unit dies in the Cave: -1</li>
+            <li>Every 3 Cave Randomizer generations: +1</li>
+            <li>Every second World Event triggered: +1</li>
+            <li>A Mythological Cave is generated: +3</li>
+            <li>A player completes a Title: +1</li>
+            <li>An alliance is broken: +1</li>
           </ul>
         </div>
       </div>
@@ -24647,8 +24753,8 @@ function renderTrackers() {
       ${trackerState.harmonic >= 10 ? `
   <div style="background:rgba(120,20,20,0.92); color:#ffe8c8; border:2px solid #ffcc66; border-radius:10px; padding:16px; box-shadow:0 0 18px rgba(255,204,102,0.85);">
     <h3 style="margin:0 0 8px 0;">HARMONIC OVERFLOW: Spawn Mythological Cave</h3>
-    <p style="margin:0 0 12px 0;">Spawn 1 Mythological Cave at the center of the map, reset Harmonic to 5, and increase Presence by 1.</p>
-    <button onclick="triggerMythologicalCave('Harmonic Overflow'); trackerState.harmonic = 5; trackerState.presence += 1; renderTrackers();">
+    <p style="margin:0 0 12px 0;">Spawn 1 Mythological Cave at the center of the map, reset Harmonic to 5, and increase Presence by 3.</p>
+    <button onclick="resolveHarmonicOverflow()">
       Resolve Harmonic Overflow
     </button>
   </div>
@@ -24747,6 +24853,7 @@ function generateCave() {
     const num = availableCaves.splice(index, 1)[0];
 
     setCave(num);
+    recordPresenceCounter("caveGenerations", 3, 1, "Every third Cave Randomizer generation");
 }
 
 function goToCave() {
