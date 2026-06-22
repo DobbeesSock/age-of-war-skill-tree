@@ -2013,6 +2013,34 @@ body.elves {
   font-size: 13px;
 }
 
+.navigation-menu-label {
+  display: grid;
+  gap: 5px;
+  min-width: min(340px, 100%);
+  color: #cfc6a4;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.navigation-menu-label select {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 34px 8px 11px;
+  border: 1px solid rgba(255,224,138,0.45);
+  border-radius: 6px;
+  background: #1d1d1d;
+  color: #f5e8c2;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.navigation-menu-label option,
+.navigation-menu-label optgroup {
+  background: #1d1d1d;
+  color: #f5e8c2;
+}
+
 .campaign-presence-overlay {
   position: fixed;
   right: 14px;
@@ -2098,27 +2126,34 @@ body.elves {
   </div>
 </div>
 
-<div id="mainNav" style="margin-bottom:15px; display:none; gap:10px; flex-wrap:wrap; align-items:center;">
-  <button onclick="showView('factionInfo')">Faction Info</button>
-  <button onclick="showView('titleTracker')">Title Tracker</button>
-  <button onclick="showView('materialCrafting')">Material Crafting</button>
-  <button onclick="showView('skill')">Skill Trees</button>
-  <button onclick="showView('resources')">Resources</button>
-  <button onclick="showView('buildings')">Income</button>
-  <button onclick="showView('constructionProduction')">Construction & Production</button>
-  <button onclick="showView('inventory')">Inventory</button>
-  <button onclick="showView('unlockedCards')">Unlocked Cards</button>
-  <button onclick="showView('hero')">Hero</button>
-  <button onclick="showView('factionAbilities')">Faction Abilities</button>
-  <button onclick="showView('keywords')">Keywords</button>
-  <button onclick="showView('allianceTrading')">Alliance & Trading</button>
-  <button onclick="showView('shop')">Upgrade Shop</button>
-  <button onclick="showView('unlocks')">Unlocks</button>
-  <button onclick="manualSaveProfile()">Save / Sync Profile</button>
-
-  
-
-
+<div id="mainNav" style="margin:0 20px 15px; display:none; gap:10px; flex-wrap:wrap; align-items:end; padding:12px; border:1px solid rgba(255,255,255,0.12); border-radius:8px; background:rgba(24,24,24,0.9);">
+  <label class="navigation-menu-label">
+    Player View
+    <select id="playerViewMenu" onchange="openSelectedPlayerView(this.value)">
+      <option value="" disabled>Select a section...</option>
+      <optgroup label="Faction & Progress">
+        <option value="factionInfo">Faction Info</option>
+        <option value="titleTracker">Title Tracker</option>
+        <option value="skill">Skill Trees</option>
+        <option value="factionAbilities">Faction Abilities</option>
+        <option value="keywords">Keywords</option>
+        <option value="unlocks">Unlocks</option>
+      </optgroup>
+      <optgroup label="Economy & Campaign">
+        <option value="resources">Resources</option>
+        <option value="buildings">Income</option>
+        <option value="constructionProduction">Construction & Production</option>
+        <option value="materialCrafting">Material Crafting</option>
+        <option value="inventory">Inventory</option>
+        <option value="unlockedCards">Unlocked Cards</option>
+      </optgroup>
+      <optgroup label="Hero & Relations">
+        <option value="hero">Hero</option>
+        <option value="allianceTrading">Alliance & Trading</option>
+        <option value="shop">Upgrade Shop</option>
+      </optgroup>
+    </select>
+  </label>
   <button id="hostLoginBtn" onclick="toggleHostMode()">Host Login</button>
   <button id="hostLogoutBtn" onclick="disableHostMode()" style="display:none;">Hide Host Tools</button>
 </div>
@@ -15493,7 +15528,19 @@ updateHiddenPathUnlocks(resourceProfile);
 
 
 
+function openSelectedPlayerView(view) {
+  if (view) showView(view);
+}
+
+function syncPlayerViewMenu(view) {
+  const menu = document.getElementById("playerViewMenu");
+  if (!menu) return;
+  const hasView = Array.from(menu.options).some(option => option.value === view);
+  if (hasView) menu.value = view;
+}
+
 function showView(view) {
+  syncPlayerViewMenu(view);
   renderTradeNotification();
   const hubHomeView = document.getElementById("hubHomeView");
   if (hubHomeView) {
