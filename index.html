@@ -1325,6 +1325,41 @@ h1 {
     font-family: serif;
 }
 
+.central-poi-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+    text-align: left;
+}
+
+.central-poi-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid rgba(212, 175, 55, 0.45);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.24);
+}
+
+.central-poi-item strong {
+    display: block;
+    color: #ffe08a;
+}
+
+.central-poi-item span {
+    display: block;
+    font-size: 12px;
+    opacity: 0.82;
+}
+
+.central-poi-empty {
+    margin-top: 18px;
+    font-size: 13px;
+    opacity: 0.78;
+}
+
 
 button {
     padding:8px 14px;
@@ -2185,7 +2220,7 @@ body.elves {
   <button onclick="showView('creatureGenerator')">Creature Generator</button>
   <button onclick="showView('trackers')">Trackers</button>
   <button id="gmNotificationsTabBtn" onclick="showView('gmNotifications')">Path Notifications <span id="gmNotificationCount" style="display:none; margin-left:4px; padding:1px 6px; border-radius:10px; background:#b91c1c; color:white; font-weight:bold;">0</span></button>
-  <button onclick="showView('caveRandomizer')">Cave Randomizer</button>
+  <button onclick="showView('caveRandomizer')">Cave & POI Randomizer</button>
   <button onclick="showView('mythologicalCaves')">Mythological Caves</button>
   <button onclick="showView('potions')">Potion Deck</button>
   <button onclick="showView('relics')">Relic Deck</button>
@@ -3915,6 +3950,29 @@ body.elves {
             <button onclick="resetHeroCaves()">Reset</button>
             <button onclick="exportHeroCaveSave()">Export Save</button>
             <button onclick="importHeroCaveSave()">Import Save</button>
+        </div>
+    </div>
+
+    <div class="cave-randomizer-card">
+        <h1>CENTRAL POI</h1>
+
+        <div class="cave-randomizer-number" id="centralPoiNumber">--</div>
+
+        <button onclick="generateCentralPoi()">Reveal Central POI</button>
+
+        <div class="cave-randomizer-remaining" id="centralPoiRemaining">Remaining: 28</div>
+
+        <div class="cave-randomizer-row">
+            <input id="centralPoiManualInput" placeholder="Enter POI # 1-28">
+            <button onclick="goToCentralPoi()">Go</button>
+        </div>
+
+        <div id="centralPoiRevealedList" class="central-poi-list"></div>
+
+        <div class="cave-randomizer-actions">
+            <button onclick="resetCentralPois()">Reset</button>
+            <button onclick="exportCentralPoiSave()">Export Save</button>
+            <button onclick="importCentralPoiSave()">Import Save</button>
         </div>
     </div>
 </div>
@@ -25549,11 +25607,18 @@ let availableCaves = [];
 let lastCave = null;
 let availableHeroCaves = [];
 let lastHeroCave = null;
+let availableCentralPois = [];
+let revealedCentralPois = [];
+let lastCentralPoi = null;
 
 const cavePoolKey = "ageOfWarCavePool";
 const lastCaveKey = "ageOfWarLastCave";
 const heroCavePoolKey = "ageOfWarHeroCavePool";
 const lastHeroCaveKey = "ageOfWarLastHeroCave";
+const centralPoiPoolKey = "ageOfWarCentralPoiPool";
+const centralPoiRevealedKey = "ageOfWarCentralPoiRevealed";
+const lastCentralPoiKey = "ageOfWarLastCentralPoi";
+const centralPoiTitles = {};
 
 function initializeCaves() {
     const savedPool = localStorage.getItem(cavePoolKey);
@@ -25597,6 +25662,45 @@ function initializeHeroCaves() {
     updateHeroCaveRemaining();
 }
 
+function initializeCentralPois() {
+    const savedPool = localStorage.getItem(centralPoiPoolKey);
+    const savedRevealed = localStorage.getItem(centralPoiRevealedKey);
+    const savedLast = localStorage.getItem(lastCentralPoiKey);
+
+    if (savedPool) {
+        availableCentralPois = JSON.parse(savedPool).map(Number).filter(num => num >= 1 && num <= 28);
+    } else {
+        availableCentralPois = [];
+        for (let i = 1; i <= 28; i++) availableCentralPois.push(i);
+    }
+
+    if (savedRevealed) {
+        revealedCentralPois = JSON.parse(savedRevealed)
+            .map(entry => typeof entry === "number" ? { number: entry } : entry)
+            .filter(entry => Number(entry?.number) >= 1 && Number(entry?.number) <= 28)
+            .map(entry => ({ number: Number(entry.number), revealedAt: Number(entry.revealedAt || Date.now()) }));
+    } else {
+        revealedCentralPois = [];
+    }
+
+    const activeNumbers = new Set(revealedCentralPois.map(entry => entry.number));
+    availableCentralPois = availableCentralPois.filter(num => !activeNumbers.has(num));
+    for (let i = 1; i <= 28; i++) {
+        if (!activeNumbers.has(i) && !availableCentralPois.includes(i)) availableCentralPois.push(i);
+    }
+    availableCentralPois.sort((a, b) => a - b);
+
+    if (savedLast && savedLast !== "null") {
+        lastCentralPoi = savedLast;
+        const centralPoiNumber = document.getElementById("centralPoiNumber");
+        if (centralPoiNumber) centralPoiNumber.innerText = lastCentralPoi;
+    }
+
+    saveCentralPoiData();
+    updateCentralPoiRemaining();
+    renderCentralPoiRevealedList();
+}
+
 function saveCaveData() {
     localStorage.setItem(cavePoolKey, JSON.stringify(availableCaves));
     localStorage.setItem(lastCaveKey, lastCave);
@@ -25619,6 +25723,54 @@ function updateHeroCaveRemaining() {
     if (!remaining) return;
 
     remaining.innerText = "Remaining: " + availableHeroCaves.length;
+}
+
+function saveCentralPoiData() {
+    localStorage.setItem(centralPoiPoolKey, JSON.stringify(availableCentralPois));
+    localStorage.setItem(centralPoiRevealedKey, JSON.stringify(revealedCentralPois));
+    localStorage.setItem(lastCentralPoiKey, lastCentralPoi);
+}
+
+function updateCentralPoiRemaining() {
+    const remaining = document.getElementById("centralPoiRemaining");
+    if (!remaining) return;
+
+    remaining.innerText = "Remaining: " + availableCentralPois.length;
+}
+
+function formatCentralPoiNumber(num) {
+    return Number(num).toString().padStart(2, "0");
+}
+
+function getCentralPoiName(num) {
+    return centralPoiTitles[Number(num)] || `Central POI ${formatCentralPoiNumber(num)}`;
+}
+
+function renderCentralPoiRevealedList() {
+    const list = document.getElementById("centralPoiRevealedList");
+    if (!list) return;
+
+    if (!revealedCentralPois.length) {
+        list.innerHTML = `<div class="central-poi-empty">No Central POIs are currently revealed.</div>`;
+        return;
+    }
+
+    list.innerHTML = revealedCentralPois
+        .slice()
+        .sort((a, b) => Number(a.number) - Number(b.number))
+        .map(entry => {
+            const num = Number(entry.number);
+            return `
+                <div class="central-poi-item">
+                    <div>
+                        <strong>${escapeHeroValue(getCentralPoiName(num))}</strong>
+                        <span>POI #${formatCentralPoiNumber(num)}</span>
+                    </div>
+                    <button onclick="completeCentralPoi(${num})">Completed</button>
+                </div>
+            `;
+        })
+        .join("");
 }
 
 function generateCave() {
@@ -25778,6 +25930,147 @@ function setHeroCave(num) {
     updateHeroCaveRemaining();
 }
 
+function generateCentralPoi() {
+    if (availableCentralPois.length === 0) {
+        alert("All Central POIs are currently revealed. Complete one to return it to the randomizer.");
+        return;
+    }
+
+    const index = Math.floor(Math.random() * availableCentralPois.length);
+    const num = availableCentralPois.splice(index, 1)[0];
+
+    setCentralPoi(num);
+}
+
+function goToCentralPoi() {
+    const inputEl = document.getElementById("centralPoiManualInput");
+    const input = inputEl.value;
+
+    inputEl.value = "";
+
+    if (input === "") return;
+
+    const num = parseInt(input, 10);
+
+    if (isNaN(num) || num < 1 || num > 28) {
+        alert("Enter a number between 1 and 28");
+        return;
+    }
+
+    if (!availableCentralPois.includes(num)) {
+        alert("This Central POI is already revealed.");
+        return;
+    }
+
+    const index = availableCentralPois.indexOf(num);
+    if (index !== -1) {
+        availableCentralPois.splice(index, 1);
+    }
+
+    setCentralPoi(num);
+}
+
+function setCentralPoi(num) {
+    const formatted = formatCentralPoiNumber(num);
+
+    lastCentralPoi = formatted;
+
+    if (!revealedCentralPois.some(entry => Number(entry.number) === Number(num))) {
+        revealedCentralPois.push({ number: Number(num), revealedAt: Date.now() });
+    }
+
+    const centralPoiNumber = document.getElementById("centralPoiNumber");
+    if (centralPoiNumber) centralPoiNumber.innerText = formatted;
+
+    saveCentralPoiData();
+    updateCentralPoiRemaining();
+    renderCentralPoiRevealedList();
+}
+
+function completeCentralPoi(num) {
+    const poiNumber = Number(num);
+    revealedCentralPois = revealedCentralPois.filter(entry => Number(entry.number) !== poiNumber);
+
+    if (poiNumber >= 1 && poiNumber <= 28 && !availableCentralPois.includes(poiNumber)) {
+        availableCentralPois.push(poiNumber);
+        availableCentralPois.sort((a, b) => a - b);
+    }
+
+    const centralPoiNumber = document.getElementById("centralPoiNumber");
+    if (!revealedCentralPois.length) {
+        lastCentralPoi = null;
+        if (centralPoiNumber) centralPoiNumber.innerText = "--";
+    } else if (Number(lastCentralPoi) === poiNumber) {
+        const latest = revealedCentralPois.slice().sort((a, b) => Number(b.revealedAt || 0) - Number(a.revealedAt || 0))[0];
+        lastCentralPoi = formatCentralPoiNumber(latest.number);
+        if (centralPoiNumber) centralPoiNumber.innerText = lastCentralPoi;
+    }
+
+    saveCentralPoiData();
+    updateCentralPoiRemaining();
+    renderCentralPoiRevealedList();
+}
+
+function resetCentralPois() {
+    availableCentralPois = [];
+    for (let i = 1; i <= 28; i++) availableCentralPois.push(i);
+
+    revealedCentralPois = [];
+    lastCentralPoi = null;
+
+    saveCentralPoiData();
+
+    const centralPoiNumber = document.getElementById("centralPoiNumber");
+    if (centralPoiNumber) centralPoiNumber.innerText = "--";
+
+    updateCentralPoiRemaining();
+    renderCentralPoiRevealedList();
+}
+
+function exportCentralPoiSave() {
+    const data = {
+        pool: availableCentralPois,
+        revealed: revealedCentralPois,
+        last: lastCentralPoi
+    };
+
+    const encoded = btoa(JSON.stringify(data));
+    navigator.clipboard.writeText(encoded);
+    alert("Central POI randomizer save code copied to clipboard!");
+}
+
+function importCentralPoiSave() {
+    const input = prompt("Paste your Central POI randomizer save code:");
+
+    if (!input) return;
+
+    try {
+        const decoded = JSON.parse(atob(input));
+
+        availableCentralPois = Array.isArray(decoded.pool) ? decoded.pool.map(Number).filter(num => num >= 1 && num <= 28) : [];
+        revealedCentralPois = Array.isArray(decoded.revealed)
+            ? decoded.revealed
+                .map(entry => typeof entry === "number" ? { number: entry } : entry)
+                .filter(entry => Number(entry?.number) >= 1 && Number(entry?.number) <= 28)
+                .map(entry => ({ number: Number(entry.number), revealedAt: Number(entry.revealedAt || Date.now()) }))
+            : [];
+        lastCentralPoi = decoded.last || null;
+
+        const activeNumbers = new Set(revealedCentralPois.map(entry => entry.number));
+        availableCentralPois = availableCentralPois.filter(num => !activeNumbers.has(num));
+
+        saveCentralPoiData();
+
+        const centralPoiNumber = document.getElementById("centralPoiNumber");
+        if (centralPoiNumber) centralPoiNumber.innerText = lastCentralPoi ? lastCentralPoi : "--";
+
+        updateCentralPoiRemaining();
+        renderCentralPoiRevealedList();
+    } catch {
+        alert("Invalid Central POI randomizer save code");
+    }
+}
+
 function resetHeroCaves(updateDisplay = true) {
     availableHeroCaves = [];
 
@@ -25861,6 +26154,7 @@ updateSM();
 updateFury();
 initializeCaves();
 initializeHeroCaves();
+initializeCentralPois();
 
 if (document.getElementById("skillProfileSelect").options.length > 0) {
     loadProfile();
