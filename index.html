@@ -5050,7 +5050,7 @@ function awardTitleCardToProfile(profileName, titleId) {
 
   if (!sourceCard) return false;
 
-  data[profileName].heroEquipment.inventory.push({ ...sourceCard, pile: "titles" });
+  data[profileName].heroEquipment.inventory.push({ ...sourceCard, pile: "titles", receivedAt: Date.now() });
   return true;
 }
 
@@ -13295,7 +13295,7 @@ function sendHeroEquipmentCard(pileId, deckIndex, targetProfile = getGmTargetPro
     return;
   }
 
-  data[targetProfile].heroEquipment.inventory.push({ ...card, pile: pileId });
+  data[targetProfile].heroEquipment.inventory.push({ ...card, pile: pileId, receivedAt: Date.now() });
   heroCaveRewardState.options = (heroCaveRewardState.options || [])
     .filter(entry => !(entry.pile.id === pileId && entry.index === deckIndex));
 
@@ -15109,6 +15109,7 @@ function refreshAfterRemoteCampaignUpdate() {
     ensureObjectiveState(resourceProfile);
 ensureKeywordState(resourceProfile);
     ensureShopState(resourceProfile);
+    ensureNavigationNotificationState(resourceProfile);
     writeLivePresence();
   }
 
@@ -15128,6 +15129,7 @@ renderKeywords();
   renderTradeNotification();
   renderGmNotifications();
   renderShop();
+  renderPlayerViewNotifications();
 }
 
 function syncLandingProfileSelect() {
@@ -15410,6 +15412,7 @@ function createProfile() {
         hero: createDefaultHeroEquipment(),
         heroEquipment: { inventory: [] },
         unlockedCards: { inventory: [] },
+        notifications: createNavigationNotificationState(),
         materialCards: { inventory: [] },
         titleTracker: { progress: {}, awarded: {} },
         unlocks: { revealed: {}, notes: {}, setupSixChoices: {}, actionBoard: {} },
@@ -15519,6 +15522,8 @@ updateHiddenPathUnlocks(resourceProfile);
     renderKeywords();
 
     ensureShopState(resourceProfile);
+    ensureNavigationNotificationState(resourceProfile);
+    renderPlayerViewNotifications();
 
 
 }
@@ -15531,9 +15536,117 @@ function openSelectedPlayerView(view) {
   if (view) showView(view);
 }
 
+const playerNotificationViews = ["inventory", "hero", "unlockedCards"];
+
+function createNavigationNotificationState() {
+  return {
+    seen: {
+      inventory: [],
+      hero: [],
+      unlockedCards: []
+    }
+  };
+}
+
+function getNavigationNotificationKey(card, index, prefix) {
+  if (!card) return `${prefix}:empty:${index}`;
+  const stableId = card.receivedAt || card.dealtAt || card.id || card.name || card.title || index;
+  return `${prefix}:${stableId}`;
+}
+
+function getNavigationNotificationKeys(profileName) {
+  const profile = data[profileName] || {};
+  const getInventory = key => Array.isArray(profile[key]?.inventory) ? profile[key].inventory : [];
+
+  return {
+    inventory: [
+      ...getInventory("potions").map((card, index) => getNavigationNotificationKey(card, index, "potion")),
+      ...getInventory("relics").map((card, index) => getNavigationNotificationKey(card, index, "relic")),
+      ...getInventory("objectives").map((card, index) => getNavigationNotificationKey(card, index, "objective"))
+    ],
+    hero: getInventory("heroEquipment").map((card, index) => getNavigationNotificationKey(card, index, "heroEquipment")),
+    unlockedCards: getInventory("unlockedCards").map((card, index) => getNavigationNotificationKey(card, index, "unlock"))
+  };
+}
+
+function countUnseenNavigationKeys(currentKeys, seenKeys) {
+  const seenCounts = (seenKeys || []).reduce((counts, key) => {
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {});
+
+  return (currentKeys || []).reduce((total, key) => {
+    if (seenCounts[key] > 0) {
+      seenCounts[key] -= 1;
+      return total;
+    }
+    return total + 1;
+  }, 0);
+}
+
+function ensureNavigationNotificationState(profileName) {
+  if (!profileName || !data[profileName] || isSharedDataKey(profileName)) return;
+  const profile = data[profileName];
+  const currentKeys = getNavigationNotificationKeys(profileName);
+
+  if (!profile.notifications || !profile.notifications.seen) {
+    profile.notifications = createNavigationNotificationState();
+    playerNotificationViews.forEach(view => {
+      profile.notifications.seen[view] = [...(currentKeys[view] || [])];
+    });
+    return;
+  }
+
+  playerNotificationViews.forEach(view => {
+    if (!Array.isArray(profile.notifications.seen[view])) {
+      profile.notifications.seen[view] = [...(currentKeys[view] || [])];
+    }
+  });
+}
+
+function getPlayerNavigationUnreadCounts(profileName = resourceProfile) {
+  if (!profileName || !data[profileName]) return {};
+  ensureNavigationNotificationState(profileName);
+  const currentKeys = getNavigationNotificationKeys(profileName);
+  const seen = data[profileName].notifications?.seen || {};
+
+  return playerNotificationViews.reduce((counts, view) => {
+    counts[view] = countUnseenNavigationKeys(currentKeys[view], seen[view]);
+    return counts;
+  }, {});
+}
+
+function renderPlayerViewNotifications() {
+  const menu = document.getElementById("playerViewMenu");
+  if (!menu) return;
+
+  const unreadCounts = getPlayerNavigationUnreadCounts();
+  Array.from(menu.options).forEach(option => {
+    if (!option.value) return;
+    if (!option.dataset.baseLabel) {
+      option.dataset.baseLabel = option.textContent;
+    }
+
+    const unread = unreadCounts[option.value] || 0;
+    option.textContent = unread > 0
+      ? `${option.dataset.baseLabel} [New ${unread}]`
+      : option.dataset.baseLabel;
+  });
+}
+
+function markPlayerViewNotificationsSeen(view) {
+  if (!playerNotificationViews.includes(view) || !resourceProfile || !data[resourceProfile]) return;
+  ensureNavigationNotificationState(resourceProfile);
+  data[resourceProfile].notifications.seen[view] = [...(getNavigationNotificationKeys(resourceProfile)[view] || [])];
+  localStorage.setItem("skillTreeData", JSON.stringify(data));
+  queueLiveCampaignSave({ profileName: resourceProfile });
+  renderPlayerViewNotifications();
+}
+
 function syncPlayerViewMenu(view) {
   const menu = document.getElementById("playerViewMenu");
   if (!menu) return;
+  renderPlayerViewNotifications();
   const hasView = Array.from(menu.options).some(option => option.value === view);
   if (hasView) menu.value = view;
 }
@@ -15696,12 +15809,15 @@ function showView(view) {
 
   if (view === "inventory") {
     renderInventory();
+    markPlayerViewNotificationsSeen("inventory");
   }
   if (view === "hero") {
     renderHero();
+    markPlayerViewNotificationsSeen("hero");
   }
   if (view === "unlockedCards") {
     renderUnlockedCards();
+    markPlayerViewNotificationsSeen("unlockedCards");
   }
   if (view === "heroEquipment" && isHostMode) {
     renderHeroEquipmentDeck();
@@ -23385,7 +23501,7 @@ async function transferRandomSharedDeckCard(targetProfile, sharedKey, inventoryK
         }
 
         const chosen = eligibleIndexes[Math.floor(Math.random() * eligibleIndexes.length)];
-        const card = sharedState.deck.splice(chosen.index, 1)[0];
+        const card = { ...sharedState.deck.splice(chosen.index, 1)[0], receivedAt: Date.now() };
         if (!targetState[inventoryKey]) targetState[inventoryKey] = { inventory: [] };
         if (!Array.isArray(targetState[inventoryKey].inventory)) targetState[inventoryKey].inventory = [];
         targetState[inventoryKey].inventory.push(card);
@@ -23678,7 +23794,7 @@ async function gainRandomPotionByRarity(rarity, targetProfile = getGmTargetProfi
     if (matchingIndexes.length === 0) return;
 
     const randomPick = matchingIndexes[Math.floor(Math.random() * matchingIndexes.length)];
-    const card = sharedPotionState.deck.splice(randomPick.index, 1)[0];
+    const card = { ...sharedPotionState.deck.splice(randomPick.index, 1)[0], receivedAt: Date.now() };
 
     playerPotionState.inventory.push(card);
     saveProfileWithSharedCards(targetProfile, ["sharedPotions"]);
@@ -24026,7 +24142,7 @@ async function gainRandomRelic(targetProfile = getGmTargetProfile("gmRelicTarget
     if (sharedRelicState.deck.length === 0) return;
 
     const randomIndex = Math.floor(Math.random() * sharedRelicState.deck.length);
-    const card = sharedRelicState.deck.splice(randomIndex, 1)[0];
+    const card = { ...sharedRelicState.deck.splice(randomIndex, 1)[0], receivedAt: Date.now() };
 
     playerRelicState.inventory.push(card);
 
@@ -24055,7 +24171,7 @@ async function gainRandomRelicByType(type, targetProfile = getGmTargetProfile("g
     if (matchingIndexes.length === 0) return;
 
     const randomPick = matchingIndexes[Math.floor(Math.random() * matchingIndexes.length)];
-    const card = sharedRelicState.deck.splice(randomPick.index, 1)[0];
+    const card = { ...sharedRelicState.deck.splice(randomPick.index, 1)[0], receivedAt: Date.now() };
 
     playerRelicState.inventory.push(card);
 
@@ -24296,7 +24412,7 @@ function dealObjectiveCards(tier) {
 
             const randomIndex = Math.floor(Math.random() * deck.length);
             const card = deck.splice(randomIndex, 1)[0];
-            playerObjectiveState.inventory.push({ ...card });
+            playerObjectiveState.inventory.push({ ...card, receivedAt: Date.now() });
             dealtCount++;
         }
     })?.then?.(() => {
