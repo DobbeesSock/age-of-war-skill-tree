@@ -2161,6 +2161,7 @@ body.elves {
         <option value="buildings">Income</option>
         <option value="constructionProduction">Construction & Production</option>
         <option value="materialCrafting">Material Crafting</option>
+        <option value="blueprints">Blueprints</option>
         <option value="inventory">Inventory</option>
         <option value="unlockedCards">Unlocked Cards</option>
       </optgroup>
@@ -2190,6 +2191,7 @@ body.elves {
   <button onclick="showView('relics')">Relic Deck</button>
   <button onclick="showView('heroEquipment')">Hero Equipment</button>
   <button onclick="showView('unlockCardLibrary')">Unlock Cards</button>
+  <button onclick="showView('blueprintLibrary')">Blueprint Cards</button>
   
   <button onclick="showView('materialCards')">Materials</button>
   <button onclick="showView('objectives')">Objective Deck</button>
@@ -3521,6 +3523,13 @@ body.elves {
   </div>
 </div>
 
+<div id="blueprintsView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);">
+    <h2 style="margin-top:0; color:gold;">Blueprints</h2>
+    <div id="blueprintsApp"></div>
+  </div>
+</div>
+
 
 
 
@@ -3616,6 +3625,13 @@ body.elves {
     <input id="unlockCardSearch" type="search" placeholder="Search unlock cards..." oninput="renderUnlockCardLibrary()" style="min-width:260px;">
   </div>
   <div id="unlockCardLibraryApp"></div>
+</div>
+<div id="blueprintLibraryView" style="display:none;">
+  <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <label style="color:white;">Give to: <select id="gmBlueprintTargetSelect"></select></label>
+    <input id="blueprintSearch" type="search" placeholder="Search blueprint cards..." oninput="renderBlueprintLibrary()" style="min-width:260px;">
+  </div>
+  <div id="blueprintLibraryApp"></div>
 </div>
 <div id="materialCardsView" style="display:none;">
   <div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
@@ -4944,6 +4960,101 @@ function getOwnedTitleCollectionRows() {
     .filter(Boolean);
 }
 
+const supplyBlueprintCards = [
+  // Add card definitions here as the Supply Blueprint cards are created.
+  // Example:
+  // {
+  //   id: "supply_blueprint_example",
+  //   name: "Example Supply Blueprint",
+  //   tier: "Common",
+  //   copies: 5,
+  //   text: "Card rules shown to players.",
+  //   collectionIncome: "+2 Gold",
+  //   cost: "12 Gold",
+  //   hp: "8",
+  //   size: "2x2",
+  //   image: "assets/blueprints/example.png"
+  // }
+];
+
+function createSharedBlueprintState() {
+  return {
+    version: 1,
+    unlocked: [],
+    copies: {}
+  };
+}
+
+function ensureBlueprintState(profileName) {
+  if (!data.sharedBlueprints) {
+    data.sharedBlueprints = createSharedBlueprintState();
+  }
+
+  if (!Array.isArray(data.sharedBlueprints.unlocked)) {
+    data.sharedBlueprints.unlocked = [];
+  }
+
+  if (!data.sharedBlueprints.copies) {
+    data.sharedBlueprints.copies = {};
+  }
+
+  supplyBlueprintCards.forEach(card => {
+    if (data.sharedBlueprints.copies[card.id] === undefined) {
+      data.sharedBlueprints.copies[card.id] = Number(card.copies || 5);
+    }
+  });
+
+  if (profileName && data[profileName] && !isSharedDataKey(profileName)) {
+    if (!data[profileName].blueprints) {
+      data[profileName].blueprints = { inventory: [] };
+    }
+
+    data[profileName].blueprints.inventory = (data[profileName].blueprints.inventory || [])
+      .filter(card => card && card.id);
+  }
+}
+
+function getSupplyBlueprintById(cardId) {
+  return supplyBlueprintCards.find(card => card.id === cardId) || null;
+}
+
+function isBlueprintUnlocked(cardId) {
+  ensureBlueprintState();
+  return data.sharedBlueprints.unlocked.includes(cardId);
+}
+
+function getBlueprintCopyCount(cardId) {
+  ensureBlueprintState();
+  return Number(data.sharedBlueprints.copies?.[cardId] ?? 0);
+}
+
+function getOwnedBlueprintCollectionRows() {
+  if (!resourceProfile || !data[resourceProfile]) return [];
+
+  ensureBlueprintState(resourceProfile);
+  return (data[resourceProfile].blueprints.inventory || [])
+    .map((entry, index) => {
+      const card = getSupplyBlueprintById(entry.id) || entry;
+      const income = card.collectionIncome || "";
+      if (!income) return null;
+
+      return {
+        building: card.collectionRowName || card.name || `Blueprint ${index + 1}`,
+        rowKey: `blueprint:${card.id || card.name || index}:${entry.receivedAt || index}`,
+        income,
+        limit: card.collectionLimit || "Owned",
+        size: card.size || "-",
+        source: "Blueprint",
+        cost: card.cost || "Owned",
+        hp: card.hp || "-",
+        type: "blueprint",
+        defaultCollectEnabled: true,
+        collectionCountLabel: card.collectionCountLabel || ""
+      };
+    })
+    .filter(Boolean);
+}
+
 function ensureTitleTrackerState(profileName) {
   if (!profileName || !data[profileName]) return;
   if (!data[profileName].titleTracker) {
@@ -5275,7 +5386,7 @@ function getBuildingTrackerRows() {
     type: "building"
   }));
 
-  return factionRows.concat(blueprintRows, chestRows, getOwnedRelicCollectionRows(), getOwnedTitleCollectionRows(), getUnlockedSkillCollectionRows());
+  return factionRows.concat(blueprintRows, chestRows, getOwnedBlueprintCollectionRows(), getOwnedRelicCollectionRows(), getOwnedTitleCollectionRows(), getUnlockedSkillCollectionRows());
 }
 
 const factionAbilityCharts = {
@@ -10178,7 +10289,7 @@ function getIncomeRowKey(row) {
 }
 
 function getIncomeRowCount(row, constructed) {
-  return row.type === "relic" || row.type === "skill" || row.type === "title" || row.type === "titleMultiplier" ? 1 : Number(constructed[row.building] || 0);
+  return row.type === "relic" || row.type === "skill" || row.type === "blueprint" || row.type === "title" || row.type === "titleMultiplier" ? 1 : Number(constructed[row.building] || 0);
 }
 
 function collectCheckedBuildings() {
@@ -10284,6 +10395,7 @@ function renderBuildings() {
               const atLimit = limit !== null && count >= limit;
               const isRelic = row.type === "relic";
               const isSkill = row.type === "skill";
+              const isBlueprint = row.type === "blueprint";
               const isOwnedTitleBonus = row.type === "title" || row.type === "titleMultiplier";
 
               return `
@@ -10300,7 +10412,7 @@ function renderBuildings() {
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${getBuildingLimitLabel(row)}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">${row.size}</td>
                 <td style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.08);">
-                  ${isRelic ? "<span style=\"color:#bbb;\">Owned relic</span>" : isSkill ? "<span style=\"color:#bbb;\">Unlocked skill</span>" : isOwnedTitleBonus ? "<span style=\"color:#bbb;\">Owned title</span>" : `
+                  ${isRelic ? "<span style=\"color:#bbb;\">Owned relic</span>" : isSkill ? "<span style=\"color:#bbb;\">Unlocked skill</span>" : isBlueprint ? "<span style=\"color:#bbb;\">Owned blueprint</span>" : isOwnedTitleBonus ? "<span style=\"color:#bbb;\">Owned title</span>" : `
                     <button onclick="changeConstructedBuilding(${buildingArg}, -1)">- ${getBuildingLevelLabel(row)}</button>
                     <button onclick="changeConstructedBuilding(${buildingArg}, 1)" ${atLimit ? "disabled" : ""}>+ ${getBuildingLevelLabel(row)}</button>
                   `}
@@ -10688,6 +10800,213 @@ function removeUnlockedCard(index) {
   data[resourceProfile].unlockedCards.inventory.splice(index, 1);
   saveProfiles();
   renderUnlockedCards();
+}
+
+function renderBlueprintCard(card, zone = "player", index = -1) {
+  const canRemove = zone === "player" && index >= 0;
+  const image = card.image || card.frontImage || "";
+
+  return `
+    <div class="relic-card" style="background:linear-gradient(135deg, rgba(20,28,34,0.96), rgba(5,8,10,0.94)); border-color:rgba(99,180,255,0.42);">
+      <small>${escapeHeroValue(card.tier || "Supply Blueprint")}</small>
+      <h3>${escapeHeroValue(card.name || "Unnamed Blueprint")}</h3>
+      ${image ? `<img src="${image}" alt="${escapeHeroValue(card.name || "Blueprint")}" style="width:100%; border-radius:8px; margin:8px 0; object-fit:contain; max-height:520px;">` : ""}
+      ${card.text ? `<p>${escapeHeroValue(card.text)}</p>` : ""}
+      ${card.collectionIncome ? `<p><strong>Collection:</strong> ${escapeHeroValue(card.collectionIncome)}</p>` : ""}
+      <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; color:#ddd; font-size:13px; margin-top:8px;">
+        <span><strong>Cost:</strong> ${escapeHeroValue(card.cost || "-")}</span>
+        <span><strong>HP:</strong> ${escapeHeroValue(card.hp || "-")}</span>
+        <span><strong>Size:</strong> ${escapeHeroValue(card.size || "-")}</span>
+        <span><strong>Limit:</strong> ${escapeHeroValue(card.collectionLimit || "Owned")}</span>
+      </div>
+      <div class="potion-actions" style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+        ${canRemove ? `<button onclick="removeBlueprintFromPlayer(${index})">Return Blueprint</button>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function renderBlueprints() {
+  const app = document.getElementById("blueprintsApp");
+  if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+  ensureBlueprintState(resourceProfile);
+  const cards = data[resourceProfile].blueprints.inventory
+    .map((entry, index) => ({ card: getSupplyBlueprintById(entry.id) || entry, index }))
+    .filter(item => item.card);
+
+  app.innerHTML = cards.length ? `
+    <div style="display:grid; gap:20px;">
+      <div class="relic-zone">
+        <h2>Owned Blueprints (${cards.length})</h2>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; align-items:start;">
+          ${cards.map(item => renderBlueprintCard(item.card, "player", item.index)).join("")}
+        </div>
+      </div>
+    </div>
+  ` : `
+    <div class="relic-zone">
+      <h2>No Blueprints Yet</h2>
+      <p>The GM can unlock Supply Blueprint cards and send copies here when your faction claims them.</p>
+    </div>
+  `;
+}
+
+function renderBlueprintLibrary() {
+  const app = document.getElementById("blueprintLibraryApp");
+  if (!app) return;
+
+  ensureBlueprintState(resourceProfile);
+  renderGmTargetOptions("gmBlueprintTargetSelect");
+
+  const query = (document.getElementById("blueprintSearch")?.value || "").trim().toLowerCase();
+  const cards = supplyBlueprintCards.filter(card => {
+    const haystack = [card.name, card.tier, card.text, card.collectionIncome].join(" ").toLowerCase();
+    return !query || haystack.includes(query);
+  });
+
+  if (!supplyBlueprintCards.length) {
+    app.innerHTML = `
+      <div class="relic-zone">
+        <h2>Supply Blueprint Library</h2>
+        <p>No Supply Blueprint cards have been added yet. Send the cards when they are ready and they can be dropped into this library with 5 copies each.</p>
+      </div>
+    `;
+    return;
+  }
+
+  app.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; align-items:start;">
+      ${cards.map(card => {
+        const unlocked = isBlueprintUnlocked(card.id);
+        const copies = getBlueprintCopyCount(card.id);
+        const cardId = JSON.stringify(card.id).replace(/"/g, "&quot;");
+        return `
+          <div class="relic-card" style="background:linear-gradient(135deg, rgba(20,28,34,0.96), rgba(5,8,10,0.94)); border-color:${unlocked ? "rgba(99,220,140,0.55)" : "rgba(255,255,255,0.20)"};">
+            <small>${escapeHeroValue(card.tier || "Supply Blueprint")} - ${unlocked ? "Unlocked" : "Locked"}</small>
+            <h3>${escapeHeroValue(card.name || "Unnamed Blueprint")}</h3>
+            ${card.image || card.frontImage ? `<img src="${card.image || card.frontImage}" alt="${escapeHeroValue(card.name || "Blueprint")}" style="width:100%; border-radius:8px; margin:8px 0; object-fit:contain; max-height:420px;">` : ""}
+            ${card.text ? `<p>${escapeHeroValue(card.text)}</p>` : ""}
+            ${card.collectionIncome ? `<p><strong>Collection:</strong> ${escapeHeroValue(card.collectionIncome)}</p>` : ""}
+            <p><strong>Copies Available:</strong> ${copies} / ${Number(card.copies || 5)}</p>
+            <div class="potion-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button onclick="toggleBlueprintUnlocked(${cardId})">${unlocked ? "Lock Visibility" : "Unlock Visibility"}</button>
+              <button onclick="sendBlueprintToPlayer(${cardId})" ${!unlocked || copies <= 0 ? "disabled" : ""}>Send Copy</button>
+            </div>
+          </div>
+        `;
+      }).join("") || `<div class="relic-zone"><h2>No blueprints match.</h2></div>`}
+    </div>
+  `;
+}
+
+function persistBlueprintMutation(mutation) {
+  if (!liveCampaignCode || !liveSyncDb) {
+    mutation(data);
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    flushLiveCampaignSave({ includeShared: true, sharedKeys: ["sharedBlueprints"], fullData: false });
+    return Promise.resolve(data);
+  }
+
+  clearTimeout(liveSaveTimer);
+  liveSaveTimer = null;
+  if (liveQueuedSave) {
+    liveSaveOverlays.delete(liveQueuedSave.overlayId);
+    liveQueuedSave = null;
+  }
+
+  const campaignRef = getCampaignDoc(liveCampaignCode);
+  return campaignRef.get({ source: "server" }).then(snapshot => {
+    if (!snapshot.exists || !snapshot.data()?.data) throw new Error("Campaign data was not found.");
+    const nextData = cloneCampaignValue(snapshot.data().data);
+    mutation(nextData);
+    return campaignRef.update("data", nextData, "updatedAt", Date.now(), "updatedBy", liveClientId).then(() => nextData);
+  }).then(nextData => {
+    data = applyLiveSaveOverlays(nextData);
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    refreshAfterRemoteCampaignUpdate();
+    return data;
+  });
+}
+
+function toggleBlueprintUnlocked(cardId) {
+  const card = getSupplyBlueprintById(cardId);
+  if (!card) return;
+
+  persistBlueprintMutation(nextData => {
+    if (!nextData.sharedBlueprints) nextData.sharedBlueprints = createSharedBlueprintState();
+    if (!Array.isArray(nextData.sharedBlueprints.unlocked)) nextData.sharedBlueprints.unlocked = [];
+    if (!nextData.sharedBlueprints.copies) nextData.sharedBlueprints.copies = {};
+    if (nextData.sharedBlueprints.copies[card.id] === undefined) nextData.sharedBlueprints.copies[card.id] = Number(card.copies || 5);
+
+    if (nextData.sharedBlueprints.unlocked.includes(card.id)) {
+      nextData.sharedBlueprints.unlocked = nextData.sharedBlueprints.unlocked.filter(id => id !== card.id);
+    } else {
+      nextData.sharedBlueprints.unlocked.push(card.id);
+    }
+  }).then(() => {
+    renderBlueprintLibrary();
+    setSyncStatus(`${card.name} blueprint visibility updated.`, "#84c46a");
+  }).catch(error => {
+    setSyncStatus(`Blueprint update failed: ${error.message}`, "#ff8a8a");
+    alert(`Blueprint update failed: ${error.message}`);
+  });
+}
+
+function sendBlueprintToPlayer(cardId, targetProfile = getGmTargetProfile("gmBlueprintTargetSelect")) {
+  const card = getSupplyBlueprintById(cardId);
+  if (!card || !targetProfile) return;
+
+  persistBlueprintMutation(nextData => {
+    if (!nextData[targetProfile]) throw new Error(`Player profile ${targetProfile} was not found.`);
+    if (!nextData.sharedBlueprints) nextData.sharedBlueprints = createSharedBlueprintState();
+    if (!Array.isArray(nextData.sharedBlueprints.unlocked)) nextData.sharedBlueprints.unlocked = [];
+    if (!nextData.sharedBlueprints.copies) nextData.sharedBlueprints.copies = {};
+    if (!nextData.sharedBlueprints.unlocked.includes(card.id)) throw new Error(`${card.name} is still locked.`);
+
+    const copies = Number(nextData.sharedBlueprints.copies[card.id] ?? card.copies ?? 5);
+    if (copies <= 0) throw new Error(`No copies of ${card.name} remain.`);
+
+    if (!nextData[targetProfile].blueprints) nextData[targetProfile].blueprints = { inventory: [] };
+    if (!Array.isArray(nextData[targetProfile].blueprints.inventory)) nextData[targetProfile].blueprints.inventory = [];
+    nextData[targetProfile].blueprints.inventory.push({ id: card.id, receivedAt: Date.now() });
+    nextData.sharedBlueprints.copies[card.id] = copies - 1;
+  }).then(() => {
+    renderBlueprintLibrary();
+    renderBlueprints();
+    renderBuildings();
+    setSyncStatus(`Sent ${card.name} blueprint to ${targetProfile}.`, "#84c46a");
+  }).catch(error => {
+    setSyncStatus(`Blueprint send failed: ${error.message}`, "#ff8a8a");
+    alert(`Blueprint send failed: ${error.message}`);
+  });
+}
+
+function removeBlueprintFromPlayer(index) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+
+  let returnedCardName = "Blueprint";
+  persistBlueprintMutation(nextData => {
+    if (!nextData[resourceProfile]?.blueprints?.inventory) return;
+    const [entry] = nextData[resourceProfile].blueprints.inventory.splice(index, 1);
+    if (!entry) return;
+
+    const card = getSupplyBlueprintById(entry.id);
+    returnedCardName = card?.name || returnedCardName;
+    if (!nextData.sharedBlueprints) nextData.sharedBlueprints = createSharedBlueprintState();
+    if (!nextData.sharedBlueprints.copies) nextData.sharedBlueprints.copies = {};
+    const maxCopies = Number(card?.copies || 5);
+    const currentCopies = Number(nextData.sharedBlueprints.copies[entry.id] ?? 0);
+    nextData.sharedBlueprints.copies[entry.id] = Math.min(maxCopies, currentCopies + 1);
+  }).then(() => {
+    renderBlueprints();
+    renderBlueprintLibrary();
+    renderBuildings();
+    setSyncStatus(`${returnedCardName} returned to blueprint supply.`, "#f0c36a");
+  }).catch(error => {
+    setSyncStatus(`Blueprint return failed: ${error.message}`, "#ff8a8a");
+    alert(`Blueprint return failed: ${error.message}`);
+  });
 }
 const heroWeaponSlots = ["mainHand", "offHand", "twoHanded"];
 const heroSpellSlots = ["spellOne", "spellTwo", "spellThree"];
@@ -13650,6 +13969,7 @@ function isSharedDataKey(name) {
         name === "sharedObjectives" ||
         name === "sharedHeroEquipment" ||
         name === "sharedMaterialCards" ||
+        name === "sharedBlueprints" ||
         name === "sharedAlliances" ||
         name === "sharedTrades" ||
         name === "sharedGmNotifications" ||
@@ -15124,6 +15444,7 @@ function refreshAfterRemoteCampaignUpdate() {
     ensurePotionState(resourceProfile);
     ensureRelicState(resourceProfile);
     ensureObjectiveState(resourceProfile);
+    ensureBlueprintState(resourceProfile);
 ensureKeywordState(resourceProfile);
     ensureShopState(resourceProfile);
     ensureUnitMatrixState(resourceProfile);
@@ -15138,6 +15459,7 @@ ensureKeywordState(resourceProfile);
   renderResources();
   renderBuildings();
   renderInventory();
+  renderBlueprints();
   renderHero();
   renderPotions();
   renderRelics();
@@ -15573,6 +15895,7 @@ function renderHubHome() {
       <button onclick="showView('factionAbilities')" class="hub-choice"><strong>Faction Abilities</strong><br>Clickable ability costs and faction rules.</button>
       <button onclick="showView('buildings')" class="hub-choice"><strong>Income</strong><br>Income buildings and collection controls.</button>
       <button onclick="showView('constructionProduction')" class="hub-choice"><strong>Construction & Production</strong><br>Structure costs and unit production tables.</button>
+      <button onclick="showView('blueprints')" class="hub-choice"><strong>Blueprints</strong><br>Claimed supply blueprints and collection bonuses.</button>
       <button onclick="showView('inventory')" class="hub-choice"><strong>Inventory</strong><br>Potions, relics, and objectives assigned by the GM.</button>
       <button onclick="showView('hero')" class="hub-choice"><strong>Hero</strong><br>Equipped gear, weapons, mount, and combat notes.</button>
     </div>
@@ -15596,6 +15919,7 @@ function createProfile() {
         hero: createDefaultHeroEquipment(),
         heroEquipment: { inventory: [] },
         unlockedCards: { inventory: [] },
+        blueprints: { inventory: [] },
         notifications: createNavigationNotificationState(),
         unitMatrix: { kills: {} },
         materialCards: { inventory: [] },
@@ -15696,6 +16020,7 @@ function loadProfile() {
     ensureObjectiveState(resourceProfile);
     ensureHeroState(resourceProfile);
     ensureHeroEquipmentState(resourceProfile);
+    ensureBlueprintState(resourceProfile);
     ensureUnitMatrixState(resourceProfile);
     ensureTitleTrackerState(resourceProfile);
     ensureUnlockedCardState(resourceProfile);
@@ -15708,6 +16033,7 @@ updateHiddenPathUnlocks(resourceProfile);
     renderKeywords();
 
     ensureShopState(resourceProfile);
+    ensureBlueprintState(resourceProfile);
     ensureUnitMatrixState(resourceProfile);
     ensureNavigationNotificationState(resourceProfile);
     renderPlayerViewNotifications();
@@ -15723,12 +16049,13 @@ function openSelectedPlayerView(view) {
   if (view) showView(view);
 }
 
-const playerNotificationViews = ["inventory", "hero", "unlockedCards"];
+const playerNotificationViews = ["inventory", "blueprints", "hero", "unlockedCards"];
 
 function createNavigationNotificationState() {
   return {
     seen: {
       inventory: [],
+      blueprints: [],
       hero: [],
       unlockedCards: []
     }
@@ -15751,6 +16078,7 @@ function getNavigationNotificationKeys(profileName) {
       ...getInventory("relics").map((card, index) => getNavigationNotificationKey(card, index, "relic")),
       ...getInventory("objectives").map((card, index) => getNavigationNotificationKey(card, index, "objective"))
     ],
+    blueprints: getInventory("blueprints").map((card, index) => getNavigationNotificationKey(card, index, "blueprint")),
     hero: getInventory("heroEquipment").map((card, index) => getNavigationNotificationKey(card, index, "heroEquipment")),
     unlockedCards: getInventory("unlockedCards").map((card, index) => getNavigationNotificationKey(card, index, "unlock"))
   };
@@ -15889,6 +16217,10 @@ function showView(view) {
   if (unlockedCardsView) {
     unlockedCardsView.style.display = view === "unlockedCards" ? "block" : "none";
   }
+  const blueprintsView = document.getElementById("blueprintsView");
+  if (blueprintsView) {
+    blueprintsView.style.display = view === "blueprints" ? "block" : "none";
+  }
   const unlocksView = document.getElementById("unlocksView");
   if (unlocksView) {
     unlocksView.style.display = view === "unlocks" ? "block" : "none";
@@ -15908,6 +16240,11 @@ function showView(view) {
   const unlockCardLibraryView = document.getElementById("unlockCardLibraryView");
   if (unlockCardLibraryView) {
     unlockCardLibraryView.style.display = view === "unlockCardLibrary" && isHostMode ? "block" : "none";
+  }
+
+  const blueprintLibraryView = document.getElementById("blueprintLibraryView");
+  if (blueprintLibraryView) {
+    blueprintLibraryView.style.display = view === "blueprintLibrary" && isHostMode ? "block" : "none";
   }
 
   const materialCardsView = document.getElementById("materialCardsView");
@@ -16006,8 +16343,15 @@ function showView(view) {
     renderUnlockedCards();
     markPlayerViewNotificationsSeen("unlockedCards");
   }
+  if (view === "blueprints") {
+    renderBlueprints();
+    markPlayerViewNotificationsSeen("blueprints");
+  }
   if (view === "heroEquipment" && isHostMode) {
     renderHeroEquipmentDeck();
+  }
+  if (view === "blueprintLibrary" && isHostMode) {
+    renderBlueprintLibrary();
   }
   if (view === "materialCards" && isHostMode) {
     renderMaterialCards();
