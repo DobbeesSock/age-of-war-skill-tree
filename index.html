@@ -4828,6 +4828,49 @@ function addResourceByName(name, amount) {
   }
 }
 
+function getCraftingMaterialByName(name) {
+  const aliases = {
+    "plant fibre": "Plant Fibres",
+    "plant fiber": "Plant Fibres",
+    "plant fibres": "Plant Fibres",
+    "plant fibers": "Plant Fibres",
+    "beast part": "Beast Parts",
+    "beast parts": "Beast Parts"
+  };
+  const targetName = aliases[String(name || "").trim().toLowerCase()] || String(name || "").trim();
+  if (!targetName) return null;
+
+  craftingMaterials = normalizeCraftingMaterialGroups(craftingMaterials);
+  for (const group of craftingMaterials) {
+    const material = (group.items || []).find(item => item.name.toLowerCase() === targetName.toLowerCase());
+    if (material) return material;
+  }
+  return null;
+}
+
+function addCraftingMaterialByName(name, amount) {
+  const material = getCraftingMaterialByName(name);
+  if (!material) return false;
+  material.value = Number(material.value || 0) + Number(amount || 0);
+  return true;
+}
+
+function addRandomCraftingMaterialByTier(tierName, amount = 1) {
+  const normalizedTier = String(tierName || "").trim().toLowerCase();
+  if (!normalizedTier) return false;
+
+  craftingMaterials = normalizeCraftingMaterialGroups(craftingMaterials);
+  const group = craftingMaterials.find(group => String(group.tier || "").toLowerCase().startsWith(normalizedTier));
+  const items = group?.items || [];
+  if (!items.length) return false;
+
+  for (let i = 0; i < Number(amount || 0); i += 1) {
+    const material = items[Math.floor(Math.random() * items.length)];
+    material.value = Number(material.value || 0) + 1;
+  }
+  return true;
+}
+
 function getConstructedBuildingLevel(buildingName, constructed = null) {
   const levels = constructed || data[resourceProfile]?.buildings?.constructed || {};
   return Number(levels[buildingName] || 0);
@@ -4869,13 +4912,23 @@ function applyCollectionIncome(incomeText, constructed = null) {
     const resourceName = match[2].trim().toLowerCase();
     const perBuilding = match[3]?.trim();
     const mappedName = resourceMap[resourceName];
-    if (!mappedName) return;
 
     if (perBuilding) {
       amount *= getConstructedBuildingLevel(perBuilding, constructed);
     }
 
-    addResourceByName(mappedName, amount);
+    const randomMaterialMatch = resourceName.match(/^random\s+(common|rare|legendary|mythic)\s+material$/i);
+    if (randomMaterialMatch) {
+      addRandomCraftingMaterialByTier(randomMaterialMatch[1], amount);
+      return;
+    }
+
+    if (mappedName) {
+      addResourceByName(mappedName, amount);
+      return;
+    }
+
+    addCraftingMaterialByName(resourceName, amount);
   }
 
   if (/choose\s*1/i.test(incomeText)) {
@@ -4961,20 +5014,53 @@ function getOwnedTitleCollectionRows() {
 }
 
 const supplyBlueprintCards = [
-  // Add card definitions here as the Supply Blueprint cards are created.
-  // Example:
-  // {
-  //   id: "supply_blueprint_example",
-  //   name: "Example Supply Blueprint",
-  //   tier: "Common",
-  //   copies: 5,
-  //   text: "Card rules shown to players.",
-  //   collectionIncome: "+2 Gold",
-  //   cost: "12 Gold",
-  //   hp: "8",
-  //   size: "2x2",
-  //   image: "assets/blueprints/example.png"
-  // }
+  { id: "arcane_observatory", name: "Arcane Observatory", tier: "Supply Blueprint", copies: 5, cost: "32 Gold, 12 Metal & 7 Energy", hp: "6", size: "-", collectionIncome: "+1 Random Legendary Material", text: "Income Collection. Total Levels: 1.", image: "assets/blueprints/arcane-observatory.png" },
+  { id: "alchemists_lab", name: "Alchemist's Lab", tier: "Supply Blueprint", copies: 5, cost: "25 Gold, 10 Metal & 4 Energy", hp: "4", size: "-", collectionIncome: "+1 Random Legendary Material", text: "Passive: Potions crafted by the owner automatically succeed. Total Levels: 1.", image: "assets/blueprints/alchemist-lab.png" },
+  { id: "black_market", name: "Black Market", tier: "Supply Blueprint", copies: 5, cost: "20 Gold", hp: "3", size: "-", collectionIncome: "+3 Gold", text: "Total Building #: max 1. Condition: Gain 2 Red Keywords of your choice.", image: "assets/blueprints/black-market.png" },
+  { id: "iron_armoury", name: "Iron Armoury", tier: "Supply Blueprint", copies: 5, cost: "25 Gold", hp: "3", size: "1x1", text: "Total Building #: max 1. Ability: Newly spawned units gain +1 Armour until they are damaged.", image: "assets/blueprints/iron%20armoury.png" },
+  { id: "portal_stone", name: "Portal Stone", tier: "Core Blueprint", copies: 5, cost: "24 Gold", hp: "-", size: "1x1", text: "Total Building #: max 2. Construction: When built place the 1st constructed Portal Stone in Province, place the 2nd built Portal Stone anywhere on the Map, not in another Player Province. Portal Stones are considered adjacent and can only be entered by the Player who constructed them.", image: "assets/blueprints/portal-stone.png" },
+  { id: "ravine", name: "Ravine", tier: "Supply Blueprint", copies: 5, cost: "25 Gold, 8 Metal & 5 Energy", hp: "5", size: "-", collectionIncome: "+1 Stone", text: "Income Collection. Total Levels: 1.", image: "assets/blueprints/ravine.png" },
+  { id: "supply_cart", name: "Supply Cart", tier: "Supply Blueprint", copies: 5, cost: "14 Gold", hp: "5", size: "1x2", text: "Total #: max 1. Ability: Heal friendly adjacent units for 2 HP per round. Bonus: May move 10 for free once each Phase.", image: "assets/blueprints/supply-cart.png" },
+  { id: "well", name: "Well", tier: "Supply Blueprint", copies: 5, cost: "8 Gold", hp: "2", size: "1x1", collectionIncome: "+1 Food", text: "Total Building #: max 1. Ability: Heal friendly adjacent units for 2 HP per round.", image: "assets/blueprints/well.png" },
+  { id: "ironworks", name: "Ironworks", tier: "Supply Blueprint", copies: 5, cost: "30 Gold, 6 Wood, 10 Metal & 4 Energy", hp: "6", size: "-", text: "Additional Crafting: 1D6 Mounts 4-6, Armour Sets 6. Passive: Legendary Crafting automatically succeeds. Total Levels: 1.", image: "assets/blueprints/ironworks.png" },
+  { id: "overcharged_forge", name: "Overcharged Forge", tier: "Supply Blueprint", copies: 5, cost: "30 Gold", hp: "5", size: "1x3", collectionIncome: "+3 Metal", text: "Total Building #: max 1. Risk: If destroyed all adjacent structures and units suffer 3 damage.", image: "assets/blueprints/overcharged-forge.png" },
+  { id: "signal_beacon", name: "Signal Beacon", tier: "Supply Blueprint", copies: 5, cost: "25 Gold", hp: "2", size: "1x1", text: "Total Building #: max 1. Ability: Friendly units adjacent to the Beacon are also considered adjacent to all POIs. POIs are not considered adjacent to the Signal Beacon though.", image: "assets/blueprints/signal-beacon.png" },
+  { id: "trade_post", name: "Trade Post", tier: "Core Blueprint", copies: 5, cost: "10 Metal & 1 Energy", hp: "5", size: "1x1", collectionIncome: "+1 Gold & +1 Food", text: "Total Building #: max 1. Bonus: After allying with a Faction each Alliance gain +1 Dragon Coins or +5 Gold.", image: "assets/blueprints/trade-post.png" },
+  { id: "silo", name: "Silo", tier: "Supply Blueprint", copies: 5, cost: "10 Gold", hp: "2", size: "1x1", text: "Total Building #: max 1. Ability: Can store up to 50 Food; if any event causes your faction to lose Food a Silo prevents up to 50 Food from being lost per Silo. Bonus: Adjacent units heal 1 HP per round.", image: "assets/blueprints/silo.png" },
+  { id: "granary", name: "Granary", tier: "Core Blueprint", copies: 5, cost: "12 Gold", hp: "4", size: "1x1", collectionIncome: "+2 Food", text: "Total Building #: max 1. Ability: Once per Mission stop Food storage from dropping below 10 due to a Game Effect.", image: "assets/blueprints/granary.png" },
+  { id: "dragon_shrine", name: "Dragon Shrine", tier: "Core Blueprint", copies: 5, cost: "25 Gold", hp: "7", size: "2x2", collectionIncome: "+1 Dragon Coin", text: "Total Building #: max 1. Ability: Deal +1 OD against Dragon enemies.", image: "assets/blueprints/dragon-shrine.png" },
+  { id: "scout_post", name: "Scout Post", tier: "Core Blueprint", copies: 5, cost: "13 Gold", hp: "2", size: "1x1", text: "Total Building #: max 1. Ability: Once per Mission force 1 Player to reveal their Faction Mission or up to 2 Objective Cards to you. If they show 2 Objective Cards they must be 2 different Tiers and you may choose to discard 1. If they show a Faction Card they must also pay you 5 Gold.", image: "assets/blueprints/scout-barracks-siege-ladder.png" },
+  { id: "barracks_yards", name: "Barracks Yards", tier: "Core Blueprint", copies: 5, cost: "9 Metal", hp: "6", size: "1x2", text: "Total Building #: max 1. Ability: Spawned units may spawn outside Province within Range 3.", image: "assets/blueprints/scout-barracks-siege-ladder.png" },
+  { id: "siege_depot", name: "Siege Depot", tier: "Core Blueprint", copies: 5, cost: "12 Metal", hp: "5", size: "1x3", text: "Total Building #: max 1. Ability: Built Siege Weapons cost -8 Gold.", image: "assets/blueprints/scout-barracks-siege-ladder.png" },
+  { id: "ladder_rack", name: "Ladder Rack", tier: "Core Blueprint", copies: 5, cost: "15 Gold", hp: "3", size: "1x1", text: "Total Building #: max 1. Ability: All unit types may carry up to 1 Ladder.", image: "assets/blueprints/scout-barracks-siege-ladder.png" },
+  { id: "ore_sluice", name: "Ore Sluice", tier: "Core Blueprint", copies: 5, cost: "25 Gold", hp: "6", size: "1x1", collectionIncome: "+2 Metal", text: "Total Building #: max 1. Condition: Must be built outside Province.", image: "assets/blueprints/ore-depot-tax-office-yard-medic-hut.png" },
+  { id: "tax_office", name: "Tax Office", tier: "Core Blueprint", copies: 5, cost: "9 Metal", hp: "5", size: "1x2", collectionIncome: "+5 Gold", text: "Total Building #: max 1. When Built: Gain +1 Dragon Coin.", image: "assets/blueprints/ore-depot-tax-office-yard-medic-hut.png" },
+  { id: "training_yard", name: "Training Yard", tier: "Core Blueprint", copies: 5, cost: "25 Gold", hp: "7", size: "2x2", text: "Total Building #: max 1. Ability: Newly spawned Guards, Knights, or Archers gain +1 RC for their first attack after spawning.", image: "assets/blueprints/ore-depot-tax-office-yard-medic-hut.png" },
+  { id: "medic_hut", name: "Medic Hut", tier: "Core Blueprint", copies: 5, cost: "10 Gold", hp: "2", size: "1x1", text: "Total Building #: max 1. Production Ability: Depending on where Hut is built perform associated action. Built in Province: Heal all adjacent units 2 HP per Round. Built outside Province: Heal 1 unit anywhere on map for 3 HP per Round.", image: "assets/blueprints/ore-depot-tax-office-yard-medic-hut.png" },
+  { id: "catapult", name: "Catapult", tier: "Supply Blueprint", copies: 5, cost: "26 Gold", hp: "6", size: "-", text: "Movement: 5. Range: 5-10. RC: 3-6. OD: 3 + 3 Engagement Dice. Allocated Points: 14. Max #: 1. Ability: Deal 1 damage to up to 2 targets adjacent to the initial target.", image: "assets/blueprints/catapult.png" },
+  { id: "unstable_mine", name: "Unstable Mine", tier: "Supply Blueprint", copies: 5, cost: "15 Gold", hp: "4", size: "2x2", collectionIncome: "+3 Metal", text: "Total Building #: max 1. Condition: Gain 2 Red Keywords of your choice. Risk: Each Collection roll 1D8. 3-8: Nothing happens. 1-2: Mine is destroyed and the Blueprint is returned to the discard pile.", image: "assets/blueprints/unstable-mine.png" },
+  { id: "iron_chest", name: "Iron Chest", tier: "Supply Blueprint", copies: 5, cost: "10 Food", hp: "10", size: "1x1", text: "Total #: max 1. Ability: Can store up to 50 Gold; if any event causes your faction to lose Gold a Chest prevents up to 50 Gold from being lost per Chest. Bonus Ability: +3 Armour.", image: "assets/blueprints/iron%20chest.png" },
+  { id: "steelworks", name: "Steelworks", tier: "Supply Blueprint", copies: 5, cost: "36 Gold, 10 Wood, 15 Metal & 6 Energy", hp: "7", size: "-", text: "Additional Crafting: Relics 5-8. Passive: Mythic Crafting automatically succeeds. Total Levels: 1.", image: "assets/blueprints/steelworks.png" },
+  { id: "refiner", name: "Refiner", tier: "Supply Blueprint", copies: 5, cost: "25 Gold", hp: "5", size: "2x2", collectionIncome: "+3 Metal", text: "Total Level #: 1. Bonus: Gain Shop Upgrade discount of -2 Metal per Level of Refiner.", image: "assets/blueprints/refiner.png" },
+  { id: "command_tent", name: "Command Tent", tier: "Core Blueprint", copies: 5, cost: "26 Gold", hp: "10", size: "2x2", text: "Total Building #: max 1. Construction: May be built up to Range 12 from Province Border. Ability: Units adjacent gain +1 Roll Check and +3 Movement.", image: "assets/blueprints/command-tent.png" },
+  { id: "mine", name: "Mine", tier: "Supply Blueprint", copies: 5, cost: "25 Food", hp: "5", size: "1x1", collectionIncome: "+4 Gold", text: "Total Level #: 1. Bonus: Structures gain a -3 Gold discount when constructing.", image: "assets/blueprints/mine.png" },
+  { id: "market_stall", name: "Market Stall", tier: "Core Blueprint", copies: 5, cost: "12 Food", hp: "3", size: "1x1", collectionIncome: "+2 Gold", text: "Total Building #: max 1. Ability: 1 adjacent unit heals for 3 HP per Round.", image: "assets/blueprints/market-stall.png" },
+  { id: "forbidden_workshop", name: "Forbidden Workshop", tier: "Supply Blueprint", copies: 5, cost: "25 Gold", hp: "3", size: "1x2", text: "Total Building #: max 1. Ability: Once per Mission, reduce a Blueprint or Chest Card Structure by half the cost, then increase Presence or Tension by +1.", image: "assets/blueprints/forbiden-workshop.png" },
+  { id: "ore_depot", name: "Ore Depot", tier: "Supply Blueprint", copies: 5, cost: "12 Gold, 6 Metal & 2 Energy", hp: "4", size: "-", collectionIncome: "+1 Iron Ore", text: "Income Collection. Total Levels: 1.", image: "assets/blueprints/ore-depot.png" },
+  { id: "reinforced_wall", name: "Reinforced Wall", tier: "Supply Blueprint", copies: 5, cost: "20 Gold", hp: "-", size: "-", text: "Ability: Increase Walls HP by 5. Universal Buff: to Faction Walls. Bonus: Adjacent enemies suffer 1 damage every round.", image: "assets/blueprints/reinforced-wall.png" },
+  { id: "nest", name: "Nest", tier: "Supply Blueprint", copies: 5, cost: "40 Gold", hp: "5", size: "2x3", collectionIncome: "+2 Dragon Coins", text: "Total Level #: 1. Danger: If a Nest is destroyed roll a D4. On a 2-4 nothing happens; on a 1 spawn a Lurking Dragon. The card image also shows a second +4 collection option that is partially cut off.", image: "assets/blueprints/nest.png" },
+  { id: "energy_conductor", name: "Energy Conductor", tier: "Supply Blueprint", copies: 5, cost: "30 Gold", hp: "7", size: "1x1", text: "Ability: Allows trading Energy as a resource with other Factions who also have this structure built. Total Level #: 1.", image: "assets/blueprints/conductor.png" },
+  { id: "reinforced_gate", name: "Reinforced Gate", tier: "Supply Blueprint", copies: 5, cost: "35 Gold", hp: "-", size: "-", text: "Ability: Increase Gates HP by 10. Universal Buff: to Faction Gates. Bonus: May be repaired during the Production Round by paying Metal. 1 Metal = 2 HP.", image: "assets/blueprints/reinforced-gate.png" },
+  { id: "lumber_mill", name: "Lumber Mill", tier: "Supply Blueprint", copies: 5, cost: "8 Gold, 3 Metal & 2 Energy", hp: "2", size: "-", collectionIncome: "+1 Wood", text: "Income Collection. Total Levels: 1.", image: "assets/blueprints/lumber-mill.png" },
+  { id: "orchard", name: "Orchard", tier: "Supply Blueprint", copies: 5, cost: "18 Gold", hp: "5", size: "1x2", collectionIncome: "+4 Food", text: "Total Level #: 1. Bonus: Adjacent Food producing buildings gain +2 Armour per Level of Orchard.", image: "assets/blueprints/orchard.png" },
+  { id: "relic_sanctum", name: "Relic Sanctum", tier: "Supply Blueprint", copies: 5, cost: "35 Gold, 14 Metal & 5 Energy", hp: "4", size: "-", collectionIncome: "+1 Random Mythic Material", text: "Passive: Relic crafting automatically succeeds. Total Levels: 1.", image: "assets/blueprints/relic-sanctum.png" },
+  { id: "superior_energy_bank", name: "Superior Energy Bank", tier: "Supply Blueprint", copies: 5, cost: "20 Gold", hp: "12", size: "2x2", text: "Ability: Increase max Energy by +7. Total Level #: 1. Danger: If a Energy Bank is destroyed all Energy is lost and causes 5 damage to any adjacent units or structures.", image: "assets/blueprints/superior-energy-bank.png" },
+  { id: "herbalist_hut", name: "Herbalist Hut", tier: "Supply Blueprint", copies: 5, cost: "8 Gold, 3 Metal & 2 Energy", hp: "2", size: "-", collectionIncome: "+1 Plant Fibre", text: "Income Collection. Passive: Potions crafted by the owner gain +1 Crafting Roll. Total Levels: 1.", image: "assets/blueprints/herbalist%20hut.png" },
+  { id: "trappers_hut", name: "Trappers Hut", tier: "Supply Blueprint", copies: 5, cost: "8 Gold, 3 Metal & 2 Energy", hp: "2", size: "-", collectionIncome: "+1 Beast Part", text: "Income Collection. Total Levels: 1.", image: "assets/blueprints/trappers-hut.png" },
+  { id: "furnace", name: "Furnace", tier: "Supply Blueprint", copies: 5, cost: "25 Gold, 4 Wood, 5 Metal & 2 Energy", hp: "3", size: "-", text: "Additional Crafting: Weapons 4-6, Armour 5-6. Passive: Rare Crafting automatically succeeds. Total Levels: 1.", image: "assets/blueprints/furnace.png" },
+  { id: "campfire", name: "Campfire", tier: "Supply Blueprint", copies: 5, cost: "10 Gold, 4 Wood & 4 Energy", hp: "1", size: "-", text: "Craft Potions: 1D6 and Materials. Common 3-6, Rare 4-6, Legendary 5-6, Mythic 6. Passive: Common Crafting automatically succeeds. Total Levels: 1.", image: "assets/blueprints/campfire.png" },
+  { id: "energy_bank", name: "Energy Bank", tier: "Supply Blueprint", copies: 5, cost: "15 Gold", hp: "9", size: "1x1", text: "Ability: Increase max Energy by +5. Total Level #: 1. Danger: If a Energy Bank is destroyed all Energy is lost and causes 5 damage to any units or structures adjacent.", image: "assets/blueprints/energy-bank.png" },
+  { id: "jeweller", name: "Jeweller", tier: "Supply Blueprint", copies: 5, cost: "15 Gold, 8 Metal & 3 Energy", hp: "3", size: "-", collectionIncome: "+1 Random Rare Material", text: "Income Collection. Passive: Potions crafted by the owner gain +1 Crafting Roll. Total Levels: 1.", image: "assets/blueprints/jeweller.png" }
 ];
 
 function createSharedBlueprintState() {
