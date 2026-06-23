@@ -1969,6 +1969,23 @@ body.elves {
   background: rgba(212,175,55,0.12);
 }
 
+.unit-matrix-table td:last-child,
+.unit-matrix-table th:last-child {
+  text-align: right;
+}
+
+.unit-matrix-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.unit-matrix-actions button {
+  min-height: 34px;
+  min-width: 70px;
+}
+
 @media (max-width: 900px) {
   .faction-info-layout {
     grid-template-columns: 1fr;
@@ -15109,6 +15126,7 @@ function refreshAfterRemoteCampaignUpdate() {
     ensureObjectiveState(resourceProfile);
 ensureKeywordState(resourceProfile);
     ensureShopState(resourceProfile);
+    ensureUnitMatrixState(resourceProfile);
     ensureNavigationNotificationState(resourceProfile);
     writeLivePresence();
   }
@@ -15303,6 +15321,171 @@ function renderLadderInfoCard() {
     </div>
   `;
 }
+
+const unitMatrixRows = [
+  { id: "white", label: "White", amount: 2, resourceName: "Gold", upgradeKey: "White Base" },
+  { id: "black", label: "Black", amount: 3, resourceName: "Gold", upgradeKey: "Black Base" },
+  { id: "red", label: "Red", amount: 3, resourceName: "Gold", upgradeKey: "Red Base" },
+  { id: "purple", label: "Purple", amount: 4, resourceName: "Gold", upgradeKey: "Purple Base" },
+  { id: "blue", label: "Blue", amount: 6, resourceName: "Gold", upgradeKey: "Blue Base" },
+  { id: "brown", label: "Brown", amount: 5, resourceName: "Gold", upgradeKey: "Brown Base" },
+  { id: "yellow", label: "Yellow", amount: 3, resourceName: "Gold", upgradeKey: "Yellow Base" },
+  { id: "yellowBlue", label: "Yellow / Blue", amount: 7, resourceName: "Gold", upgradeKey: "Yellow/Blue Base" },
+  { id: "yellowBrown", label: "Yellow / Brown", amount: 8, resourceName: "Gold", upgradeKey: "Yellow/Brown Base" },
+  { id: "ultimate", label: "Ultimate", amount: 5, resourceName: "Dragon Coins", upgradeKey: "Ultimate Base" }
+];
+
+function ensureUnitMatrixState(profileName) {
+  if (!profileName || !data[profileName]) return;
+  if (!data[profileName].unitMatrix) {
+    data[profileName].unitMatrix = { kills: {} };
+  }
+  if (!data[profileName].unitMatrix.kills) {
+    data[profileName].unitMatrix.kills = {};
+  }
+  unitMatrixRows.forEach(row => {
+    data[profileName].unitMatrix.kills[row.id] = Math.max(0, Number(data[profileName].unitMatrix.kills[row.id] || 0));
+  });
+}
+
+function getPurchasedUnitMatrixBonus(row) {
+  if (!resourceProfile || !data[resourceProfile]) return 0;
+  ensureShopState(resourceProfile);
+
+  const purchases = data[resourceProfile].shop?.purchases || {};
+  return Object.keys(purchases).reduce((total, itemId) => {
+    const item = typeof shopItems === "undefined" ? null : shopItems.find(shopItem => shopItem.id === itemId);
+    if (!item || item.section !== "Technical: Resource Specific" || !item.name.startsWith(`${row.upgradeKey}:`)) {
+      return total;
+    }
+
+    const match = String(item.name).match(/\+(\d+)/);
+    return total + (match ? Number(match[1]) : 0);
+  }, 0);
+}
+
+function getUnitMatrixPayout(row) {
+  return {
+    amount: row.amount + getPurchasedUnitMatrixBonus(row),
+    resourceName: row.resourceName
+  };
+}
+
+function formatUnitMatrixPayout(row) {
+  const payout = getUnitMatrixPayout(row);
+  const baseLabel = `${row.amount} ${row.resourceName === "Dragon Coins" ? "DC" : row.resourceName}`;
+  const currentLabel = `${payout.amount} ${payout.resourceName === "Dragon Coins" ? "DC" : payout.resourceName}`;
+  return payout.amount === row.amount
+    ? currentLabel
+    : `${currentLabel} <span style="color:#9ee6a8; font-size:12px;">(${baseLabel} upgraded)</span>`;
+}
+
+function changeResourceByName(resourceName, amount) {
+  if (!resourceProfile || !data[resourceProfile]) return false;
+
+  loadResourceProfile(resourceProfile);
+  const resource = getResourceByName(resourceName);
+  if (!resource) return false;
+
+  resource.value = Math.max(0, Number(resource.value || 0) + amount);
+  if (resource.max !== undefined) {
+    resource.value = Math.min(resource.value, resource.max);
+  }
+
+  saveResourceProfile();
+  renderResources();
+  renderFactionAbilities();
+  return true;
+}
+
+function claimUnitMatrixKill(rowId) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  const row = unitMatrixRows.find(entry => entry.id === rowId);
+  if (!row) return;
+
+  ensureUnitMatrixState(resourceProfile);
+  const payout = getUnitMatrixPayout(row);
+  if (!changeResourceByName(payout.resourceName, payout.amount)) return;
+
+  ensureUnitMatrixState(resourceProfile);
+  data[resourceProfile].unitMatrix.kills[row.id] += 1;
+  localStorage.setItem("skillTreeData", JSON.stringify(data));
+  queueLiveCampaignSave({ profileName: resourceProfile });
+  renderFactionInfo();
+  setSyncStatus(`Unit Matrix: +${payout.amount} ${payout.resourceName} for ${row.label}.`, "#84c46a");
+}
+
+function undoUnitMatrixKill(rowId) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  const row = unitMatrixRows.find(entry => entry.id === rowId);
+  if (!row) return;
+
+  ensureUnitMatrixState(resourceProfile);
+  if (data[resourceProfile].unitMatrix.kills[row.id] <= 0) return;
+
+  const payout = getUnitMatrixPayout(row);
+  if (!changeResourceByName(payout.resourceName, -payout.amount)) return;
+
+  ensureUnitMatrixState(resourceProfile);
+  data[resourceProfile].unitMatrix.kills[row.id] = Math.max(0, data[resourceProfile].unitMatrix.kills[row.id] - 1);
+  localStorage.setItem("skillTreeData", JSON.stringify(data));
+  queueLiveCampaignSave({ profileName: resourceProfile });
+  renderFactionInfo();
+  setSyncStatus(`Unit Matrix undo: -${payout.amount} ${payout.resourceName} for ${row.label}.`, "#f0c36a");
+}
+
+function resetUnitMatrixKills() {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  if (!confirm("Reset Unit Matrix kill counts? Resources already gained will stay unchanged.")) return;
+
+  ensureUnitMatrixState(resourceProfile);
+  data[resourceProfile].unitMatrix.kills = {};
+  ensureUnitMatrixState(resourceProfile);
+  localStorage.setItem("skillTreeData", JSON.stringify(data));
+  queueLiveCampaignSave({ profileName: resourceProfile });
+  renderFactionInfo();
+}
+
+function renderUnitMatrixInfoCard() {
+  if (!resourceProfile || !data[resourceProfile]) {
+    return "";
+  }
+
+  ensureUnitMatrixState(resourceProfile);
+  const kills = data[resourceProfile].unitMatrix.kills || {};
+
+  return `
+    <div class="faction-info-card" style="margin-top:16px; border-left-color:#ffd86b; background:rgba(35, 31, 21, 0.94);">
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
+        <div>
+          <h3>Unit Matrix</h3>
+          <div style="color:#e8e8e8; line-height:1.45;">Click the unit color killed to immediately add its payout to Resources. Purchased Unit Matrix upgrades are included.</div>
+        </div>
+        <button onclick="resetUnitMatrixKills()" style="min-height:34px;">Reset Counts</button>
+      </div>
+      <table class="faction-info-table unit-matrix-table">
+        <thead>
+          <tr><th>Unit Killed</th><th>Payout</th><th>Kills</th><th>Claim</th></tr>
+        </thead>
+        <tbody>
+          ${unitMatrixRows.map(row => `
+            <tr>
+              <td>${row.label}</td>
+              <td>${formatUnitMatrixPayout(row)}</td>
+              <td>${kills[row.id] || 0}</td>
+              <td>
+                <div class="unit-matrix-actions">
+                  <button onclick="claimUnitMatrixKill('${row.id}')">Claim</button>
+                  <button onclick="undoUnitMatrixKill('${row.id}')" ${(kills[row.id] || 0) <= 0 ? "disabled" : ""}>Undo</button>
+                </div>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
 function renderFactionInfo() {
   const app = document.getElementById("factionInfoApp");
   if (!app) return;
@@ -15369,6 +15552,7 @@ function renderFactionInfo() {
     ${renderMenPathCounters()}
     ${renderElvesPathCounters()}
     ${renderBarbarianPathCounters()}
+    ${renderUnitMatrixInfoCard()}
     <div class="faction-info-layout" style="margin-top:16px;">
       ${info.sections.map(section => `${renderSection(section)}${section.title && /gates?\s*&\s*walls?/i.test(section.title) ? renderLadderInfoCard() : ""}`).join("")}
     </div>
@@ -15413,6 +15597,7 @@ function createProfile() {
         heroEquipment: { inventory: [] },
         unlockedCards: { inventory: [] },
         notifications: createNavigationNotificationState(),
+        unitMatrix: { kills: {} },
         materialCards: { inventory: [] },
         titleTracker: { progress: {}, awarded: {} },
         unlocks: { revealed: {}, notes: {}, setupSixChoices: {}, actionBoard: {} },
@@ -15511,6 +15696,7 @@ function loadProfile() {
     ensureObjectiveState(resourceProfile);
     ensureHeroState(resourceProfile);
     ensureHeroEquipmentState(resourceProfile);
+    ensureUnitMatrixState(resourceProfile);
     ensureTitleTrackerState(resourceProfile);
     ensureUnlockedCardState(resourceProfile);
 ensureUnlockState(resourceProfile);
@@ -15522,6 +15708,7 @@ updateHiddenPathUnlocks(resourceProfile);
     renderKeywords();
 
     ensureShopState(resourceProfile);
+    ensureUnitMatrixState(resourceProfile);
     ensureNavigationNotificationState(resourceProfile);
     renderPlayerViewNotifications();
 
