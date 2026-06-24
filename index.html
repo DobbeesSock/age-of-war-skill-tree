@@ -5181,6 +5181,19 @@ function getBlueprintCopyCount(cardId) {
   return Number(data.sharedBlueprints.copies?.[cardId] ?? 0);
 }
 
+function getUnlockedSupplyBlueprintCards() {
+  ensureBlueprintState(resourceProfile);
+  return supplyBlueprintCards.filter(card => isBlueprintUnlocked(card.id));
+}
+
+function getOwnedBlueprintCount(cardId, profileName = resourceProfile) {
+  if (!profileName || !data[profileName]) return 0;
+
+  ensureBlueprintState(profileName);
+  return (data[profileName].blueprints?.inventory || [])
+    .filter(entry => entry?.id === cardId).length;
+}
+
 function getOwnedBlueprintCollectionRows() {
   if (!resourceProfile || !data[resourceProfile]) return [];
 
@@ -11087,7 +11100,13 @@ function removeUnlockedCard(index) {
 
 function renderBlueprintCard(card, zone = "player", index = -1) {
   const canRemove = zone === "player" && index >= 0;
+  const canClaim = zone === "available";
   const image = card.image || card.frontImage || "";
+  const cardId = JSON.stringify(card.id).replace(/"/g, "&quot;");
+  const copies = getBlueprintCopyCount(card.id);
+  const ownedCount = getOwnedBlueprintCount(card.id);
+  const claimDisabled = copies <= 0 || ownedCount > 0;
+  const claimLabel = ownedCount > 0 ? "Owned" : copies <= 0 ? "No Copies" : "Draw Blueprint";
 
   return `
     <div class="relic-card" style="background:linear-gradient(135deg, rgba(20,28,34,0.96), rgba(5,8,10,0.94)); border-color:rgba(99,180,255,0.42);">
@@ -11102,7 +11121,9 @@ function renderBlueprintCard(card, zone = "player", index = -1) {
         <span><strong>Size:</strong> ${escapeHeroValue(card.size || "-")}</span>
         <span><strong>Limit:</strong> ${escapeHeroValue(card.collectionLimit || "Owned")}</span>
       </div>
+      ${canClaim ? `<p style="margin:10px 0 0; color:#d7ecff;"><strong>Copies Available:</strong> ${copies} / ${Number(card.copies || 5)}</p>` : ""}
       <div class="potion-actions" style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+        ${canClaim ? `<button onclick="claimBlueprintFromPool(${cardId})" ${claimDisabled ? "disabled" : ""}>${claimLabel}</button>` : ""}
         ${canRemove ? `<button onclick="removeBlueprintFromPlayer(${index})">Return Blueprint</button>` : ""}
       </div>
     </div>
@@ -11117,20 +11138,27 @@ function renderBlueprints() {
   const cards = data[resourceProfile].blueprints.inventory
     .map((entry, index) => ({ card: getSupplyBlueprintById(entry.id) || entry, index }))
     .filter(item => item.card);
+  const availableCards = getUnlockedSupplyBlueprintCards();
 
-  app.innerHTML = cards.length ? `
+  app.innerHTML = `
     <div style="display:grid; gap:20px;">
       <div class="relic-zone">
-        <h2>Owned Blueprints (${cards.length})</h2>
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; align-items:start;">
-          ${cards.map(item => renderBlueprintCard(item.card, "player", item.index)).join("")}
-        </div>
+        <h2>Available Blueprints (${availableCards.length})</h2>
+        ${availableCards.length ? `
+          <p>These Supply Blueprints have been unlocked by the GM. Draw one here when your faction gains that blueprint.</p>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; align-items:start;">
+            ${availableCards.map(card => renderBlueprintCard(card, "available")).join("")}
+          </div>
+        ` : `<p>No Supply Blueprints have been unlocked by the GM yet.</p>`}
       </div>
-    </div>
-  ` : `
-    <div class="relic-zone">
-      <h2>No Blueprints Yet</h2>
-      <p>The GM can unlock Supply Blueprint cards and send copies here when your faction claims them.</p>
+      <div class="relic-zone">
+        <h2>Owned Blueprints (${cards.length})</h2>
+        ${cards.length ? `
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; align-items:start;">
+            ${cards.map(item => renderBlueprintCard(item.card, "player", item.index)).join("")}
+          </div>
+        ` : `<p>Claimed Supply Blueprints will appear here with your other cards and feed into your Income tab when they provide collection.</p>`}
+      </div>
     </div>
   `;
 }
@@ -11262,6 +11290,40 @@ function sendBlueprintToPlayer(cardId, targetProfile = getGmTargetProfile("gmBlu
   }).catch(error => {
     setSyncStatus(`Blueprint send failed: ${error.message}`, "#ff8a8a");
     alert(`Blueprint send failed: ${error.message}`);
+  });
+}
+
+function claimBlueprintFromPool(cardId) {
+  const card = getSupplyBlueprintById(cardId);
+  if (!card || !resourceProfile || !data[resourceProfile]) return;
+
+  persistBlueprintMutation(nextData => {
+    if (!nextData[resourceProfile]) throw new Error(`Player profile ${resourceProfile} was not found.`);
+    if (!nextData.sharedBlueprints) nextData.sharedBlueprints = createSharedBlueprintState();
+    if (!Array.isArray(nextData.sharedBlueprints.unlocked)) nextData.sharedBlueprints.unlocked = [];
+    if (!nextData.sharedBlueprints.copies) nextData.sharedBlueprints.copies = {};
+    if (!nextData.sharedBlueprints.unlocked.includes(card.id)) throw new Error(`${card.name} has not been unlocked by the GM yet.`);
+
+    const copies = Number(nextData.sharedBlueprints.copies[card.id] ?? card.copies ?? 5);
+    if (copies <= 0) throw new Error(`No copies of ${card.name} remain.`);
+
+    if (!nextData[resourceProfile].blueprints) nextData[resourceProfile].blueprints = { inventory: [] };
+    if (!Array.isArray(nextData[resourceProfile].blueprints.inventory)) nextData[resourceProfile].blueprints.inventory = [];
+    if (nextData[resourceProfile].blueprints.inventory.some(entry => entry?.id === card.id)) {
+      throw new Error(`${card.name} is already in your Blueprints inventory.`);
+    }
+
+    nextData[resourceProfile].blueprints.inventory.push({ id: card.id, receivedAt: Date.now(), claimedByPlayer: true });
+    nextData.sharedBlueprints.copies[card.id] = copies - 1;
+  }).then(() => {
+    renderBlueprints();
+    renderBlueprintLibrary();
+    renderBuildings();
+    renderPlayerViewNotifications();
+    setSyncStatus(`${card.name} added to your Blueprints.`, "#84c46a");
+  }).catch(error => {
+    setSyncStatus(`Blueprint draw failed: ${error.message}`, "#ff8a8a");
+    alert(`Blueprint draw failed: ${error.message}`);
   });
 }
 
@@ -16373,6 +16435,11 @@ function getNavigationNotificationKey(card, index, prefix) {
 function getNavigationNotificationKeys(profileName) {
   const profile = data[profileName] || {};
   const getInventory = key => Array.isArray(profile[key]?.inventory) ? profile[key].inventory : [];
+  ensureBlueprintState(profileName);
+  const ownedBlueprintIds = new Set(getInventory("blueprints").map(card => card?.id).filter(Boolean));
+  const availableBlueprintKeys = supplyBlueprintCards
+    .filter(card => data.sharedBlueprints?.unlocked?.includes(card.id) && !ownedBlueprintIds.has(card.id))
+    .map(card => `availableBlueprint:${card.id}`);
 
   return {
     inventory: [
@@ -16380,7 +16447,10 @@ function getNavigationNotificationKeys(profileName) {
       ...getInventory("relics").map((card, index) => getNavigationNotificationKey(card, index, "relic")),
       ...getInventory("objectives").map((card, index) => getNavigationNotificationKey(card, index, "objective"))
     ],
-    blueprints: getInventory("blueprints").map((card, index) => getNavigationNotificationKey(card, index, "blueprint")),
+    blueprints: [
+      ...availableBlueprintKeys,
+      ...getInventory("blueprints").map((card, index) => getNavigationNotificationKey(card, index, "blueprint"))
+    ],
     hero: getInventory("heroEquipment").map((card, index) => getNavigationNotificationKey(card, index, "heroEquipment")),
     unlockedCards: getInventory("unlockedCards").map((card, index) => getNavigationNotificationKey(card, index, "unlock"))
   };
