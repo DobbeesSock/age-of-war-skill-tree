@@ -4875,6 +4875,7 @@ function addResourceByName(name, amount) {
   const resource = resources.find(r => r.name === name);
   if (!resource) return;
 
+  const beforeValue = Number(resource.value || 0);
   resource.value += amount;
 
   if (resource.max !== undefined && resource.value > resource.max) {
@@ -4883,6 +4884,14 @@ function addResourceByName(name, amount) {
 
   if (resource.value < 0) {
     resource.value = 0;
+  }
+
+  if (name === "Dragon Coins") {
+    const afterValue = Number(resource.value || 0);
+    applyDragonCoinAutoTension(resourceProfile, beforeValue, afterValue);
+    if (amount < 0) {
+      recordDragonCoinSpendAutoTension(resourceProfile, Math.abs(amount));
+    }
   }
 }
 
@@ -8676,7 +8685,13 @@ let worldEventState = {
   })),
   clicksSinceLastEvent: 0,
   nextEventAt: 4,
-  triggerUsage: {}
+  triggerUsage: {},
+  autoTension: {
+    previousDragonCoins: {},
+    dragonCoinThresholds: {},
+    keywordProfiles: {},
+    previousKeywordCounts: {}
+  }
 };
 
 let worldCreatureState = {
@@ -8775,60 +8790,60 @@ function rollNextWorldEventThreshold() {
 
 const worldEventTriggerRules = [
   {
-    id: "poi_resolved",
-    label: "A POI is resolved or destroyed",
-    note: "Repeatable. If too frequent later, we can limit this to once per round.",
+    id: "central_poi_discovered",
+    label: "A Central POI is discovered",
+    note: "Automatic from the Central POI generator. Repeatable until all Central POIs are discovered.",
     amount: 1,
     limit: "repeatable"
   },
   {
-    id: "new_poi_keyword",
-    label: "Each faction gains a new keyword",
-    note: "Use this when a faction has gained a new keyword.",
-    amount: 6,
-    limit: "once_per_mission"
-  },
-  {
-    id: "control_3_pois",
-    label: "A faction controls 3+ POIs in 1 Phase",
-    note: "Best as a milestone trigger.",
+    id: "central_poi_completed",
+    label: "A Central POI is completed",
+    note: "Automatic when Completed is clicked in the Central POI generator.",
     amount: 1,
-    limit: "once_per_mission"
+    limit: "repeatable"
   },
   {
-    id: "dragon_coin_12",
-    label: "Any 1 player reaches 12 Dragon Coins",
-    note: "One-time mission threshold.",
+    id: "keyword_gained",
+    label: "One time for each faction who gained a Keyword",
+    note: "Automatic when a profile gains its first keyword this mission. Repeatable for different player profiles.",
     amount: 1,
-    limit: "once_per_mission"
+    limit: "repeatable"
   },
   {
-    id: "dragon_coin_18",
-    label: "Any 1 player reaches 18 Dragon Coins",
-    note: "One-time mission threshold.",
+    id: "dragon_coin_4",
+    label: "Any 1 player acquires 4 Dragon Coins",
+    note: "Automatic per player when crossing this threshold.",
     amount: 1,
-    limit: "once_per_mission"
+    limit: "repeatable"
   },
   {
-    id: "dragon_coin_25",
-    label: "Any 1 player reaches 25 Dragon Coins",
-    note: "One-time mission threshold.",
+    id: "dragon_coin_6",
+    label: "Any 1 player acquires 6 Dragon Coins",
+    note: "Automatic per player when crossing this threshold.",
     amount: 1,
-    limit: "once_per_mission"
+    limit: "repeatable"
   },
   {
-    id: "dragon_coin_30",
-    label: "Any 1 player reaches 30 Dragon Coins",
-    note: "One-time mission threshold.",
+    id: "dragon_coin_10",
+    label: "Any 1 player acquires 10 Dragon Coins",
+    note: "Automatic per player when crossing this threshold.",
     amount: 1,
-    limit: "once_per_mission"
+    limit: "repeatable"
   },
   {
-  id: "central_poi_claimed",
-  label: "A central POI is claimed for the first time",
-  note: "One-time mission trigger.",
-  amount: 1,
-  limit: "once_per_mission"
+    id: "dragon_coin_14",
+    label: "Any 1 player acquires 14 Dragon Coins",
+    note: "Automatic per player when crossing this threshold.",
+    amount: 2,
+    limit: "repeatable"
+  },
+  {
+    id: "dragon_coin_spend_25",
+    label: "25 or more Dragon Coins are subtracted from a player",
+    note: "Automatic when one Dragon Coin change removes at least 25.",
+    amount: 2,
+    limit: "repeatable"
   },
   {
     id: "dragon_coin_unit_deployed",
@@ -8883,7 +8898,7 @@ function selectWorldEventCreature(creatureId) {
 
 
 
-function initializeWorldEventDeck() {
+function initializeWorldEventDeck(resetAutoTension = true) {
   worldEventState.deck = worldEvents.map(event => ({ ...event }));
   worldEventState.discard = [];
   worldEventState.current = null;
@@ -8895,8 +8910,21 @@ function initializeWorldEventDeck() {
 
   worldEventState.clicksSinceLastEvent = 0;
   worldEventState.triggerUsage = {};
+  if (resetAutoTension) {
+    worldEventState.autoTension = {
+      previousDragonCoins: {},
+      dragonCoinThresholds: {},
+      keywordProfiles: {},
+      previousKeywordCounts: {}
+    };
+  } else {
+    ensureWorldTensionAutoState();
+  }
   shuffleWorldEventDeck();
   worldEventState.nextEventAt = rollNextWorldEventThreshold();
+  if (resetAutoTension) {
+    baselineWorldTensionAutoState();
+  }
 }
 
 
@@ -8904,6 +8932,117 @@ function initializeWorldEventDeck() {
 function resetWorldEvents() {
   initializeWorldEventDeck();
   renderWorldEvents();
+}
+
+function ensureWorldEventDeckReadyForAutoTension() {
+  if (
+    worldEventState.deck.length === 0 &&
+    worldEventState.discard.length === 0 &&
+    !worldEventState.current
+  ) {
+    initializeWorldEventDeck(false);
+  }
+}
+
+function ensureWorldTensionAutoState() {
+  if (!worldEventState.autoTension) {
+    worldEventState.autoTension = {};
+  }
+
+  const autoState = worldEventState.autoTension;
+  if (!autoState.previousDragonCoins) autoState.previousDragonCoins = {};
+  if (!autoState.dragonCoinThresholds) autoState.dragonCoinThresholds = {};
+  if (!autoState.keywordProfiles) autoState.keywordProfiles = {};
+  if (!autoState.previousKeywordCounts) autoState.previousKeywordCounts = {};
+
+  return autoState;
+}
+
+function getProfileDragonCoinValue(profileName) {
+  const profile = data[profileName];
+  const resourcesList = Array.isArray(profile?.resources) ? profile.resources : [];
+  const dragonCoins = resourcesList.find(resource => resource.name === "Dragon Coins");
+  return Number(dragonCoins?.value || 0);
+}
+
+function getProfileKeywordCount(profileName) {
+  const selected = data[profileName]?.keywords?.selected || {};
+  return Object.values(selected).filter(Boolean).length;
+}
+
+function baselineWorldTensionAutoState() {
+  const autoState = ensureWorldTensionAutoState();
+  Object.keys(data).forEach(profileName => {
+    if (isSharedDataKey(profileName)) return;
+    autoState.previousDragonCoins[profileName] = getProfileDragonCoinValue(profileName);
+    autoState.previousKeywordCounts[profileName] = getProfileKeywordCount(profileName);
+  });
+}
+
+function recordAutomaticWorldTension(amount, reason) {
+  ensureWorldEventDeckReadyForAutoTension();
+  advanceWorldTension(amount);
+  setSyncStatus(`World Tension +${amount}: ${reason}`, "#f0c36a");
+}
+
+function applyDragonCoinAutoTension(profileName, beforeValue, afterValue) {
+  if (!profileName || !data[profileName]) return;
+
+  const autoState = ensureWorldTensionAutoState();
+  const profileThresholds = autoState.dragonCoinThresholds[profileName] || {};
+  const thresholds = [
+    { value: 4, amount: 1 },
+    { value: 6, amount: 1 },
+    { value: 10, amount: 1 },
+    { value: 14, amount: 2 }
+  ];
+
+  thresholds.forEach(threshold => {
+    if (beforeValue < threshold.value && afterValue >= threshold.value && !profileThresholds[threshold.value]) {
+      profileThresholds[threshold.value] = true;
+      recordAutomaticWorldTension(
+        threshold.amount,
+        `${profileName} reached ${threshold.value} Dragon Coins`
+      );
+    }
+  });
+
+  autoState.dragonCoinThresholds[profileName] = profileThresholds;
+  autoState.previousDragonCoins[profileName] = afterValue;
+}
+
+function recordDragonCoinSpendAutoTension(profileName, amountRemoved) {
+  if (!profileName || amountRemoved < 25) return;
+
+  recordAutomaticWorldTension(
+    2,
+    `${profileName} spent or lost ${amountRemoved} Dragon Coins`
+  );
+}
+
+function scanWorldTensionAutoTriggers() {
+  const autoState = ensureWorldTensionAutoState();
+
+  Object.keys(data).forEach(profileName => {
+    if (isSharedDataKey(profileName)) return;
+
+    const currentDragonCoins = getProfileDragonCoinValue(profileName);
+    if (autoState.previousDragonCoins[profileName] === undefined) {
+      autoState.previousDragonCoins[profileName] = currentDragonCoins;
+    } else {
+      applyDragonCoinAutoTension(profileName, Number(autoState.previousDragonCoins[profileName] || 0), currentDragonCoins);
+    }
+
+    const currentKeywordCount = getProfileKeywordCount(profileName);
+    if (autoState.previousKeywordCounts[profileName] === undefined) {
+      autoState.previousKeywordCounts[profileName] = currentKeywordCount;
+    } else if (currentKeywordCount > Number(autoState.previousKeywordCounts[profileName] || 0) && !autoState.keywordProfiles[profileName]) {
+      autoState.keywordProfiles[profileName] = true;
+      recordAutomaticWorldTension(1, `${profileName} gained a Keyword`);
+    }
+
+    autoState.previousKeywordCounts[profileName] = currentKeywordCount;
+  });
 }
 
 function shuffleWorldEventDeck() {
@@ -14013,6 +14152,7 @@ function renderFactionAbilities() {
 }
 function change(index, amount) {
   const res = resources[index];
+  const beforeValue = Number(res.value || 0);
   res.value += amount;
 
   if (res.max !== undefined && res.value > res.max) {
@@ -14026,6 +14166,14 @@ function change(index, amount) {
   if (res.name === "Skill Marks") {
     setCurrentTreeSm(res.value);
     updateSM();
+  }
+
+  if (res.name === "Dragon Coins") {
+    const afterValue = Number(res.value || 0);
+    applyDragonCoinAutoTension(resourceProfile, beforeValue, afterValue);
+    if (beforeValue - afterValue >= 25) {
+      recordDragonCoinSpendAutoTension(resourceProfile, beforeValue - afterValue);
+    }
   }
 
   saveResourceProfile();
@@ -15614,6 +15762,7 @@ renderKeywords();
   renderGmNotifications();
   renderShop();
   renderPlayerViewNotifications();
+  scanWorldTensionAutoTriggers();
 }
 
 function syncLandingProfileSelect() {
@@ -15853,9 +16002,18 @@ function changeResourceByName(resourceName, amount) {
   const resource = getResourceByName(resourceName);
   if (!resource) return false;
 
+  const beforeValue = Number(resource.value || 0);
   resource.value = Math.max(0, Number(resource.value || 0) + amount);
   if (resource.max !== undefined) {
     resource.value = Math.min(resource.value, resource.max);
+  }
+
+  if (resourceName === "Dragon Coins") {
+    const afterValue = Number(resource.value || 0);
+    applyDragonCoinAutoTension(resourceProfile, beforeValue, afterValue);
+    if (beforeValue - afterValue >= 25) {
+      recordDragonCoinSpendAutoTension(resourceProfile, beforeValue - afterValue);
+    }
   }
 
   saveResourceProfile();
@@ -22044,7 +22202,15 @@ function purchaseShopItem(itemId, costOptionIndex = 0) {
   }
 
   if (!cost.free) {
+    const beforeValue = cost.resourceName === "Dragon Coins" ? Number(cost.resource.value || 0) : 0;
     cost.resource.value -= cost.amount;
+    if (cost.resourceName === "Dragon Coins") {
+      const afterValue = Number(cost.resource.value || 0);
+      ensureWorldTensionAutoState().previousDragonCoins[resourceProfile] = afterValue;
+      if (beforeValue - afterValue >= 25) {
+        recordDragonCoinSpendAutoTension(resourceProfile, beforeValue - afterValue);
+      }
+    }
   }
 
   if (item.grantResource && item.grantAmount) {
@@ -22720,7 +22886,17 @@ function toggleKeyword(keyword) {
   ensureKeywordState(resourceProfile);
 
   const selected = data[resourceProfile].keywords.selected;
+  const wasSelected = Boolean(selected[keyword]);
   selected[keyword] = !selected[keyword];
+
+  if (!wasSelected && selected[keyword]) {
+    const autoState = ensureWorldTensionAutoState();
+    if (!autoState.keywordProfiles[resourceProfile]) {
+      autoState.keywordProfiles[resourceProfile] = true;
+      recordAutomaticWorldTension(1, `${resourceProfile} gained a Keyword`);
+    }
+    autoState.previousKeywordCounts[resourceProfile] = getProfileKeywordCount(resourceProfile);
+  }
 
   const newlyUnlocked = updateHiddenPathUnlocks(resourceProfile);
   saveProfiles();
@@ -23175,7 +23351,17 @@ function finalizeAllianceFromTrade(trade) {
 function addKeywordToProfile(profileName, keyword) {
   if (!profileName || !data[profileName]) return;
   ensureKeywordState(profileName);
+  const wasSelected = Boolean(data[profileName].keywords.selected[keyword]);
   data[profileName].keywords.selected[keyword] = true;
+
+  if (!wasSelected) {
+    const autoState = ensureWorldTensionAutoState();
+    if (!autoState.keywordProfiles[profileName]) {
+      autoState.keywordProfiles[profileName] = true;
+      recordAutomaticWorldTension(1, `${profileName} gained a Keyword`);
+    }
+    autoState.previousKeywordCounts[profileName] = getProfileKeywordCount(profileName);
+  }
 }
 
 function dissolveAlliance(pairKey, breaker) {
@@ -25977,6 +26163,7 @@ function setCentralPoi(num) {
 
     if (!revealedCentralPois.some(entry => Number(entry.number) === Number(num))) {
         revealedCentralPois.push({ number: Number(num), revealedAt: Date.now() });
+        recordAutomaticWorldTension(1, `Central POI ${formatted} discovered`);
     }
 
     const centralPoiNumber = document.getElementById("centralPoiNumber");
@@ -25989,6 +26176,7 @@ function setCentralPoi(num) {
 
 function completeCentralPoi(num) {
     const poiNumber = Number(num);
+    const wasRevealed = revealedCentralPois.some(entry => Number(entry.number) === poiNumber);
     revealedCentralPois = revealedCentralPois.filter(entry => Number(entry.number) !== poiNumber);
 
     if (poiNumber >= 1 && poiNumber <= 28 && !availableCentralPois.includes(poiNumber)) {
@@ -26009,6 +26197,10 @@ function completeCentralPoi(num) {
     saveCentralPoiData();
     updateCentralPoiRemaining();
     renderCentralPoiRevealedList();
+
+    if (wasRevealed) {
+        recordAutomaticWorldTension(1, `Central POI ${formatCentralPoiNumber(poiNumber)} completed`);
+    }
 }
 
 function resetCentralPois() {
@@ -26155,6 +26347,7 @@ updateFury();
 initializeCaves();
 initializeHeroCaves();
 initializeCentralPois();
+baselineWorldTensionAutoState();
 
 if (document.getElementById("skillProfileSelect").options.length > 0) {
     loadProfile();
