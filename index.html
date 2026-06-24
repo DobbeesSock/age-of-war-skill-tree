@@ -2229,6 +2229,7 @@ body.elves {
   <button onclick="showView('blueprintLibrary')">Blueprint Cards</button>
   
   <button onclick="showView('materialCards')">Materials</button>
+  <button onclick="showView('playerNotesHost')">Player Notes</button>
   <button onclick="showView('objectives')">Objective Deck</button>
 
 
@@ -3899,6 +3900,13 @@ body.elves {
   <div style="max-width:1200px; margin:0 auto; background:rgba(30,30,30,0.92); padding:20px; border-radius:8px; border:1px solid rgba(255,224,138,0.25);">
     <h2 style="margin-top:0; color:#ffe08a;">Player Path Notifications</h2>
     <div id="gmNotificationsApp"></div>
+  </div>
+</div>
+
+<div id="playerNotesHostView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1200px; margin:0 auto; background:rgba(30,30,30,0.92); padding:20px; border-radius:8px; border:1px solid rgba(255,224,138,0.25);">
+    <h2 style="margin-top:0; color:#ffe08a;">Player Notes</h2>
+    <div id="playerNotesHostApp"></div>
   </div>
 </div>
 
@@ -14312,6 +14320,7 @@ function loadResourceProfile(profileName = resourceProfile) {
     data[profileName].resources = JSON.parse(JSON.stringify(resources));
     craftingMaterials = normalizeCraftingMaterialGroups(data[profileName].craftingMaterials);
     data[profileName].craftingMaterials = JSON.parse(JSON.stringify(craftingMaterials));
+    ensurePlayerNotesState(profileName);
     const resourceTrackedTitles = syncResourceTrackedTitles(profileName);
     checkResourceTrackedTitleUnlocks(profileName, resourceTrackedTitles);
 
@@ -15843,6 +15852,7 @@ ensureKeywordState(resourceProfile);
     ensureShopState(resourceProfile);
     ensureUnitMatrixState(resourceProfile);
     ensureNavigationNotificationState(resourceProfile);
+    ensurePlayerNotesState(resourceProfile);
     writeLivePresence();
   }
 
@@ -15862,6 +15872,7 @@ renderKeywords();
   renderAllianceTrading();
   renderTradeNotification();
   renderGmNotifications();
+  renderPlayerNotesHost();
   renderShop();
   renderPlayerViewNotifications();
   scanWorldTensionAutoTriggers();
@@ -16289,6 +16300,7 @@ function renderHubHome() {
   if (!app) return;
 
   const hub = getCurrentHub();
+  ensurePlayerNotesState(resourceProfile);
   app.innerHTML = `
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
       <button onclick="showView('factionInfo')" class="hub-choice"><strong>Faction Info</strong><br>Play style, faction reminders, and booklet rules.</button>
@@ -16303,7 +16315,161 @@ function renderHubHome() {
       <button onclick="showView('inventory')" class="hub-choice"><strong>Inventory</strong><br>Potions, relics, and objectives assigned by the GM.</button>
       <button onclick="showView('hero')" class="hub-choice"><strong>Hero</strong><br>Equipped gear, weapons, mount, and combat notes.</button>
     </div>
+    ${renderPlayerNotesPanel()}
   `;
+}
+
+function ensurePlayerNotesState(profileName) {
+  if (!profileName || !data[profileName] || isSharedDataKey(profileName)) return [];
+
+  if (!Array.isArray(data[profileName].playerNotes)) {
+    data[profileName].playerNotes = [];
+  }
+
+  data[profileName].playerNotes = data[profileName].playerNotes
+    .filter(note => note && note.text)
+    .map(note => ({
+      id: note.id || `${profileName}:note:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+      category: note.category || "Idea",
+      text: String(note.text || ""),
+      createdAt: note.createdAt || new Date().toISOString(),
+      status: note.status || "open",
+      addressedAt: note.addressedAt || ""
+    }));
+
+  return data[profileName].playerNotes;
+}
+
+function renderPlayerNotesPanel() {
+  if (!resourceProfile || !data[resourceProfile]) return "";
+  const notes = ensurePlayerNotesState(resourceProfile)
+    .slice()
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+    .slice(0, 5);
+
+  return `
+    <div class="relic-zone" style="margin-top:18px; border-color:rgba(255,224,138,0.42); background:linear-gradient(135deg, rgba(255,224,138,0.08), rgba(0,0,0,0.72));">
+      <h2 style="margin-top:0;">Notes for the GM</h2>
+      <div style="display:grid; gap:10px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <label style="color:#ddd;">Type:
+            <select id="playerNoteCategory" style="margin-left:6px;">
+              <option value="Bug">Bug</option>
+              <option value="Suggestion">Suggestion</option>
+              <option value="Idea">Idea</option>
+              <option value="Question">Question</option>
+              <option value="Balance">Balance</option>
+            </select>
+          </label>
+          <button type="button" onclick="submitPlayerNote()">Submit Note</button>
+        </div>
+        <textarea id="playerNoteText" rows="4" placeholder="Leave an idea, suggestion, bug, or reminder for the GM..." style="width:100%; min-height:92px; resize:vertical; border-radius:6px; border:1px solid rgba(255,255,255,0.22); background:#111; color:white; padding:10px;"></textarea>
+      </div>
+      <div style="margin-top:14px;">
+        <h3 style="margin:0 0 8px; color:#ffe08a;">Recent Notes</h3>
+        ${notes.length ? notes.map(note => `
+          <article style="padding:10px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.28); margin-top:8px;">
+            <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+              <strong style="color:#ffe08a;">${escapeHeroValue(note.category)}</strong>
+              <small style="color:#aaa;">${escapeHeroValue(note.status === "addressed" ? "Addressed" : "Open")} - ${new Date(note.createdAt).toLocaleString()}</small>
+            </div>
+            <p style="margin:8px 0 0; color:#ddd; white-space:pre-wrap;">${escapeHeroValue(note.text)}</p>
+          </article>
+        `).join("") : `<p style="color:#bbb; margin:0;">No notes sent yet.</p>`}
+      </div>
+    </div>
+  `;
+}
+
+function persistPlayerNotesProfile(profileName) {
+  if (!profileName || !data[profileName] || isSharedDataKey(profileName)) return;
+  ensurePlayerNotesState(profileName);
+  localStorage.setItem("skillTreeData", JSON.stringify(data));
+  queueLiveCampaignSave({ profileName });
+  renderHubHome();
+  renderPlayerNotesHost();
+}
+
+function submitPlayerNote() {
+  if (!resourceProfile || !data[resourceProfile]) return;
+
+  const textInput = document.getElementById("playerNoteText");
+  const categoryInput = document.getElementById("playerNoteCategory");
+  const text = (textInput?.value || "").trim();
+  if (!text) {
+    alert("Write a note first.");
+    return;
+  }
+
+  ensurePlayerNotesState(resourceProfile).push({
+    id: `${resourceProfile}:note:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+    category: categoryInput?.value || "Idea",
+    text,
+    createdAt: new Date().toISOString(),
+    status: "open",
+    addressedAt: ""
+  });
+
+  if (textInput) textInput.value = "";
+  persistPlayerNotesProfile(resourceProfile);
+  setSyncStatus("Note sent to the GM.", "#84c46a");
+}
+
+function getAllPlayerNotes() {
+  return Object.keys(data)
+    .filter(name => !isSharedDataKey(name) && data[name])
+    .flatMap(profileName => ensurePlayerNotesState(profileName).map(note => ({ ...note, profileName })))
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+}
+
+function renderPlayerNotesHost() {
+  const app = document.getElementById("playerNotesHostApp");
+  if (!app) return;
+
+  const notes = getAllPlayerNotes();
+  const openCount = notes.filter(note => note.status !== "addressed").length;
+  app.innerHTML = `
+    <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px;">
+      <div style="color:#ddd;">${openCount} open note${openCount === 1 ? "" : "s"} / ${notes.length} total</div>
+      <button type="button" onclick="renderPlayerNotesHost()">Refresh</button>
+    </div>
+    ${notes.length ? `<div style="display:grid; gap:12px;">${notes.map(note => {
+      const profileArg = JSON.stringify(note.profileName).replace(/"/g, "&quot;");
+      const idArg = JSON.stringify(note.id).replace(/"/g, "&quot;");
+      const isAddressed = note.status === "addressed";
+      return `
+        <article style="padding:14px; border-radius:8px; border:1px solid ${isAddressed ? "rgba(255,255,255,0.14)" : "#d6a84b"}; background:${isAddressed ? "rgba(42,42,42,0.82)" : "rgba(62,45,20,0.94)"};">
+          <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+            <div>
+              <h3 style="margin:0 0 5px; color:#ffe08a;">${escapeHeroValue(note.profileName)} - ${escapeHeroValue(note.category)}</h3>
+              <div style="color:#bbb;">${escapeHeroValue(isAddressed ? "Addressed" : "Open")}</div>
+            </div>
+            <small style="color:#aaa;">${new Date(note.createdAt).toLocaleString()}</small>
+          </div>
+          <p style="margin:12px 0; line-height:1.45; color:#e8dfc8; white-space:pre-wrap;">${escapeHeroValue(note.text)}</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" onclick="setPlayerNoteStatus(${profileArg}, ${idArg}, '${isAddressed ? "open" : "addressed"}')">${isAddressed ? "Mark Open" : "Mark Addressed"}</button>
+            <button type="button" onclick="deletePlayerNote(${profileArg}, ${idArg})">Dismiss</button>
+          </div>
+        </article>
+      `;
+    }).join("")}</div>` : `<p style="color:#bbb;">No player notes have been submitted yet.</p>`}
+  `;
+}
+
+function setPlayerNoteStatus(profileName, noteId, status) {
+  const notes = ensurePlayerNotesState(profileName);
+  const note = notes.find(note => note.id === noteId);
+  if (!note) return;
+  note.status = status;
+  note.addressedAt = status === "addressed" ? new Date().toISOString() : "";
+  persistPlayerNotesProfile(profileName);
+}
+
+function deletePlayerNote(profileName, noteId) {
+  if (!profileName || !data[profileName]) return;
+  data[profileName].playerNotes = ensurePlayerNotesState(profileName).filter(note => note.id !== noteId);
+  persistPlayerNotesProfile(profileName);
 }
 
 
@@ -16325,6 +16491,7 @@ function createProfile() {
         unlockedCards: { inventory: [] },
         blueprints: { inventory: [] },
         notifications: createNavigationNotificationState(),
+        playerNotes: [],
         unitMatrix: { kills: {} },
         materialCards: { inventory: [] },
         titleTracker: { progress: {}, awarded: {} },
@@ -16701,6 +16868,11 @@ function showView(view) {
   if (gmNotificationsView) {
     gmNotificationsView.style.display = view === "gmNotifications" && isHostMode ? "block" : "none";
   }
+
+  const playerNotesHostView = document.getElementById("playerNotesHostView");
+  if (playerNotesHostView) {
+    playerNotesHostView.style.display = view === "playerNotesHost" && isHostMode ? "block" : "none";
+  }
   
   document.getElementById("caveRandomizerView").style.display =
     view === "caveRandomizer" ? "flex" : "none";
@@ -16829,6 +17001,10 @@ function showView(view) {
 
   if (view === "gmNotifications" && isHostMode) {
     renderGmNotifications();
+  }
+
+  if (view === "playerNotesHost" && isHostMode) {
+    renderPlayerNotesHost();
   }
 
   if (view === "keywords") {
@@ -17320,6 +17496,7 @@ function toggleHostMode() {
   if (loginBtn) loginBtn.style.display = "none";
   if (logoutBtn) logoutBtn.style.display = "inline-block";
   renderGmNotifications();
+  renderPlayerNotesHost();
 }
 
 function disableHostMode() {
@@ -17341,6 +17518,7 @@ function disableHostMode() {
   document.getElementById("breachEventsView").style.display === "block" ||
   document.getElementById("trackersView").style.display === "block" ||
   document.getElementById("gmNotificationsView").style.display === "block" ||
+  document.getElementById("playerNotesHostView").style.display === "block" ||
   document.getElementById("mythologicalCavesView").style.display === "block"
  
   
