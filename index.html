@@ -10807,6 +10807,12 @@ const materialCardTiers = [
   { id: "legendary", label: "Legendary", accent: "#ffb84a" },
   { id: "mythic", label: "Mythic", accent: "#c575ff" }
 ];
+const weightedRandomMaterialTiers = [
+  { id: "common", weight: 55 },
+  { id: "rare", weight: 30 },
+  { id: "legendary", weight: 12 },
+  { id: "mythic", weight: 3 }
+];
 
 function getMaterialTierById(tierId) {
   return materialCardTiers.find(tier => tier.id === tierId) || materialCardTiers[0];
@@ -10881,6 +10887,13 @@ function renderMaterialCards() {
   });
 
   app.innerHTML = `
+    <div class="relic-zone" style="margin-bottom:18px; border-color:rgba(255,224,138,0.5); background:linear-gradient(135deg, rgba(255,224,138,0.08), rgba(0,0,0,0.72));">
+      <h2 style="margin-top:0;">Random Material Reward</h2>
+      <p style="color:#bbb;">Weighted odds: Common 55%, Rare 30%, Legendary 12%, Mythic 3%.</p>
+      <div class="potion-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" onclick="sendWeightedRandomMaterialToPlayer()">Send Weighted Random +1</button>
+      </div>
+    </div>
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; align-items:start;">
       ${materialCardTiers.map(tier => {
         const tierMaterials = materials.filter(material => material.tier === tier.id);
@@ -10925,6 +10938,33 @@ function sendRandomMaterialToPlayer(tierId, amount = 1, targetProfile = getGmTar
   if (!choices.length) return;
   const material = choices[Math.floor(Math.random() * choices.length)];
   sendMaterialToPlayer(material.name, amount, targetProfile);
+}
+
+function pickWeightedMaterialTier() {
+  const availableTierIds = new Set(getMaterialSenderEntries().map(material => material.tier));
+  const weightedTiers = weightedRandomMaterialTiers.filter(tier => availableTierIds.has(tier.id));
+  const totalWeight = weightedTiers.reduce((total, tier) => total + Number(tier.weight || 0), 0);
+  if (!totalWeight) return materialCardTiers[0]?.id || "common";
+
+  let roll = Math.random() * totalWeight;
+  for (const tier of weightedTiers) {
+    roll -= Number(tier.weight || 0);
+    if (roll < 0) return tier.id;
+  }
+
+  return weightedTiers[weightedTiers.length - 1]?.id || "common";
+}
+
+function sendWeightedRandomMaterialToPlayer(targetProfile = getGmTargetProfile("gmMaterialCardTargetSelect")) {
+  if (!targetProfile) return;
+  const tierId = pickWeightedMaterialTier();
+  const choices = getMaterialSenderEntries().filter(material => material.tier === tierId);
+  if (!choices.length) return;
+
+  const material = choices[Math.floor(Math.random() * choices.length)];
+  sendMaterialToPlayer(material.name, 1, targetProfile);
+  const tier = getMaterialTierById(material.tier);
+  setSyncStatus(`Sent random ${tier.label} material: ${material.name} to ${targetProfile}.`, "#84c46a");
 }
 const unlockableCards = [
   { id: "dwarves_action_board_ironhold", faction: "Dwarves", category: "Action Board Unlock", name: "The Ironhold Stronghold", summary: "Forward operating base card unlocked from the Dwarves action board requirement.", frontImage: "assets/unlocked-cards/dwarves/action-board-dwarves-front.png", backImage: "assets/unlocked-cards/dwarves/action-board-dwarves-back.png" },
