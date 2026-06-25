@@ -2204,6 +2204,7 @@ body.elves {
         <option value="hero">Hero</option>
         <option value="allianceTrading">Alliance & Trading</option>
         <option value="shop">Upgrade Shop</option>
+        <option value="playerNotes">Player Notes</option>
       </optgroup>
     </select>
   </label>
@@ -3563,6 +3564,12 @@ body.elves {
   <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);">
     <h2 style="margin-top:0; color:gold;">Blueprints</h2>
     <div id="blueprintsApp"></div>
+  </div>
+</div>
+
+<div id="playerNotesView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1000px; margin:0 auto;">
+    <div id="playerNotesApp"></div>
   </div>
 </div>
 
@@ -16381,12 +16388,19 @@ function renderPlayerNotesPanel() {
   `;
 }
 
+function renderPlayerNotes() {
+  const app = document.getElementById("playerNotesApp");
+  if (!app) return;
+  app.innerHTML = renderPlayerNotesPanel();
+}
+
 function persistPlayerNotesProfile(profileName) {
   if (!profileName || !data[profileName] || isSharedDataKey(profileName)) return;
   ensurePlayerNotesState(profileName);
   localStorage.setItem("skillTreeData", JSON.stringify(data));
   queueLiveCampaignSave({ profileName });
   renderHubHome();
+  renderPlayerNotes();
   renderPlayerNotesHost();
 }
 
@@ -16800,6 +16814,10 @@ function showView(view) {
   if (blueprintsView) {
     blueprintsView.style.display = view === "blueprints" ? "block" : "none";
   }
+  const playerNotesView = document.getElementById("playerNotesView");
+  if (playerNotesView) {
+    playerNotesView.style.display = view === "playerNotes" ? "block" : "none";
+  }
   const unlocksView = document.getElementById("unlocksView");
   if (unlocksView) {
     unlocksView.style.display = view === "unlocks" ? "block" : "none";
@@ -16930,6 +16948,9 @@ function showView(view) {
   if (view === "blueprints") {
     renderBlueprints();
     markPlayerViewNotificationsSeen("blueprints");
+  }
+  if (view === "playerNotes") {
+    renderPlayerNotes();
   }
   if (view === "heroEquipment" && isHostMode) {
     renderHeroEquipmentDeck();
