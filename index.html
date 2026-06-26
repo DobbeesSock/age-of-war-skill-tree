@@ -2197,6 +2197,7 @@ body.elves {
         <option value="constructionProduction">Construction & Production</option>
         <option value="materialCrafting">Material Crafting</option>
         <option value="blueprints">Blueprints</option>
+        <option value="discoveries">Discoveries</option>
         <option value="inventory">Inventory</option>
         <option value="unlockedCards">Unlocked Cards</option>
       </optgroup>
@@ -3564,6 +3565,13 @@ body.elves {
   <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);">
     <h2 style="margin-top:0; color:gold;">Blueprints</h2>
     <div id="blueprintsApp"></div>
+  </div>
+</div>
+
+<div id="discoveriesView" style="display:none; margin:20px; color:white;">
+  <div style="max-width:1500px; margin:0 auto; background:rgba(30,30,30,0.88); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.12);">
+    <h2 style="margin-top:0; color:gold;">Discoveries</h2>
+    <div id="discoveriesApp"></div>
   </div>
 </div>
 
@@ -10981,6 +10989,390 @@ function sendWeightedRandomMaterialToPlayer(targetProfile = getGmTargetProfile("
   const tier = getMaterialTierById(material.tier);
   setSyncStatus(`Sent random ${tier.label} material: ${material.name} to ${targetProfile}.`, "#84c46a");
 }
+
+const discoveryDeckVersion = 1;
+const defaultDiscoveryCards = [
+  {
+    id: "discovery_supply_cache",
+    name: "Supply Cache",
+    type: "Discovery",
+    text: "A sealed cache has been uncovered. Choose what your faction takes.",
+    rewards: [
+      { label: "+4 Gold", grants: [{ kind: "resource", name: "Gold", amount: 4 }] },
+      { label: "+2 Food", grants: [{ kind: "resource", name: "Food", amount: 2 }] },
+      { label: "+1 Random Common Material", grants: [{ kind: "randomMaterial", tier: "common", amount: 1 }] }
+    ]
+  },
+  {
+    id: "discovery_old_ore_vein",
+    name: "Old Ore Vein",
+    type: "Discovery",
+    text: "Ore runs close to the surface here.",
+    rewards: [
+      { label: "+2 Metal", grants: [{ kind: "resource", name: "Metal", amount: 2 }] }
+    ]
+  },
+  {
+    id: "discovery_dragon_prints",
+    name: "Dragon Prints",
+    type: "Discovery",
+    text: "Ancient claw marks lead to a buried coin.",
+    rewards: [
+      { label: "+1 Dragon Coin", grants: [{ kind: "resource", name: "Dragon Coins", amount: 1 }] }
+    ]
+  },
+  {
+    id: "discovery_herbal_patch",
+    name: "Herbal Patch",
+    type: "Discovery",
+    text: "Useful growth spills from the roots.",
+    rewards: [
+      { label: "+1 Plant Fibres", grants: [{ kind: "material", name: "Plant Fibres", amount: 1 }] },
+      { label: "+1 Random Common Material", grants: [{ kind: "randomMaterial", tier: "common", amount: 1 }] }
+    ]
+  },
+  {
+    id: "discovery_ancient_casket",
+    name: "Ancient Casket",
+    type: "Discovery",
+    text: "Something rare is locked inside the old fittings.",
+    rewards: [
+      { label: "+1 Random Rare Material", grants: [{ kind: "randomMaterial", tier: "rare", amount: 1 }] }
+    ]
+  }
+];
+
+function cloneDiscoveryCard(card) {
+  return JSON.parse(JSON.stringify(card));
+}
+
+function createDiscoveryDeck() {
+  const deck = defaultDiscoveryCards.map(cloneDiscoveryCard);
+  shuffleArray(deck);
+  return deck;
+}
+
+function createSharedDiscoveryState() {
+  return {
+    version: discoveryDeckVersion,
+    deck: createDiscoveryDeck(),
+    discard: []
+  };
+}
+
+function ensureDiscoveryStateForData(targetData, profileName) {
+  if (!targetData.sharedDiscoveries || targetData.sharedDiscoveries.version !== discoveryDeckVersion) {
+    targetData.sharedDiscoveries = createSharedDiscoveryState();
+  }
+
+  if (!Array.isArray(targetData.sharedDiscoveries.deck)) {
+    targetData.sharedDiscoveries.deck = createDiscoveryDeck();
+  }
+
+  if (!Array.isArray(targetData.sharedDiscoveries.discard)) {
+    targetData.sharedDiscoveries.discard = [];
+  }
+
+  if (profileName && targetData[profileName] && !isSharedDataKey(profileName)) {
+    if (!targetData[profileName].discoveries) {
+      targetData[profileName].discoveries = { current: null };
+    }
+    if (targetData[profileName].discoveries.current && !targetData[profileName].discoveries.current.id) {
+      targetData[profileName].discoveries.current = null;
+    }
+  }
+}
+
+function ensureDiscoveryState(profileName = resourceProfile) {
+  ensureDiscoveryStateForData(data, profileName);
+}
+
+function normalizeDiscoveryResourceName(name) {
+  const key = String(name || "").trim().toLowerCase();
+  const aliases = {
+    food: "Food",
+    gold: "Gold",
+    energy: "Energy",
+    metal: "Metal",
+    "dragon coin": "Dragon Coins",
+    "dragon coins": "Dragon Coins",
+    "skill mark": "Skill Marks",
+    "skill marks": "Skill Marks",
+    sm: "Skill Marks",
+    "shadow mark": "Shadow Marks",
+    "shadow marks": "Shadow Marks",
+    "unlock token": "Unlock Tokens",
+    "unlock tokens": "Unlock Tokens"
+  };
+  return aliases[key] || name;
+}
+
+function adjustDiscoveryProfileResource(targetData, profileName, resourceName, amount) {
+  if (!targetData[profileName]) return false;
+  const normalizedName = normalizeDiscoveryResourceName(resourceName);
+  targetData[profileName].resources = normalizeResourceList(targetData[profileName].resources);
+  const resource = targetData[profileName].resources.find(entry => entry.name === normalizedName);
+  if (!resource) return false;
+  resource.value = Math.max(0, Number(resource.value || 0) + Number(amount || 0));
+  if (resource.max !== undefined) {
+    resource.value = Math.min(resource.value, resource.max);
+  }
+  return true;
+}
+
+function adjustDiscoveryProfileMaterial(targetData, profileName, materialName, amount) {
+  if (!targetData[profileName]) return false;
+  const requestedName = String(materialName || "").trim().toLowerCase();
+  targetData[profileName].craftingMaterials = normalizeCraftingMaterialGroups(targetData[profileName].craftingMaterials);
+  for (const group of targetData[profileName].craftingMaterials) {
+    const material = (group.items || []).find(item => item.name.toLowerCase() === requestedName);
+    if (material) {
+      material.value = Math.max(0, Number(material.value || 0) + Number(amount || 0));
+      return true;
+    }
+  }
+  return false;
+}
+
+function addDiscoveryRandomProfileMaterial(targetData, profileName, tierName, amount = 1) {
+  if (!targetData[profileName]) return false;
+  const tier = String(tierName || "").trim().toLowerCase();
+  targetData[profileName].craftingMaterials = normalizeCraftingMaterialGroups(targetData[profileName].craftingMaterials);
+  const group = targetData[profileName].craftingMaterials.find(entry => String(entry.tier || "").toLowerCase().startsWith(tier));
+  const items = group?.items || [];
+  if (!items.length) return false;
+
+  for (let i = 0; i < Number(amount || 0); i += 1) {
+    const material = items[Math.floor(Math.random() * items.length)];
+    material.value = Number(material.value || 0) + 1;
+  }
+  return true;
+}
+
+function parseDiscoveryRewardLabel(label) {
+  const text = String(label || "").trim();
+  if (!text) return [];
+
+  const randomMatch = text.match(/^\+(\d+)\s+Random\s+(Common|Rare|Legendary|Mythic)\s+Materials?$/i);
+  if (randomMatch) {
+    return [{ kind: "randomMaterial", tier: randomMatch[2].toLowerCase(), amount: Number(randomMatch[1]) }];
+  }
+
+  const resourceMatch = text.match(/^\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?|Unlock Tokens?)$/i);
+  if (resourceMatch) {
+    return [{ kind: "resource", name: normalizeDiscoveryResourceName(resourceMatch[2]), amount: Number(resourceMatch[1]) }];
+  }
+
+  const materialMatch = text.match(/^\+(\d+)\s+(.+)$/);
+  if (materialMatch) {
+    return [{ kind: "material", name: materialMatch[2], amount: Number(materialMatch[1]) }];
+  }
+
+  return [];
+}
+
+function applyDiscoveryRewardToProfile(targetData, profileName, reward) {
+  const grants = Array.isArray(reward?.grants) && reward.grants.length
+    ? reward.grants
+    : parseDiscoveryRewardLabel(reward?.label);
+
+  grants.forEach(grant => {
+    if (grant.kind === "resource") {
+      adjustDiscoveryProfileResource(targetData, profileName, grant.name, grant.amount);
+    } else if (grant.kind === "material") {
+      adjustDiscoveryProfileMaterial(targetData, profileName, grant.name, grant.amount);
+    } else if (grant.kind === "randomMaterial") {
+      addDiscoveryRandomProfileMaterial(targetData, profileName, grant.tier, grant.amount);
+    }
+  });
+}
+
+function persistDiscoveryMutation(mutation) {
+  if (!liveCampaignCode || !liveSyncDb) {
+    mutation(data);
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    refreshAfterDiscoveryMutation();
+    return Promise.resolve(data);
+  }
+
+  clearTimeout(liveSaveTimer);
+  liveSaveTimer = null;
+  if (liveQueuedSave) {
+    liveSaveOverlays.delete(liveQueuedSave.overlayId);
+    liveQueuedSave = null;
+  }
+
+  const campaignRef = getCampaignDoc(liveCampaignCode);
+  return campaignRef.get({ source: "server" }).then(snapshot => {
+    if (!snapshot.exists || !snapshot.data()?.data) throw new Error("Campaign data was not found.");
+    const nextData = cloneCampaignValue(snapshot.data().data);
+    mutation(nextData);
+    return campaignRef.update("data", nextData, "updatedAt", Date.now(), "updatedBy", liveClientId).then(() => nextData);
+  }).then(nextData => {
+    data = applyLiveSaveOverlays(nextData);
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    refreshAfterRemoteCampaignUpdate();
+    return data;
+  });
+}
+
+function drawDiscoveryCardForProfile(targetData, profileName) {
+  ensureDiscoveryStateForData(targetData, profileName);
+  const profile = targetData[profileName];
+  if (!profile) throw new Error(`Player profile ${profileName} was not found.`);
+  if (profile.discoveries.current) throw new Error("Resolve your current Discovery before drawing another.");
+
+  const state = targetData.sharedDiscoveries;
+  if (!state.deck.length && state.discard.length) {
+    state.deck = state.discard.splice(0).map(cloneDiscoveryCard);
+    shuffleArray(state.deck);
+  }
+
+  if (!state.deck.length) throw new Error("The Discovery deck is empty.");
+  const card = cloneDiscoveryCard(state.deck.shift());
+  profile.discoveries.current = { ...card, revealedAt: Date.now(), revealedBy: profileName };
+  return card;
+}
+
+function revealDiscoveryCard() {
+  if (!resourceProfile || !data[resourceProfile]) return;
+
+  let drawnName = "";
+  let rewardLabel = "";
+  persistDiscoveryMutation(nextData => {
+    const card = drawDiscoveryCardForProfile(nextData, resourceProfile);
+    drawnName = card.name || "Discovery";
+    const rewards = Array.isArray(card.rewards) ? card.rewards : [];
+    if (rewards.length <= 1) {
+      const reward = rewards[0] || null;
+      if (reward) {
+        rewardLabel = reward.label || "Reward claimed";
+        applyDiscoveryRewardToProfile(nextData, resourceProfile, reward);
+      } else {
+        rewardLabel = "No reward";
+      }
+      nextData[resourceProfile].discoveries.current = null;
+      nextData.sharedDiscoveries.discard.push({ ...card, resolvedAt: Date.now(), resolvedBy: resourceProfile, rewardTaken: rewardLabel });
+    }
+  }).then(() => {
+    setSyncStatus(rewardLabel ? `${drawnName} resolved: ${rewardLabel}.` : `${drawnName} revealed.`, "#84c46a");
+  }).catch(error => {
+    setSyncStatus(`Discovery draw failed: ${error.message}`, "#ff8a8a");
+    alert(`Discovery draw failed: ${error.message}`);
+  });
+}
+
+function chooseDiscoveryReward(rewardIndex) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+
+  let cardName = "Discovery";
+  let rewardLabel = "Reward claimed";
+  persistDiscoveryMutation(nextData => {
+    ensureDiscoveryStateForData(nextData, resourceProfile);
+    const current = nextData[resourceProfile]?.discoveries?.current;
+    if (!current) throw new Error("No Discovery card is waiting for a reward choice.");
+    const rewards = Array.isArray(current.rewards) ? current.rewards : [];
+    const reward = rewards[rewardIndex];
+    if (!reward) throw new Error("That Discovery reward could not be found.");
+
+    cardName = current.name || cardName;
+    rewardLabel = reward.label || rewardLabel;
+    applyDiscoveryRewardToProfile(nextData, resourceProfile, reward);
+    nextData[resourceProfile].discoveries.current = null;
+    nextData.sharedDiscoveries.discard.push({ ...current, resolvedAt: Date.now(), resolvedBy: resourceProfile, rewardTaken: rewardLabel });
+  }).then(() => {
+    setSyncStatus(`${cardName} resolved: ${rewardLabel}.`, "#84c46a");
+  }).catch(error => {
+    setSyncStatus(`Discovery reward failed: ${error.message}`, "#ff8a8a");
+    alert(`Discovery reward failed: ${error.message}`);
+  });
+}
+
+function shuffleDiscoveryDiscardIntoDeck() {
+  if (!resourceProfile || !data[resourceProfile]) return;
+
+  persistDiscoveryMutation(nextData => {
+    ensureDiscoveryStateForData(nextData, resourceProfile);
+    const state = nextData.sharedDiscoveries;
+    state.deck = state.deck.concat(state.discard.splice(0).map(cloneDiscoveryCard));
+    shuffleArray(state.deck);
+  }).then(() => {
+    setSyncStatus("Discovery discard shuffled back into the deck.", "#f0c36a");
+  }).catch(error => {
+    setSyncStatus(`Discovery shuffle failed: ${error.message}`, "#ff8a8a");
+    alert(`Discovery shuffle failed: ${error.message}`);
+  });
+}
+
+function refreshAfterDiscoveryMutation() {
+  if (resourceProfile && data[resourceProfile]) {
+    ensureDiscoveryState(resourceProfile);
+    loadResourceProfile(resourceProfile);
+  }
+  renderDiscoveries();
+  renderResources();
+  renderBuildings();
+  renderPlayerViewNotifications();
+  scanWorldTensionAutoTriggers();
+}
+
+function renderDiscoveryCard(card) {
+  const rewards = Array.isArray(card?.rewards) ? card.rewards : [];
+  return `
+    <div class="relic-card deck" style="border-left-color:#4fb7ff; background:linear-gradient(145deg, rgba(18,32,42,0.96), rgba(8,10,14,0.96));">
+      <small>${escapeHeroValue(card?.type || "Discovery")}</small>
+      <h3>${escapeHeroValue(card?.name || "Discovery")}</h3>
+      ${card?.image ? `<img src="${card.image}" alt="${escapeHeroValue(card.name || "Discovery")}" style="width:100%; max-height:420px; object-fit:contain; border-radius:8px; margin:8px 0;">` : ""}
+      ${card?.text ? `<p>${escapeHeroValue(card.text)}</p>` : ""}
+      ${rewards.length > 1 ? `
+        <p><strong>Choose one reward:</strong></p>
+        <div class="potion-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+          ${rewards.map((reward, index) => `<button onclick="chooseDiscoveryReward(${index})">${escapeHeroValue(reward.label || `Reward ${index + 1}`)}</button>`).join("")}
+        </div>
+      ` : `<p style="color:#bbb;">Single-reward Discoveries resolve automatically when revealed.</p>`}
+    </div>
+  `;
+}
+
+function renderDiscoveries() {
+  const app = document.getElementById("discoveriesApp");
+  if (!app || !resourceProfile || !data[resourceProfile]) return;
+
+  ensureDiscoveryState(resourceProfile);
+  const state = data.sharedDiscoveries;
+  const current = data[resourceProfile].discoveries?.current || null;
+  const deckCount = state.deck.length;
+  const discardCount = state.discard.length;
+  const lastDiscard = state.discard[discardCount - 1] || null;
+
+  app.innerHTML = `
+    <div style="display:grid; grid-template-columns:minmax(280px, 0.8fr) minmax(320px, 1.2fr); gap:18px; align-items:start;">
+      <div class="relic-zone">
+        <h2>Discovery Deck</h2>
+        <p>Reveal a Discovery after exploring a Discovery token. If the card has one reward, it is claimed automatically. If it has choices, pick the reward you want.</p>
+        <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; margin:12px 0;">
+          <div style="padding:12px; border:1px solid rgba(255,255,255,0.12); border-radius:8px; background:rgba(0,0,0,0.25);">
+            <strong style="color:#ffe08a;">Deck</strong>
+            <div style="font-size:30px; font-weight:bold;">${deckCount}</div>
+          </div>
+          <div style="padding:12px; border:1px solid rgba(255,255,255,0.12); border-radius:8px; background:rgba(0,0,0,0.25);">
+            <strong style="color:#ffe08a;">Discard</strong>
+            <div style="font-size:30px; font-weight:bold;">${discardCount}</div>
+          </div>
+        </div>
+        <div class="potion-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button onclick="revealDiscoveryCard()" ${current ? "disabled" : ""}>Reveal Discovery</button>
+          <button onclick="shuffleDiscoveryDiscardIntoDeck()" ${discardCount ? "" : "disabled"}>Shuffle Discard Into Deck</button>
+        </div>
+        ${lastDiscard ? `<p style="color:#bbb; margin-top:12px;"><strong>Last resolved:</strong> ${escapeHeroValue(lastDiscard.name || "Discovery")} - ${escapeHeroValue(lastDiscard.rewardTaken || "Reward claimed")}</p>` : ""}
+      </div>
+      <div class="relic-zone">
+        <h2>Current Discovery</h2>
+        ${current ? renderDiscoveryCard(current) : `<p>No Discovery is waiting. Reveal one when you explore a Discovery token.</p>`}
+      </div>
+    </div>
+  `;
+}
 const unlockableCards = [
   { id: "dwarves_action_board_ironhold", faction: "Dwarves", category: "Action Board Unlock", name: "The Ironhold Stronghold", summary: "Forward operating base card unlocked from the Dwarves action board requirement.", frontImage: "assets/unlocked-cards/dwarves/action-board-dwarves-front.png", backImage: "assets/unlocked-cards/dwarves/action-board-dwarves-back.png" },
   { id: "dwarves_setup6_deep_call", faction: "Dwarves", category: "Setup 6 Secret", name: "The Deep Call", summary: "Dwarven secret unlock option.", frontImage: "assets/unlocked-cards/dwarves/the-deep-call.png", backImage: "assets/unlocked-cards/dwarves/the-deep-call-back.png" },
@@ -14380,6 +14772,7 @@ function isSharedDataKey(name) {
         name === "sharedHeroEquipment" ||
         name === "sharedMaterialCards" ||
         name === "sharedBlueprints" ||
+        name === "sharedDiscoveries" ||
         name === "sharedAlliances" ||
         name === "sharedTrades" ||
         name === "sharedGmNotifications" ||
@@ -15855,6 +16248,7 @@ function refreshAfterRemoteCampaignUpdate() {
     ensureRelicState(resourceProfile);
     ensureObjectiveState(resourceProfile);
     ensureBlueprintState(resourceProfile);
+    ensureDiscoveryState(resourceProfile);
 ensureKeywordState(resourceProfile);
     ensureShopState(resourceProfile);
     ensureUnitMatrixState(resourceProfile);
@@ -15871,6 +16265,7 @@ ensureKeywordState(resourceProfile);
   renderBuildings();
   renderInventory();
   renderBlueprints();
+  renderDiscoveries();
   renderHero();
   renderPotions();
   renderRelics();
@@ -16504,6 +16899,7 @@ function createProfile() {
         heroEquipment: { inventory: [] },
         unlockedCards: { inventory: [] },
         blueprints: { inventory: [] },
+        discoveries: { current: null },
         notifications: createNavigationNotificationState(),
         playerNotes: [],
         unitMatrix: { kills: {} },
@@ -16552,6 +16948,10 @@ function createProfile() {
     };
 }
 
+    if (!data.sharedDiscoveries) {
+        data.sharedDiscoveries = createSharedDiscoveryState();
+    }
+
 
     resourceProfile = name;
     sm = 0;
@@ -16567,6 +16967,7 @@ function createProfile() {
     renderPotions();
     renderRelics();
   renderObjectives();
+  renderDiscoveries();
 }
 
 
@@ -16606,12 +17007,14 @@ function loadProfile() {
     ensureHeroState(resourceProfile);
     ensureHeroEquipmentState(resourceProfile);
     ensureBlueprintState(resourceProfile);
+    ensureDiscoveryState(resourceProfile);
     ensureUnitMatrixState(resourceProfile);
     ensureTitleTrackerState(resourceProfile);
     ensureUnlockedCardState(resourceProfile);
 ensureUnlockState(resourceProfile);
 renderRelics();
   renderObjectives();
+  renderDiscoveries();
 ensureKeywordState(resourceProfile);
 ensureHiddenPathState(resourceProfile);
 updateHiddenPathUnlocks(resourceProfile);
@@ -16814,6 +17217,10 @@ function showView(view) {
   if (blueprintsView) {
     blueprintsView.style.display = view === "blueprints" ? "block" : "none";
   }
+  const discoveriesView = document.getElementById("discoveriesView");
+  if (discoveriesView) {
+    discoveriesView.style.display = view === "discoveries" ? "block" : "none";
+  }
   const playerNotesView = document.getElementById("playerNotesView");
   if (playerNotesView) {
     playerNotesView.style.display = view === "playerNotes" ? "block" : "none";
@@ -16948,6 +17355,9 @@ function showView(view) {
   if (view === "blueprints") {
     renderBlueprints();
     markPlayerViewNotificationsSeen("blueprints");
+  }
+  if (view === "discoveries") {
+    renderDiscoveries();
   }
   if (view === "playerNotes") {
     renderPlayerNotes();
