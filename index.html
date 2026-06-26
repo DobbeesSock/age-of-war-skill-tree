@@ -11544,10 +11544,10 @@ function renderDiscoveryCard(card) {
   const selectedRewardIndexes = Array.isArray(card?.selectedRewardIndexes) ? card.selectedRewardIndexes : [];
   const needsMultipleChoices = rewards.length > 1 && choiceCount > 1;
   return `
-    <div class="relic-card deck" style="border-left-color:#4fb7ff; background:linear-gradient(145deg, rgba(18,32,42,0.96), rgba(8,10,14,0.96));">
+    <div style="border:1px solid rgba(79,183,255,0.45); border-left:4px solid #4fb7ff; border-radius:8px; padding:12px; background:linear-gradient(145deg, rgba(18,32,42,0.96), rgba(8,10,14,0.96)); box-shadow:0 8px 22px rgba(0,0,0,0.22);">
       <small>${escapeHeroValue(card?.type || "Discovery")}</small>
       <h3>${escapeHeroValue(card?.name || "Discovery")}</h3>
-      ${card?.image ? `<img src="${card.image}" alt="${escapeHeroValue(card.name || "Discovery")}" style="width:100%; max-height:420px; object-fit:contain; border-radius:8px; margin:8px 0;">` : ""}
+      ${card?.image ? `<img src="${card.image}" alt="${escapeHeroValue(card.name || "Discovery")}" onerror="this.replaceWith(Object.assign(document.createElement('p'), { textContent: 'Missing image: ${escapeHeroValue(card.image)}' }))" style="width:100%; max-height:420px; object-fit:contain; border-radius:8px; margin:8px 0; display:block;">` : ""}
       ${card?.text ? `<p>${escapeHeroValue(card.text)}</p>` : ""}
       ${needsMultipleChoices ? `
         <p><strong>Choose ${choiceCount} rewards:</strong> <span style="color:#bbb;">${selectedRewardIndexes.length}/${choiceCount} selected</span></p>
@@ -11575,7 +11575,7 @@ function renderDiscoveryResolvedCard(card) {
   return `
     <div style="margin-top:14px; padding:10px; border:1px solid rgba(255,255,255,0.12); border-radius:8px; background:rgba(0,0,0,0.28);">
       <p style="color:#bbb; margin:0 0 8px 0;"><strong>Last resolved:</strong> ${escapeHeroValue(card.name || "Discovery")} - ${escapeHeroValue(card.rewardTaken || "Reward claimed")}</p>
-      ${card.image ? `<img src="${card.image}" alt="${escapeHeroValue(card.name || "Discovery")}" style="width:100%; max-height:260px; object-fit:contain; border-radius:8px; display:block;">` : ""}
+      ${card.image ? `<img src="${card.image}" alt="${escapeHeroValue(card.name || "Discovery")}" onerror="this.replaceWith(Object.assign(document.createElement('p'), { textContent: 'Missing image: ${escapeHeroValue(card.image)}' }))" style="width:100%; max-height:260px; object-fit:contain; border-radius:8px; display:block;">` : ""}
     </div>
   `;
 }
@@ -11593,7 +11593,7 @@ function renderDiscoveries() {
 
   app.innerHTML = `
     <div style="display:grid; grid-template-columns:minmax(280px, 0.8fr) minmax(320px, 1.2fr); gap:18px; align-items:start;">
-      <div class="relic-zone">
+      <div style="border:1px solid rgba(255,255,255,0.16); border-radius:8px; padding:14px; background:rgba(12,16,14,0.92);">
         <h2>Discovery Deck</h2>
         <img src="${discoveryBackImage}" alt="Discovery card back" style="width:100%; max-height:260px; object-fit:contain; border-radius:8px; margin:0 0 12px 0; display:block;">
         <p>Reveal a Discovery after exploring a Discovery token. If the card has one reward, it is claimed automatically. If it has choices, pick the reward you want.</p>
@@ -11613,7 +11613,7 @@ function renderDiscoveries() {
         </div>
         ${lastDiscard ? renderDiscoveryResolvedCard(lastDiscard) : ""}
       </div>
-      <div class="relic-zone">
+      <div style="border:1px solid rgba(255,255,255,0.16); border-radius:8px; padding:14px; background:rgba(12,16,14,0.92);">
         <h2>Current Discovery</h2>
         ${current ? renderDiscoveryCard(current) : `<p>No Discovery is waiting. Reveal one when you explore a Discovery token.</p>`}
       </div>
