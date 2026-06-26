@@ -10990,56 +10990,212 @@ function sendWeightedRandomMaterialToPlayer(targetProfile = getGmTargetProfile("
   setSyncStatus(`Sent random ${tier.label} material: ${material.name} to ${targetProfile}.`, "#84c46a");
 }
 
-const discoveryDeckVersion = 1;
+const discoveryDeckVersion = 2;
+const discoveryBackImage = "assets/discoveries/back.png";
+
+function discoveryImage(sheet, slot) {
+  return `assets/discoveries/landmark-${sheet}-${String(slot).padStart(2, "0")}.png`;
+}
+
+function discoveryGrant(kind, name, amount = 1, extra = {}) {
+  return { kind, name, amount, ...extra };
+}
+
+function discoveryReward(label, grants = []) {
+  return { label, grants };
+}
+
+function discoveryResource(label, name, amount) {
+  return discoveryReward(label, [discoveryGrant("resource", name, amount)]);
+}
+
+function discoveryMaterial(label, name, amount) {
+  return discoveryReward(label, [discoveryGrant("material", name, amount)]);
+}
+
+function discoveryRandomMaterial(label, amount = 1, tier = "any") {
+  return discoveryReward(label, [{ kind: "randomMaterial", tier, amount }]);
+}
+
+function discoveryNoteReward(label) {
+  return discoveryReward(label, [{ kind: "note", text: label }]);
+}
+
+function discoveryTrackerReward(label, kind, amount, reason) {
+  return discoveryReward(label, [{ kind, amount, reason }]);
+}
+
+function discoveryCard(sheet, slot, name, type, rewards, options = {}) {
+  return {
+    id: `discovery_${sheet}_${String(slot).padStart(2, "0")}_${name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "")}`,
+    name,
+    type,
+    image: discoveryImage(sheet, slot),
+    backImage: discoveryBackImage,
+    rewards,
+    ...options
+  };
+}
+
 const defaultDiscoveryCards = [
-  {
-    id: "discovery_supply_cache",
-    name: "Supply Cache",
-    type: "Discovery",
-    text: "A sealed cache has been uncovered. Choose what your faction takes.",
-    rewards: [
-      { label: "+4 Gold", grants: [{ kind: "resource", name: "Gold", amount: 4 }] },
-      { label: "+2 Food", grants: [{ kind: "resource", name: "Food", amount: 2 }] },
-      { label: "+1 Random Common Material", grants: [{ kind: "randomMaterial", tier: "common", amount: 1 }] }
-    ]
-  },
-  {
-    id: "discovery_old_ore_vein",
-    name: "Old Ore Vein",
-    type: "Discovery",
-    text: "Ore runs close to the surface here.",
-    rewards: [
-      { label: "+2 Metal", grants: [{ kind: "resource", name: "Metal", amount: 2 }] }
-    ]
-  },
-  {
-    id: "discovery_dragon_prints",
-    name: "Dragon Prints",
-    type: "Discovery",
-    text: "Ancient claw marks lead to a buried coin.",
-    rewards: [
-      { label: "+1 Dragon Coin", grants: [{ kind: "resource", name: "Dragon Coins", amount: 1 }] }
-    ]
-  },
-  {
-    id: "discovery_herbal_patch",
-    name: "Herbal Patch",
-    type: "Discovery",
-    text: "Useful growth spills from the roots.",
-    rewards: [
-      { label: "+1 Plant Fibres", grants: [{ kind: "material", name: "Plant Fibres", amount: 1 }] },
-      { label: "+1 Random Common Material", grants: [{ kind: "randomMaterial", tier: "common", amount: 1 }] }
-    ]
-  },
-  {
-    id: "discovery_ancient_casket",
-    name: "Ancient Casket",
-    type: "Discovery",
-    text: "Something rare is locked inside the old fittings.",
-    rewards: [
-      { label: "+1 Random Rare Material", grants: [{ kind: "randomMaterial", tier: "rare", amount: 1 }] }
-    ]
-  }
+  discoveryCard(1, 1, "Thick Forest", "Discovery - Material", [discoveryMaterial("+2 Wood", "Wood", 2)]),
+  discoveryCard(1, 2, "Fallen Branches", "Discovery - Material", [discoveryMaterial("+1 Wood", "Wood", 1)]),
+  discoveryCard(1, 3, "Old Quarry", "Discovery - Material", [discoveryMaterial("+2 Stone", "Stone", 2)]),
+  discoveryCard(1, 4, "Stream", "Discovery - Material", [discoveryMaterial("+1 Stone", "Stone", 1)]),
+  discoveryCard(1, 5, "Fertile Valley", "Discovery - Material", [discoveryMaterial("+2 Plant Fibres", "Plant Fibres", 2)]),
+  discoveryCard(1, 6, "Flower Patch", "Discovery - Material", [discoveryMaterial("+1 Plant Fibre", "Plant Fibres", 1)]),
+  discoveryCard(1, 7, "Sprung Trap", "Discovery - Material", [discoveryMaterial("+2 Beast Parts", "Beast Parts", 2)]),
+  discoveryCard(1, 8, "Snare", "Discovery - Material", [discoveryMaterial("+1 Beast Part", "Beast Parts", 1)]),
+  discoveryCard(1, 9, "Uncovered Vein", "Discovery - Material", [discoveryMaterial("+2 Iron Ore", "Iron Ore", 2)]),
+  discoveryCard(1, 10, "Rare Stone", "Discovery - Material", [discoveryMaterial("+1 Iron Ore", "Iron Ore", 1)]),
+  discoveryCard(2, 1, "Forge Remnants", "Discovery - Material", [discoveryMaterial("+2 Steel Ingot", "Steel Ingot", 2)]),
+  discoveryCard(2, 2, "Abandoned Smelter", "Discovery - Material", [discoveryMaterial("+1 Steel Ingot", "Steel Ingot", 1)]),
+  discoveryCard(2, 3, "Moonlit Grove", "Discovery - Material", [discoveryMaterial("+2 Moon Blossom", "Moon Blossom", 2)]),
+  discoveryCard(2, 4, "Silverpetal Glade", "Discovery - Material", [discoveryMaterial("+1 Moon Blossom", "Moon Blossom", 1)]),
+  discoveryCard(2, 5, "Shimmering Outcrop", "Discovery - Material", [discoveryMaterial("+2 Crystal Shard", "Crystal Shard", 2)]),
+  discoveryCard(2, 6, "Crystal Fragments", "Discovery - Material", [discoveryMaterial("+1 Crystal Shard", "Crystal Shard", 1)]),
+  discoveryCard(2, 7, "Ancient Rib Cage", "Discovery - Material", [discoveryMaterial("+2 Ancient Bone", "Ancient Bone", 2)]),
+  discoveryCard(2, 8, "Buried Remains", "Discovery - Material", [discoveryMaterial("+1 Ancient Bone", "Ancient Bone", 1)]),
+  discoveryCard(2, 9, "Emberstone Nodule", "Discovery - Material", [discoveryMaterial("+2 Ember Core", "Ember Core", 2)]),
+  discoveryCard(2, 10, "Smoldering Fragment", "Discovery - Material", [discoveryMaterial("+1 Ember Core", "Ember Core", 1)]),
+  discoveryCard(3, 1, "Gnarled Roots", "Discovery - Material", [discoveryMaterial("+2 Root Fragment", "Root Fragment", 2)]),
+  discoveryCard(3, 2, "Broken Roots", "Discovery - Material", [discoveryMaterial("+1 Root Fragment", "Root Fragment", 1)]),
+  discoveryCard(3, 3, "Shedded Scale", "Discovery - Material", [discoveryMaterial("+2 Dragon Scale", "Dragon Scale", 2)]),
+  discoveryCard(3, 4, "Scattered Scales", "Discovery - Material", [discoveryMaterial("+1 Dragon Scale", "Dragon Scale", 1)]),
+  discoveryCard(3, 5, "Stormcrystal Outcrop", "Discovery - Material", [discoveryMaterial("+2 Storm Crystal", "Storm Crystal", 2)]),
+  discoveryCard(3, 6, "Charged Crystal", "Discovery - Material", [discoveryMaterial("+1 Storm Crystal", "Storm Crystal", 1)]),
+  discoveryCard(3, 7, "Ancient Relic", "Discovery - Material", [discoveryMaterial("+2 Ancient Relic Fragment", "Ancient Relic Fragment", 2)]),
+  discoveryCard(3, 8, "Eroded Relic", "Discovery - Material", [discoveryMaterial("+1 Ancient Relic Fragment", "Ancient Relic Fragment", 1)]),
+  discoveryCard(3, 9, "Void Wisp", "Discovery - Material", [discoveryMaterial("+2 Void Essence", "Void Essence", 2)]),
+  discoveryCard(3, 10, "Residual Void", "Discovery - Material", [discoveryMaterial("+1 Void Essence", "Void Essence", 1)]),
+  discoveryCard(4, 1, "Fallen Star Meteor", "Discovery - Material", [discoveryMaterial("+2 Star Metal", "Star Metal", 2)]),
+  discoveryCard(4, 2, "Meteor Fragment", "Discovery - Material", [discoveryMaterial("+1 Star Metal", "Star Metal", 1)]),
+  discoveryCard(4, 3, "Reality Rift Shard", "Discovery - Material", [discoveryMaterial("+2 Reality Shard", "Reality Shard", 2)]),
+  discoveryCard(4, 4, "Distorted Fragment", "Discovery - Material", [discoveryMaterial("+1 Reality Shard", "Reality Shard", 1)]),
+  discoveryCard(4, 5, "Watcher's Elder Eye", "Discovery - Material", [discoveryMaterial("+2 Elder Eye", "Elder Eye", 2)]),
+  discoveryCard(4, 6, "Broken Watcher Eye", "Discovery - Material", [discoveryMaterial("+1 Elder Eye", "Elder Eye", 1)]),
+  discoveryCard(4, 7, "Primordial Flame Core", "Discovery - Material", [discoveryMaterial("+2 Primordial Flame", "Primordial Flame", 2)]),
+  discoveryCard(4, 8, "Ashen Ember", "Discovery - Material", [discoveryMaterial("+1 Primordial Flame", "Primordial Flame", 1)]),
+  discoveryCard(4, 9, "Astral Core", "Discovery - Material", [discoveryMaterial("+2 Astral Core", "Astral Core", 2)]),
+  discoveryCard(4, 10, "Celestial Fragment", "Discovery - Material", [discoveryMaterial("+1 Astral Core", "Astral Core", 1)]),
+  discoveryCard(5, 1, "Gold Mine", "Discovery - Resource", [discoveryResource("+8 Gold", "Gold", 8)]),
+  discoveryCard(5, 2, "Fertile Valley", "Discovery - Resource", [discoveryResource("+8 Food", "Food", 8)]),
+  discoveryCard(5, 3, "Ancient Quarry", "Discovery - Resource", [discoveryResource("+6 Metal", "Metal", 6)]),
+  discoveryCard(5, 4, "Leyline", "Discovery - Resource", [discoveryResource("+4 Energy", "Energy", 4)]),
+  discoveryCard(5, 5, "Dragon Nest", "Discovery - Resource", [discoveryResource("+2 Dragon Coins", "Dragon Coins", 2)]),
+  discoveryCard(5, 6, "Herbal Grove", "Discovery - Material", [discoveryRandomMaterial("Gain 1 Random Crafting Material", 1)]),
+  discoveryCard(5, 7, "Ancient Workshop", "Discovery - Roll D6", [
+    discoveryResource("D6 1-3: +2 Metal", "Metal", 2),
+    discoveryRandomMaterial("D6 4-5: 1 Random Crafting Material", 1),
+    discoveryResource("D6 6: 1 Upgrade Token", "Unlock Tokens", 1)
+  ]),
+  discoveryCard(5, 8, "Ancient Cache", "Discovery - Roll D6", [
+    discoveryNoteReward("D6 1-3: 1 Supply Blueprint"),
+    discoveryNoteReward("D6 4-5: 2 Supply Blueprints"),
+    discoveryNoteReward("D6 6: 1 Core Blueprint")
+  ]),
+  discoveryCard(5, 9, "Dragon Nest", "Discovery - Roll D6", [
+    discoveryResource("D6 1-3: +2 Dragon Coins", "Dragon Coins", 2),
+    discoveryResource("D6 4-5: +4 Dragon Coins", "Dragon Coins", 4),
+    discoveryReward("D6 6: 1 Crafting Material of your choice and +6 Dragon Coins", [
+      discoveryGrant("resource", "Dragon Coins", 6),
+      { kind: "note", text: "Choose 1 Crafting Material" }
+    ])
+  ]),
+  discoveryCard(5, 10, "Forgotten Shrine", "Discovery - Resource", [discoveryResource("+2 Shadow Marks", "Shadow Marks", 2)]),
+  discoveryCard(6, 1, "Goblin Ambush", "Discovery - Danger", [discoveryResource("+3 Gold", "Gold", 3)], { text: "Spawn: 1 Minor Creature." }),
+  discoveryCard(6, 2, "Wolf Pack", "Discovery - Danger", [discoveryResource("+2 Food", "Food", 2)], { text: "Spawn: 1 Minor Creature." }),
+  discoveryCard(6, 3, "Bandit Raiders", "Discovery - Danger", [discoveryResource("+8 Gold", "Gold", 8), discoveryResource("+4 Metal", "Metal", 4)], { text: "Spawn: 1 Major Creature." }),
+  discoveryCard(6, 4, "Ancient Guardian", "Discovery - Danger", [
+    discoveryResource("D6 1-3: +4 Metal", "Metal", 4),
+    discoveryNoteReward("D6 4-5: 1 Supply Blueprint"),
+    discoveryResource("D6 6: 1 Upgrade Token", "Unlock Tokens", 1)
+  ], { text: "Spawn: 1 Major Creature." }),
+  discoveryCard(6, 5, "Dragon Hatchery", "Discovery - Danger", [discoveryResource("+2 Dragon Coins", "Dragon Coins", 2)], { text: "Spawn: 1 Major Creature." }),
+  discoveryCard(6, 6, "Corrupted Shrine", "Discovery - Danger", [discoveryResource("+2 Shadow Marks", "Shadow Marks", 2)], { text: "Spawn: 1 Major Creature." }),
+  discoveryCard(6, 7, "Forgotten Forge", "Discovery - Danger", [
+    discoveryRandomMaterial("2 Random Crafting Materials", 2),
+    discoveryResource("+6 Metal", "Metal", 6)
+  ], { text: "Spawn: 1 Major Creature." }),
+  discoveryCard(6, 8, "Ancient Storehouse", "Discovery - Danger", [
+    discoveryNoteReward("D6 1-3: 1 Supply Blueprint"),
+    discoveryNoteReward("D6 4-5: 2 Supply Blueprints"),
+    discoveryNoteReward("D6 6: 1 Core Blueprint")
+  ], { text: "Spawn: 1 Minor Creature." }),
+  discoveryCard(6, 9, "Crystal Cavern Collapse", "Discovery - Danger", [discoveryRandomMaterial("3 Random Crafting Materials", 3)], { text: "Spawn: 1 Major Creature." }),
+  discoveryCard(6, 10, "Titan Awakens", "Discovery - Danger", [
+    discoveryResource("1 Upgrade Token", "Unlock Tokens", 1),
+    discoveryNoteReward("1 Core Blueprint"),
+    discoveryResource("+4 Dragon Coins", "Dragon Coins", 4),
+    discoveryRandomMaterial("3 Random Crafting Materials", 3)
+  ], { text: "Spawn: 1 Greater Creature.", choiceCount: 2 }),
+  discoveryCard(7, 1, "Traveling Merchant", "Discovery - Event", [
+    discoveryResource("+6 Gold", "Gold", 6),
+    discoveryResource("+4 Food", "Food", 4),
+    discoveryResource("+4 Metal", "Metal", 4),
+    discoveryResource("+3 Energy", "Energy", 3)
+  ], { text: "Trade goods. Then discard this card." }),
+  discoveryCard(7, 2, "Black Market Dealer", "Discovery - Event", [
+    discoveryNoteReward("Pay 3 Dragon Coins: 1 Hero Equipment"),
+    discoveryNoteReward("Pay 3 Dragon Coins: 1 Supply Blueprint"),
+    discoveryRandomMaterial("Pay 3 Dragon Coins: 2 Random Crafting Materials", 2)
+  ]),
+  discoveryCard(7, 3, "Wandering Tinkerer", "Discovery - Event", [
+    discoveryResource("D6 1-3: +4 Metal", "Metal", 4),
+    discoveryRandomMaterial("D6 4-5: 1 Random Crafting Material", 1),
+    discoveryResource("D6 6: 1 Upgrade Token", "Unlock Tokens", 1)
+  ]),
+  discoveryCard(7, 4, "Festival Celebration", "Discovery - Event", [
+    discoveryResource("+4 Gold", "Gold", 4),
+    discoveryResource("+3 Food", "Food", 3),
+    discoveryResource("+3 Energy", "Energy", 3),
+    discoveryNoteReward("1 Supply Blueprint")
+  ], { choiceCount: 2 }),
+  discoveryCard(7, 5, "Ancient Scholar", "Discovery - Event", [discoveryNoteReward("Look at the top 3 Discovery cards. Choose one to take and discard the rest.")]),
+  discoveryCard(7, 6, "Mystic Fountain", "Discovery - Event", [
+    discoveryResource("D6 1-3: +4 Energy", "Energy", 4),
+    discoveryRandomMaterial("D6 4-5: 1 Random Crafting Material", 1),
+    discoveryResource("D6 6: 1 Upgrade Token", "Unlock Tokens", 1)
+  ]),
+  discoveryCard(7, 7, "Pilgrim's Offering", "Discovery - Event", [
+    discoveryResource("+2 Dragon Coins", "Dragon Coins", 2),
+    discoveryResource("+2 Shadow Marks", "Shadow Marks", 2),
+    discoveryRandomMaterial("1 Random Crafting Material", 1)
+  ]),
+  discoveryCard(7, 8, "Bard's Tale", "Discovery - Event", [
+    discoveryResource("+5 Gold", "Gold", 5),
+    discoveryResource("+5 Food", "Food", 5),
+    discoveryNoteReward("1 Supply Blueprint")
+  ]),
+  discoveryCard(7, 9, "Mysterious Portal", "Discovery - Event", [
+    discoveryRandomMaterial("D6 1-3: 1 Random Crafting Material", 1),
+    discoveryNoteReward("D6 4-5: 1 Supply Blueprint"),
+    discoveryNoteReward("D6 6: 1 Core Blueprint")
+  ]),
+  discoveryCard(7, 10, "Caravan Supplies", "Discovery - Event", [
+    discoveryResource("+5 Food", "Food", 5),
+    discoveryResource("+4 Metal", "Metal", 4),
+    discoveryResource("+4 Energy", "Energy", 4),
+    discoveryNoteReward("1 Supply Blueprint")
+  ], { choiceCount: 2 }),
+  discoveryCard(8, 1, "Fallen Champion", "Discovery - Event", [discoveryNoteReward("Draw 1 Random Hero Equipment")]),
+  discoveryCard(8, 2, "Hero's Grave", "Discovery - Event", [discoveryNoteReward("Draw 2 Equipment. Keep 1.")]),
+  discoveryCard(8, 3, "Ancient Map", "Discovery - Event", [discoveryNoteReward("Look at the top 3 Discovery cards. Put them back in any order.")]),
+  discoveryCard(8, 4, "Shifting Skies", "Discovery - Event", [discoveryTrackerReward("Increase Presence +1", "presence", 1, "Shifting Skies Discovery")]),
+  discoveryCard(8, 5, "Unstable Rift", "Discovery - Event", [discoveryTrackerReward("Increase Tension +1", "tension", 1, "Unstable Rift Discovery")]),
+  discoveryCard(8, 6, "Ancient Bell", "Discovery - Event", [discoveryNoteReward("Every Hero heals 4 HP")]),
+  discoveryCard(8, 7, "Earth Tremor", "Discovery - Event", [discoveryNoteReward("Every player repairs 2 Walls or a Gate to max HP")]),
+  discoveryCard(8, 8, "Hidden Vault", "Discovery - Event", [
+    discoveryNoteReward("1 Core Blueprint"),
+    discoveryResource("1 Upgrade Token", "Unlock Tokens", 1)
+  ]),
+  discoveryCard(8, 9, "Ancient Treasury", "Discovery - Event", [
+    discoveryResource("+3 Dragon Coins", "Dragon Coins", 3),
+    discoveryNoteReward("1 Core Blueprint"),
+    discoveryResource("1 Upgrade Token", "Unlock Tokens", 1),
+    discoveryNoteReward("2 Supply Blueprints")
+  ], { choiceCount: 2 }),
+  discoveryCard(8, 10, "Quiet Clearing", "Discovery - Event", [discoveryNoteReward("Nothing happens.")])
 ];
 
 function cloneDiscoveryCard(card) {
@@ -11138,8 +11294,11 @@ function addDiscoveryRandomProfileMaterial(targetData, profileName, tierName, am
   if (!targetData[profileName]) return false;
   const tier = String(tierName || "").trim().toLowerCase();
   targetData[profileName].craftingMaterials = normalizeCraftingMaterialGroups(targetData[profileName].craftingMaterials);
-  const group = targetData[profileName].craftingMaterials.find(entry => String(entry.tier || "").toLowerCase().startsWith(tier));
-  const items = group?.items || [];
+  const allTiers = ["any", "all", "crafting", "random", ""];
+  const groups = allTiers.includes(tier)
+    ? targetData[profileName].craftingMaterials
+    : targetData[profileName].craftingMaterials.filter(entry => String(entry.tier || "").toLowerCase().startsWith(tier));
+  const items = groups.flatMap(group => group.items || []);
   if (!items.length) return false;
 
   for (let i = 0; i < Number(amount || 0); i += 1) {
@@ -11183,8 +11342,17 @@ function applyDiscoveryRewardToProfile(targetData, profileName, reward) {
       adjustDiscoveryProfileMaterial(targetData, profileName, grant.name, grant.amount);
     } else if (grant.kind === "randomMaterial") {
       addDiscoveryRandomProfileMaterial(targetData, profileName, grant.tier, grant.amount);
+    } else if (grant.kind === "tension") {
+      advanceWorldTension(Number(grant.amount || 0));
+    } else if (grant.kind === "presence") {
+      recordPresenceEvent(Number(grant.amount || 0), grant.reason || reward?.label || "Discovery");
     }
   });
+}
+
+function getDiscoveryChoiceCount(card) {
+  const rewards = Array.isArray(card?.rewards) ? card.rewards : [];
+  return Math.max(1, Math.min(rewards.length || 1, Number(card?.choiceCount || 1)));
 }
 
 function persistDiscoveryMutation(mutation) {
@@ -11243,7 +11411,8 @@ function revealDiscoveryCard() {
     const card = drawDiscoveryCardForProfile(nextData, resourceProfile);
     drawnName = card.name || "Discovery";
     const rewards = Array.isArray(card.rewards) ? card.rewards : [];
-    if (rewards.length <= 1) {
+    const choiceCount = getDiscoveryChoiceCount(card);
+    if (rewards.length <= 1 && choiceCount <= 1) {
       const reward = rewards[0] || null;
       if (reward) {
         rewardLabel = reward.label || "Reward claimed";
@@ -11288,6 +11457,59 @@ function chooseDiscoveryReward(rewardIndex) {
   });
 }
 
+function toggleDiscoveryRewardChoice(rewardIndex) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+
+  persistDiscoveryMutation(nextData => {
+    ensureDiscoveryStateForData(nextData, resourceProfile);
+    const current = nextData[resourceProfile]?.discoveries?.current;
+    if (!current) throw new Error("No Discovery card is waiting for a reward choice.");
+    const rewards = Array.isArray(current.rewards) ? current.rewards : [];
+    if (!rewards[rewardIndex]) throw new Error("That Discovery reward could not be found.");
+
+    const choiceCount = getDiscoveryChoiceCount(current);
+    const selected = Array.isArray(current.selectedRewardIndexes) ? current.selectedRewardIndexes.slice() : [];
+    const existingIndex = selected.indexOf(rewardIndex);
+    if (existingIndex >= 0) {
+      selected.splice(existingIndex, 1);
+    } else if (selected.length < choiceCount) {
+      selected.push(rewardIndex);
+    }
+    current.selectedRewardIndexes = selected;
+  }).catch(error => {
+    setSyncStatus(`Discovery selection failed: ${error.message}`, "#ff8a8a");
+    alert(`Discovery selection failed: ${error.message}`);
+  });
+}
+
+function claimDiscoverySelectedRewards() {
+  if (!resourceProfile || !data[resourceProfile]) return;
+
+  let cardName = "Discovery";
+  let rewardLabel = "Rewards claimed";
+  persistDiscoveryMutation(nextData => {
+    ensureDiscoveryStateForData(nextData, resourceProfile);
+    const current = nextData[resourceProfile]?.discoveries?.current;
+    if (!current) throw new Error("No Discovery card is waiting for reward choices.");
+    const rewards = Array.isArray(current.rewards) ? current.rewards : [];
+    const choiceCount = getDiscoveryChoiceCount(current);
+    const selected = Array.isArray(current.selectedRewardIndexes) ? current.selectedRewardIndexes : [];
+    if (selected.length !== choiceCount) throw new Error(`Choose ${choiceCount} reward${choiceCount === 1 ? "" : "s"} first.`);
+
+    cardName = current.name || cardName;
+    const chosenRewards = selected.map(index => rewards[index]).filter(Boolean);
+    rewardLabel = chosenRewards.map(reward => reward.label || "Reward claimed").join(" + ");
+    chosenRewards.forEach(reward => applyDiscoveryRewardToProfile(nextData, resourceProfile, reward));
+    nextData[resourceProfile].discoveries.current = null;
+    nextData.sharedDiscoveries.discard.push({ ...current, resolvedAt: Date.now(), resolvedBy: resourceProfile, rewardTaken: rewardLabel });
+  }).then(() => {
+    setSyncStatus(`${cardName} resolved: ${rewardLabel}.`, "#84c46a");
+  }).catch(error => {
+    setSyncStatus(`Discovery rewards failed: ${error.message}`, "#ff8a8a");
+    alert(`Discovery rewards failed: ${error.message}`);
+  });
+}
+
 function shuffleDiscoveryDiscardIntoDeck() {
   if (!resourceProfile || !data[resourceProfile]) return;
 
@@ -11318,13 +11540,27 @@ function refreshAfterDiscoveryMutation() {
 
 function renderDiscoveryCard(card) {
   const rewards = Array.isArray(card?.rewards) ? card.rewards : [];
+  const choiceCount = getDiscoveryChoiceCount(card);
+  const selectedRewardIndexes = Array.isArray(card?.selectedRewardIndexes) ? card.selectedRewardIndexes : [];
+  const needsMultipleChoices = rewards.length > 1 && choiceCount > 1;
   return `
     <div class="relic-card deck" style="border-left-color:#4fb7ff; background:linear-gradient(145deg, rgba(18,32,42,0.96), rgba(8,10,14,0.96));">
       <small>${escapeHeroValue(card?.type || "Discovery")}</small>
       <h3>${escapeHeroValue(card?.name || "Discovery")}</h3>
       ${card?.image ? `<img src="${card.image}" alt="${escapeHeroValue(card.name || "Discovery")}" style="width:100%; max-height:420px; object-fit:contain; border-radius:8px; margin:8px 0;">` : ""}
       ${card?.text ? `<p>${escapeHeroValue(card.text)}</p>` : ""}
-      ${rewards.length > 1 ? `
+      ${needsMultipleChoices ? `
+        <p><strong>Choose ${choiceCount} rewards:</strong> <span style="color:#bbb;">${selectedRewardIndexes.length}/${choiceCount} selected</span></p>
+        <div class="potion-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+          ${rewards.map((reward, index) => {
+            const selected = selectedRewardIndexes.includes(index);
+            return `<button onclick="toggleDiscoveryRewardChoice(${index})" style="${selected ? "border-color:#ffe08a; box-shadow:0 0 0 1px rgba(255,224,138,0.5) inset;" : ""}">${selected ? "Selected: " : ""}${escapeHeroValue(reward.label || `Reward ${index + 1}`)}</button>`;
+          }).join("")}
+        </div>
+        <div class="potion-actions" style="margin-top:10px;">
+          <button onclick="claimDiscoverySelectedRewards()" ${selectedRewardIndexes.length === choiceCount ? "" : "disabled"}>Claim Selected Rewards</button>
+        </div>
+      ` : rewards.length > 1 ? `
         <p><strong>Choose one reward:</strong></p>
         <div class="potion-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
           ${rewards.map((reward, index) => `<button onclick="chooseDiscoveryReward(${index})">${escapeHeroValue(reward.label || `Reward ${index + 1}`)}</button>`).join("")}
