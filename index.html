@@ -13571,7 +13571,19 @@ const heroEffectCards = [
   makeHeroEquipmentCard("hero_effect_warlord", "Rallying Command", "Hero Effect", "heroEffect", "heroEffects", "Move up to 2 friendly units within 5 spaces up to 3 spaces each.", "Class", "any"),
   makeHeroEquipmentCard("hero_effect_shadowblade", "Vanish", "Hero Effect", "heroEffect", "heroEffects", "After the attack resolves, move up to 4 spaces. You cannot be targeted by Range attacks until end of Phase.", "Class", "any"),
   makeHeroEquipmentCard("hero_effect_cavalier", "Mounted Charge", "Hero Effect", "heroEffect", "heroEffects", "Move up to 4 spaces before or after the attack. If you moved this turn, deal +1 damage.", "Class", "any"),
-  makeHeroEquipmentCard("hero_effect_runesmith", "Rune Etching", "Hero Effect", "heroEffect", "heroEffects", "Choose one: repair 2 HP to a structure, or give 1 friendly unit +1 Armour until end of Phase.", "Class", "any")
+  makeHeroEquipmentCard("hero_effect_runesmith", "Rune Etching", "Hero Effect", "heroEffect", "heroEffects", "Choose one: repair 2 HP to a structure, or give 1 friendly unit +1 Armour until end of Phase.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_relic_hunter", "Ancient Discovery", "Hero Effect", "heroEffect", "heroEffects", "Choose one: gain 1 Random Crafting Material, or draw 1 Discovery Card.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_dragonslayer", "Giant Killer", "Hero Effect", "heroEffect", "heroEffects", "Against Greater Creatures, Bosses, Dragons, or Massive units: deal +2 damage. Otherwise: deal +1 damage.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_high_priest", "Divine Blessing", "Hero Effect", "heroEffect", "heroEffects", "Choose one friendly unit within 5 spaces: heal 2 HP, or remove 1 negative condition.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_artificer", "Improvised Device", "Hero Effect", "heroEffect", "heroEffects", "Choose one: repair 3 HP to a Structure, Wall, or Gate; or give one friendly unit +1 Armour until the end of the Phase.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_champion", "Heroic Momentum", "Hero Effect", "heroEffect", "heroEffects", "If this Hero defeats an enemy, choose one: heal 2 HP, move 3, or gain +1 Armour until end of Phase.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_necromancer", "Raise Fallen", "Hero Effect", "heroEffect", "heroEffects", "If an enemy was defeated this Phase: spawn 1 Skeleton adjacent to your Hero. If you do not use Skeletons, substitute your faction's weakest summon.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_cave_delver", "Tunnel Instinct", "Hero Effect", "heroEffect", "heroEffects", "Choose one: ignore difficult terrain until end of activation, or move 4 immediately.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_bounty_hunter", "Claimed Trophy", "Hero Effect", "heroEffect", "heroEffects", "Against Commanders, Heroes, Elite, Greater, or Boss units: deal +1 damage. If the target is defeated: gain +2 Gold.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_alchemist", "Volatile Mixture", "Hero Effect", "heroEffect", "heroEffects", "Choose one: deal 1 damage to every enemy adjacent to the target, or heal 2 HP to one adjacent friendly unit.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_rune_knight", "Runic Barrier", "Hero Effect", "heroEffect", "heroEffects", "Gain +2 Armour until the end of the Phase. Then one adjacent friendly unit gains +1 Armour until end of Phase.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_tactician", "Battlefield Orders", "Hero Effect", "heroEffect", "heroEffects", "Choose up to 2 friendly units within 6 spaces. Each may move 2.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_treasure_seeker", "Lucky Find", "Hero Effect", "heroEffect", "heroEffects", "Roll D6. 1-3: gain +2 Gold. 4-5: gain 1 Random Crafting Material. 6: draw 1 Discovery Card.", "Class", "any")
 ];
 
 const allDefaultHeroEquipmentCards = [
@@ -13964,7 +13976,7 @@ function getHeroRoleCardByName(roleName) {
 
 function getHeroEffectCardForRole(role) {
   if (!role?.id) return null;
-  const roleKey = role.id.replace(/^role_/, "").replace(/_/g, "-");
+  const roleKey = role.id.replace(/^role_/, "");
   return heroEffectCards.find(card => card.id === `hero_effect_${roleKey}`) || null;
 }
 
