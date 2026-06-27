@@ -360,7 +360,7 @@ h1 {
 }
 
 .hero-paperdoll {
-  min-height: 640px;
+  min-height: 760px;
   position: relative;
   background:
     linear-gradient(180deg, rgba(255,255,255,0.05), rgba(0,0,0,0.15)),
@@ -493,6 +493,33 @@ h1 {
   color: #fff2b2;
   border-style: solid;
   background: rgba(85,62,18,0.65);
+}
+
+.hero-effect-slot {
+  position: absolute;
+  left: 34px;
+  right: 34px;
+  bottom: 74px;
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+  color: #ffe08a;
+  border: 1px dashed rgba(212,175,55,0.55);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.48);
+}
+
+.hero-effect-slot.equipped {
+  border-style: solid;
+  background: rgba(85,62,18,0.65);
+}
+
+.hero-effect-slot span {
+  font-weight: bold;
+}
+
+.hero-effect-slot small {
+  color: #cfc4a0;
 }
 
 .hero-equip-card {
@@ -13555,7 +13582,8 @@ const heroCardCatalog = {
   spellThree: [],
   accessoryOne: [],
   accessoryTwo: [],
-  runeOne: []
+  runeOne: [],
+  heroEffect: []
 };
 
 const heroEquipmentSlots = [
@@ -13595,7 +13623,8 @@ function createDefaultHeroEquipment() {
       spellThree: "",
       accessoryOne: "",
       accessoryTwo: "",
-      runeOne: ""
+      runeOne: "",
+      heroEffect: ""
     },
     statUpgrades: {
       hp: "",
@@ -14048,6 +14077,33 @@ function renderHeroWeaponFields() {
   `;
 }
 
+function renderHeroCenterSlot(slot) {
+  const hero = data[resourceProfile].hero;
+  const cards = getHeroSlotCards(slot.id);
+  const currentValue = hero.slots[slot.id] || "";
+  const hasCustomValue = currentValue && !cards.some(card => card.id === currentValue || card.name === currentValue);
+
+  return `
+    <div class="hero-effect-slot ${currentValue ? "equipped" : ""}">
+      <span>${slot.label}</span>
+      <select onchange="updateHeroEquipmentSlot('${slot.id}', this.value)">
+        <option value="">No Hero Effect Slotted</option>
+        ${cards.map(card => {
+          const value = card.id || card.name;
+          return `<option value="${escapeHeroValue(value)}" ${currentValue === value ? "selected" : ""}>${escapeHeroValue(card.name || value)}</option>`;
+        }).join("")}
+        ${hasCustomValue ? `<option value="${escapeHeroValue(currentValue)}" selected>${escapeHeroValue(currentValue)}</option>` : ""}
+      </select>
+      <input
+        value="${escapeHeroValue(currentValue)}"
+        placeholder="Temporary hero effect"
+        onchange="updateHeroEquipmentSlot('${slot.id}', this.value)"
+      >
+      <small>${slot.hint}</small>
+    </div>
+  `;
+}
+
 function isHeroSlotEquipped(hero, slotId) {
   return Boolean(hero?.slots?.[slotId]);
 }
@@ -14082,6 +14138,7 @@ function renderHeroPaperDoll(hero) {
       <div class="hero-mount-platform ${isHeroSlotEquipped(hero, "mount") ? "equipped" : ""}">
         ${escapeHeroValue(hero.slots.mount || "No Mount Equipped")}
       </div>
+      ${renderHeroCenterSlot({ id: "heroEffect", label: "Hero Effect", hint: "Class-based effect slotted for the custom hero" })}
     </div>
   `;
 }
