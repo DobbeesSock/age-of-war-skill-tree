@@ -522,6 +522,11 @@ h1 {
   color: #cfc4a0;
 }
 
+.hero-effect-text {
+  color: #fff2c2;
+  line-height: 1.35;
+}
+
 .hero-equip-card {
   display: grid;
   gap: 7px;
@@ -13556,6 +13561,19 @@ const heroRoleCards = [
   }
 ];
 
+const heroEffectCards = [
+  makeHeroEquipmentCard("hero_effect_warrior", "Cleaving Strike", "Hero Effect", "heroEffect", "heroEffects", "Deal +1 damage. If this attack defeats the target, deal 1 damage to another adjacent enemy.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_duelist", "Perfect Riposte", "Hero Effect", "heroEffect", "heroEffects", "Gain +1 Armour until end of Phase. Then you may deal 1 damage to an adjacent enemy.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_guardian", "Shield Wall", "Hero Effect", "heroEffect", "heroEffects", "Choose yourself or 1 adjacent friendly unit. That unit takes -2 damage from the next attack this Phase.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_mage", "Arcane Surge", "Hero Effect", "heroEffect", "heroEffects", "Deal +1 damage. If the target survives, reduce its Move by -2 until end of Phase.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_ranger", "Marked Shot", "Hero Effect", "heroEffect", "heroEffects", "Apply Marked to the target. The next friendly attack against it gains +1 Roll Check.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_beastmaster", "Command Beast", "Hero Effect", "heroEffect", "heroEffects", "Move 1 friendly Beast or Companion up to 4 spaces, then it may deal 1 damage to an adjacent enemy.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_warlord", "Rallying Command", "Hero Effect", "heroEffect", "heroEffects", "Move up to 2 friendly units within 5 spaces up to 3 spaces each.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_shadowblade", "Vanish", "Hero Effect", "heroEffect", "heroEffects", "After the attack resolves, move up to 4 spaces. You cannot be targeted by Range attacks until end of Phase.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_cavalier", "Mounted Charge", "Hero Effect", "heroEffect", "heroEffects", "Move up to 4 spaces before or after the attack. If you moved this turn, deal +1 damage.", "Class", "any"),
+  makeHeroEquipmentCard("hero_effect_runesmith", "Rune Etching", "Hero Effect", "heroEffect", "heroEffects", "Choose one: repair 2 HP to a structure, or give 1 friendly unit +1 Armour until end of Phase.", "Class", "any")
+];
+
 const allDefaultHeroEquipmentCards = [
   ...defaultHeroEquipmentCards,
   ...heroRoleCards
@@ -13583,7 +13601,7 @@ const heroCardCatalog = {
   accessoryOne: [],
   accessoryTwo: [],
   runeOne: [],
-  heroEffect: []
+  heroEffect: heroEffectCards
 };
 
 const heroEquipmentSlots = [
@@ -13680,6 +13698,8 @@ function ensureHeroState(profileName) {
       data[profileName].hero.unlockedRoleIds = [selectedRole.id];
     }
   }
+
+  syncHeroEffectSlot(data[profileName].hero);
 }
 
 function getHeroFactionSpecificPileId(faction) {
@@ -13942,6 +13962,19 @@ function getHeroRoleCardByName(roleName) {
   return heroRoleCards.find(card => card.name.toLowerCase() === normalizedName) || null;
 }
 
+function getHeroEffectCardForRole(role) {
+  if (!role?.id) return null;
+  const roleKey = role.id.replace(/^role_/, "").replace(/_/g, "-");
+  return heroEffectCards.find(card => card.id === `hero_effect_${roleKey}`) || null;
+}
+
+function syncHeroEffectSlot(hero) {
+  if (!hero?.slots) return;
+  const selectedRole = getHeroRoleCard(hero.roleId) || getHeroRoleCardByName(hero.className);
+  const heroEffect = getHeroEffectCardForRole(selectedRole);
+  hero.slots.heroEffect = heroEffect ? heroEffect.id : "";
+}
+
 function getHeroClassSlotLimit(profileName = resourceProfile) {
   if (!profileName || !data[profileName]) return 1;
   ensureShopState(profileName);
@@ -14081,25 +14114,21 @@ function renderHeroCenterSlot(slot) {
   const hero = data[resourceProfile].hero;
   const cards = getHeroSlotCards(slot.id);
   const currentValue = hero.slots[slot.id] || "";
-  const hasCustomValue = currentValue && !cards.some(card => card.id === currentValue || card.name === currentValue);
+  const selectedCard = findHeroSlotCard(slot.id, currentValue);
 
   return `
     <div class="hero-effect-slot ${currentValue ? "equipped" : ""}">
       <span>${slot.label}</span>
-      <select onchange="updateHeroEquipmentSlot('${slot.id}', this.value)">
+      <select disabled>
         <option value="">No Hero Effect Slotted</option>
         ${cards.map(card => {
           const value = card.id || card.name;
           return `<option value="${escapeHeroValue(value)}" ${currentValue === value ? "selected" : ""}>${escapeHeroValue(card.name || value)}</option>`;
         }).join("")}
-        ${hasCustomValue ? `<option value="${escapeHeroValue(currentValue)}" selected>${escapeHeroValue(currentValue)}</option>` : ""}
       </select>
-      <input
-        value="${escapeHeroValue(currentValue)}"
-        placeholder="Temporary hero effect"
-        onchange="updateHeroEquipmentSlot('${slot.id}', this.value)"
-      >
-      <small>${slot.hint}</small>
+      ${selectedCard
+        ? `<div class="hero-effect-text">${escapeHeroValue(selectedCard.text)}</div>`
+        : `<small>${slot.hint}</small>`}
     </div>
   `;
 }
@@ -14364,6 +14393,7 @@ function updateHeroField(field, value) {
   if (field === "className") {
     const matchingRole = getHeroRoleCardByName(value);
     data[resourceProfile].hero.roleId = matchingRole ? matchingRole.id : "";
+    syncHeroEffectSlot(data[resourceProfile].hero);
   }
   saveProfiles();
   renderHero();
@@ -14396,6 +14426,7 @@ function updateHeroRole(roleId) {
 
   data[resourceProfile].hero.roleId = selectedRole ? selectedRole.id : "";
   data[resourceProfile].hero.className = selectedRole ? selectedRole.name : "";
+  syncHeroEffectSlot(data[resourceProfile].hero);
   saveProfiles();
   renderHero();
 }
@@ -14445,6 +14476,7 @@ function lockHeroRole() {
   hero.pendingRoleId = "";
   hero.roleId = selectedRole.id;
   hero.className = selectedRole.name;
+  syncHeroEffectSlot(hero);
 
   saveProfiles();
   flushLiveCampaignSave({ profileName: resourceProfile });
