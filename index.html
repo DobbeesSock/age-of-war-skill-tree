@@ -13699,8 +13699,7 @@ function ensureHeroState(profileName) {
     }
   };
 
-  const selectedRole = getHeroRoleCard(data[profileName].hero.roleId)
-    || getHeroRoleCardByName(data[profileName].hero.className);
+  const selectedRole = getCurrentHeroRole(data[profileName].hero);
 
   if (selectedRole) {
     data[profileName].hero.roleId = selectedRole.id;
@@ -13982,7 +13981,7 @@ function getHeroEffectCardForRole(role) {
 
 function syncHeroEffectSlot(hero) {
   if (!hero?.slots) return;
-  const selectedRole = getHeroRoleCard(hero.roleId) || getHeroRoleCardByName(hero.className);
+  const selectedRole = getCurrentHeroRole(hero);
   const heroEffect = getHeroEffectCardForRole(selectedRole);
   hero.slots.heroEffect = heroEffect ? heroEffect.id : "";
 }
@@ -14005,10 +14004,18 @@ function getUnlockedHeroRoles(hero) {
     .filter(Boolean);
 }
 
+function getCurrentHeroRole(hero) {
+  if (!hero) return null;
+  return getHeroRoleCard(hero.roleId)
+    || getHeroRoleCardByName(hero.className)
+    || getUnlockedHeroRoles(hero)[0]
+    || null;
+}
+
 function renderHeroRoleSelect(hero) {
   const unlockedRoles = getUnlockedHeroRoles(hero);
   const classSlotLimit = getHeroClassSlotLimit();
-  const selectedRole = getHeroRoleCard(hero.roleId) || unlockedRoles[0] || null;
+  const selectedRole = getCurrentHeroRole(hero);
   const currentRoleId = selectedRole?.id || "";
   const pendingRole = getHeroRoleCard(hero.pendingRoleId);
   const remainingRoles = heroRoleCards
@@ -14150,7 +14157,7 @@ function isHeroSlotEquipped(hero, slotId) {
 }
 
 function renderHeroPaperDoll(hero) {
-  const selectedRole = getHeroRoleCard(hero.roleId) || getHeroRoleCardByName(hero.className);
+  const selectedRole = getCurrentHeroRole(hero);
   const weaponEquipped = hero.weaponStyle === "twoHanded"
     ? isHeroSlotEquipped(hero, "twoHanded")
     : isHeroSlotEquipped(hero, "mainHand") || isHeroSlotEquipped(hero, "offHand");
@@ -14261,7 +14268,7 @@ function formatHeroStatValue(key, baseValue, runeBonuses) {
 }
 
 function renderHeroStatsPanel(hero) {
-  const selectedRole = getHeroRoleCard(hero.roleId) || getHeroRoleCardByName(hero.className);
+  const selectedRole = getCurrentHeroRole(hero);
   const statUpgrades = hero.statUpgrades || {};
   const battleTableUpgrades = statUpgrades.battleTable || {};
   const runeBonuses = getRuneStatBonuses(hero);
