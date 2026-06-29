@@ -15226,6 +15226,8 @@ let liveLastContactAt = 0;
 let liveLastAppliedCampaignUpdateAt = null;
 let liveConnectionRole = localStorage.getItem("veiledRealmConnectionRole") || "Player";
 let liveConnectionState = "disconnected";
+let liveSyncBackoffUntil = Number(localStorage.getItem("veiledRealmLiveSyncBackoffUntil") || 0);
+let liveSyncBackoffReason = localStorage.getItem("veiledRealmLiveSyncBackoffReason") || "";
 
 const factionInfoContent = {
   Men: {
@@ -16146,6 +16148,46 @@ function formatLiveSyncError(error) {
   return `${code}${error.message || String(error)}`;
 }
 
+function isLiveSyncQuotaError(error) {
+  const text = `${error?.code || ""} ${error?.message || error || ""}`.toLowerCase();
+  return text.includes("resource-exhausted") || text.includes("quota");
+}
+
+function getLiveSyncBackoffMessage() {
+  if (Date.now() >= liveSyncBackoffUntil) return "";
+  const minutes = Math.max(1, Math.ceil((liveSyncBackoffUntil - Date.now()) / 60000));
+  return `${liveSyncBackoffReason || "Firebase quota exceeded."} Retrying is paused for about ${minutes} minute${minutes === 1 ? "" : "s"}.`;
+}
+
+function clearLiveSyncBackoffIfExpired() {
+  if (!liveSyncBackoffUntil || Date.now() < liveSyncBackoffUntil) return;
+  liveSyncBackoffUntil = 0;
+  liveSyncBackoffReason = "";
+  localStorage.removeItem("veiledRealmLiveSyncBackoffUntil");
+  localStorage.removeItem("veiledRealmLiveSyncBackoffReason");
+}
+
+function isLiveSyncBackedOff() {
+  clearLiveSyncBackoffIfExpired();
+  return Date.now() < liveSyncBackoffUntil;
+}
+
+function activateLiveSyncBackoff(error, context = "Live sync") {
+  if (!isLiveSyncQuotaError(error)) return false;
+  liveSyncBackoffUntil = Date.now() + 30 * 60 * 1000;
+  liveSyncBackoffReason = `${context}: Firebase quota exceeded.`;
+  localStorage.setItem("veiledRealmLiveSyncBackoffUntil", String(liveSyncBackoffUntil));
+  localStorage.setItem("veiledRealmLiveSyncBackoffReason", liveSyncBackoffReason);
+  liveConnectionState = "error";
+  clearTimeout(liveSaveTimer);
+  liveSaveTimer = null;
+  liveQueuedSave = null;
+  clearInterval(livePresenceHeartbeatTimer);
+  livePresenceHeartbeatTimer = null;
+  setSyncStatus(getLiveSyncBackoffMessage(), "#ff8a8a");
+  return true;
+}
+
 function getProfileLiveSaveSignature(profileName) {
   if (!profileName || !data[profileName]) return "";
   try {
@@ -16233,6 +16275,11 @@ function getCurrentPresenceRecord() {
 
 async function writeLivePresence() {
   if (!liveCampaignCode || !liveSyncDb) return;
+  if (isLiveSyncBackedOff()) {
+    liveConnectionState = "error";
+    renderCampaignPresenceOverlay();
+    return;
+  }
   const campaignRef = getCampaignDoc(liveCampaignCode);
   const record = getCurrentPresenceRecord();
   try {
@@ -16248,6 +16295,7 @@ async function writeLivePresence() {
     renderCampaignPresenceOverlay();
   } catch (error) {
     console.error("Campaign presence update failed:", error);
+    activateLiveSyncBackoff(error, "Campaign presence");
     liveConnectionState = "error";
     renderCampaignPresenceOverlay();
   }
@@ -16258,6 +16306,12 @@ function startLivePresence() {
   clearInterval(livePresenceRenderTimer);
   liveConnectionState = "connecting";
   renderCampaignPresenceOverlay();
+  if (isLiveSyncBackedOff()) {
+    liveConnectionState = "error";
+    setSyncStatus(getLiveSyncBackoffMessage(), "#ff8a8a");
+    livePresenceRenderTimer = setInterval(renderCampaignPresenceOverlay, 5000);
+    return;
+  }
   writeLivePresence();
   livePresenceHeartbeatTimer = setInterval(writeLivePresence, 45000);
   livePresenceRenderTimer = setInterval(renderCampaignPresenceOverlay, 5000);
@@ -16272,6 +16326,7 @@ function stopLivePresence() {
 
 async function removeLivePresence(code) {
   if (!code || !liveSyncDb) return;
+  if (isLiveSyncBackedOff()) return;
   const campaignRef = getCampaignDoc(code);
   try {
     await liveSyncDb.runTransaction(async transaction => {
@@ -16288,6 +16343,10 @@ async function removeLivePresence(code) {
 
 async function reconnectLiveCampaign() {
   if (!initializeLiveSync()) return;
+  if (isLiveSyncBackedOff()) {
+    setSyncStatus(getLiveSyncBackoffMessage(), "#ff8a8a");
+    return;
+  }
   const code = normalizeCampaignCode(localStorage.getItem("veiledRealmLastCampaignCode") || "");
   if (!code) return;
   try {
@@ -16303,6 +16362,7 @@ async function reconnectLiveCampaign() {
     setSyncStatus(`Reconnected to live campaign ${code}.`, "#84c46a");
   } catch (error) {
     console.error("Could not reconnect campaign:", error);
+    if (activateLiveSyncBackoff(error, "Reconnect failed")) return;
     setSyncStatus(`Reconnect failed: ${formatLiveSyncError(error)}`, "#ff8a8a");
   }
 }
@@ -16338,6 +16398,12 @@ function getCampaignDoc(code) {
 
 async function createLiveCampaign() {
   if (!initializeLiveSync()) return;
+  if (isLiveSyncBackedOff()) {
+    const message = getLiveSyncBackoffMessage();
+    setSyncStatus(message, "#ff8a8a");
+    alert(message);
+    return;
+  }
 
   const codeInput = document.getElementById("campaignCodeInput");
   const code = normalizeCampaignCode(codeInput?.value);
@@ -16378,6 +16444,7 @@ async function createLiveCampaign() {
   } catch (error) {
     console.error("Could not host campaign:", error);
     liveCampaignCode = "";
+    if (activateLiveSyncBackoff(error, "Could not host campaign")) return;
     const message = formatLiveSyncError(error);
     setSyncStatus(`Could not host campaign: ${message}`, "#ff8a8a");
     alert(`Could not host campaign: ${message}`);
@@ -16386,6 +16453,12 @@ async function createLiveCampaign() {
 
 async function joinLiveCampaign() {
   if (!initializeLiveSync()) return;
+  if (isLiveSyncBackedOff()) {
+    const message = getLiveSyncBackoffMessage();
+    setSyncStatus(message, "#ff8a8a");
+    alert(message);
+    return;
+  }
 
   const codeInput = document.getElementById("campaignCodeInput");
   const code = normalizeCampaignCode(codeInput?.value);
@@ -16409,6 +16482,7 @@ async function joinLiveCampaign() {
     setSyncStatus(`Joined live campaign ${code}.`, "#84c46a");
   } catch (error) {
     console.error("Could not join campaign:", error);
+    if (activateLiveSyncBackoff(error, "Could not join campaign")) return;
     const message = formatLiveSyncError(error);
     setSyncStatus(`Could not join campaign: ${message}`, "#ff8a8a");
     alert(`Could not join campaign: ${message}`);
@@ -16483,6 +16557,7 @@ function subscribeToLiveCampaign(code) {
     );
   }, error => {
     console.error("Live sync listener failed:", error);
+    if (activateLiveSyncBackoff(error, "Live sync listener")) return;
     liveConnectionState = "error";
     renderCampaignPresenceOverlay();
     setSyncStatus(`Live sync error: ${formatLiveSyncError(error)}`, "#ff8a8a");
@@ -16565,6 +16640,10 @@ function getLiveSavePayload(remoteData = {}, options = {}) {
 
 function flushLiveCampaignSave(options = {}) {
   if (isApplyingRemoteCampaign || !liveCampaignCode || !liveSyncDb) return Promise.resolve(false);
+  if (isLiveSyncBackedOff()) {
+    setSyncStatus(getLiveSyncBackoffMessage(), "#ff8a8a");
+    return Promise.resolve(false);
+  }
 
   clearTimeout(liveSaveTimer);
   liveSaveTimer = null;
@@ -16607,6 +16686,7 @@ function flushLiveCampaignSave(options = {}) {
     console.error("Live save failed:", error);
     liveSaveOverlays.delete(overlayId);
     if (saveOptions.profileName) delete liveProfileQueuedSignatures[saveOptions.profileName];
+    if (activateLiveSyncBackoff(error, "Live save failed")) return false;
     setSyncStatus(`Live save failed: ${formatLiveSyncError(error)}`, "#ff8a8a");
     return false;
   });
@@ -16614,6 +16694,10 @@ function flushLiveCampaignSave(options = {}) {
 
 function queueLiveCampaignSave(options = {}) {
   if (isApplyingRemoteCampaign || !liveCampaignCode || !liveSyncDb) return;
+  if (isLiveSyncBackedOff()) {
+    setSyncStatus(getLiveSyncBackoffMessage(), "#ff8a8a");
+    return;
+  }
 
   clearTimeout(liveSaveTimer);
   if (liveQueuedSave) {
@@ -16652,6 +16736,7 @@ function queueLiveCampaignSave(options = {}) {
       console.error("Live save failed:", error);
       liveSaveOverlays.delete(overlayId);
       if (saveOptions.profileName) delete liveProfileQueuedSignatures[saveOptions.profileName];
+      if (activateLiveSyncBackoff(error, "Live save failed")) return;
       setSyncStatus(`Live save failed: ${formatLiveSyncError(error)}`, "#ff8a8a");
     });
   }, 250);
