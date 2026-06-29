@@ -15215,6 +15215,8 @@ let liveSaveTimer = null;
 let liveQueuedSave = null;
 let liveSaveOverlayId = 0;
 const liveSaveOverlays = new Map();
+const liveProfileSaveSignatures = {};
+const liveProfileQueuedSignatures = {};
 const liveClientId = localStorage.getItem("veiledRealmClientId") || crypto.randomUUID();
 localStorage.setItem("veiledRealmClientId", liveClientId);
 let livePresence = {};
@@ -16138,6 +16140,36 @@ function setSyncStatus(message, color = "#bbb") {
   renderCampaignPresenceOverlay();
 }
 
+function formatLiveSyncError(error) {
+  if (!error) return "Unknown Firebase error.";
+  const code = error.code ? `${error.code}: ` : "";
+  return `${code}${error.message || String(error)}`;
+}
+
+function getProfileLiveSaveSignature(profileName) {
+  if (!profileName || !data[profileName]) return "";
+  try {
+    return JSON.stringify(data[profileName]);
+  } catch (error) {
+    console.warn("Could not create profile sync signature:", error);
+    return `${Date.now()}`;
+  }
+}
+
+function markProfileLiveSaveSignature(profileName) {
+  if (!profileName || !data[profileName]) return;
+  liveProfileSaveSignatures[profileName] = getProfileLiveSaveSignature(profileName);
+  delete liveProfileQueuedSignatures[profileName];
+}
+
+function markAllProfileLiveSaveSignatures() {
+  Object.keys(data || {}).forEach(profileName => {
+    if (!isSharedDataKey(profileName)) {
+      markProfileLiveSaveSignature(profileName);
+    }
+  });
+}
+
 function getPresenceProfileName() {
   return resourceProfile && data[resourceProfile] ? resourceProfile : (liveConnectionRole === "GM" ? "Game Master" : "Selecting profile");
 }
@@ -16227,7 +16259,7 @@ function startLivePresence() {
   liveConnectionState = "connecting";
   renderCampaignPresenceOverlay();
   writeLivePresence();
-  livePresenceHeartbeatTimer = setInterval(writeLivePresence, 25000);
+  livePresenceHeartbeatTimer = setInterval(writeLivePresence, 45000);
   livePresenceRenderTimer = setInterval(renderCampaignPresenceOverlay, 5000);
 }
 
@@ -16258,16 +16290,21 @@ async function reconnectLiveCampaign() {
   if (!initializeLiveSync()) return;
   const code = normalizeCampaignCode(localStorage.getItem("veiledRealmLastCampaignCode") || "");
   if (!code) return;
-  const snapshot = await getCampaignDoc(code).get();
-  if (!snapshot.exists) {
-    setSyncStatus(`Campaign ${code} was not found.`, "#ff8a8a");
-    return;
+  try {
+    const snapshot = await getCampaignDoc(code).get();
+    if (!snapshot.exists) {
+      setSyncStatus(`Campaign ${code} was not found.`, "#ff8a8a");
+      return;
+    }
+    liveCampaignCode = code;
+    const input = document.getElementById("campaignCodeInput");
+    if (input) input.value = code;
+    subscribeToLiveCampaign(code);
+    setSyncStatus(`Reconnected to live campaign ${code}.`, "#84c46a");
+  } catch (error) {
+    console.error("Could not reconnect campaign:", error);
+    setSyncStatus(`Reconnect failed: ${formatLiveSyncError(error)}`, "#ff8a8a");
   }
-  liveCampaignCode = code;
-  const input = document.getElementById("campaignCodeInput");
-  if (input) input.value = code;
-  subscribeToLiveCampaign(code);
-  setSyncStatus(`Reconnected to live campaign ${code}.`, "#84c46a");
 }
 
 function isFirebaseConfigured() {
@@ -16321,6 +16358,7 @@ async function createLiveCampaign() {
     if (snapshot.exists && snapshot.data()?.data) {
       data = cloneCampaignValue(snapshot.data().data);
       localStorage.setItem("skillTreeData", JSON.stringify(data));
+      markAllProfileLiveSaveSignatures();
       refreshAfterRemoteCampaignUpdate();
       subscribeToLiveCampaign(code);
       setSyncStatus(`Hosting existing live campaign ${code}.`, "#84c46a");
@@ -16333,13 +16371,16 @@ async function createLiveCampaign() {
       updatedAt: Date.now(),
       updatedBy: liveClientId
     });
+    markAllProfileLiveSaveSignatures();
 
     subscribeToLiveCampaign(code);
     setSyncStatus(`Created and hosting live campaign ${code}.`, "#84c46a");
   } catch (error) {
+    console.error("Could not host campaign:", error);
     liveCampaignCode = "";
-    setSyncStatus(`Could not host campaign: ${error.message}`, "#ff8a8a");
-    alert(`Could not host campaign: ${error.message}`);
+    const message = formatLiveSyncError(error);
+    setSyncStatus(`Could not host campaign: ${message}`, "#ff8a8a");
+    alert(`Could not host campaign: ${message}`);
   }
 }
 
@@ -16354,17 +16395,24 @@ async function joinLiveCampaign() {
     return;
   }
 
-  const snapshot = await getCampaignDoc(code).get();
-  if (!snapshot.exists) {
-    alert("Campaign not found. Ask the GM to create it first.");
-    return;
-  }
+  try {
+    const snapshot = await getCampaignDoc(code).get();
+    if (!snapshot.exists) {
+      alert("Campaign not found. Ask the GM to create it first.");
+      return;
+    }
 
-  setLiveConnectionRole("Player");
-  localStorage.setItem("veiledRealmLastCampaignCode", code);
-  liveCampaignCode = code;
-  subscribeToLiveCampaign(code);
-  setSyncStatus(`Joined live campaign ${code}.`, "#84c46a");
+    setLiveConnectionRole("Player");
+    localStorage.setItem("veiledRealmLastCampaignCode", code);
+    liveCampaignCode = code;
+    subscribeToLiveCampaign(code);
+    setSyncStatus(`Joined live campaign ${code}.`, "#84c46a");
+  } catch (error) {
+    console.error("Could not join campaign:", error);
+    const message = formatLiveSyncError(error);
+    setSyncStatus(`Could not join campaign: ${message}`, "#ff8a8a");
+    alert(`Could not join campaign: ${message}`);
+  }
 }
 
 function disconnectLiveCampaign() {
@@ -16418,10 +16466,11 @@ function subscribeToLiveCampaign(code) {
     try {
       data = applyLiveSaveOverlays(cloneCampaignValue(remote.data));
       localStorage.setItem("skillTreeData", JSON.stringify(data));
+      markAllProfileLiveSaveSignatures();
       refreshAfterRemoteCampaignUpdate();
     } catch (error) {
       console.error("Live campaign refresh failed:", error);
-      setSyncStatus(`Live refresh failed: ${error.message}`, "#ff8a8a");
+      setSyncStatus(`Live refresh failed: ${formatLiveSyncError(error)}`, "#ff8a8a");
       return;
     } finally {
       isApplyingRemoteCampaign = false;
@@ -16433,9 +16482,10 @@ function subscribeToLiveCampaign(code) {
       "#84c46a"
     );
   }, error => {
+    console.error("Live sync listener failed:", error);
     liveConnectionState = "error";
     renderCampaignPresenceOverlay();
-    setSyncStatus(`Live sync error: ${error.message}`, "#ff8a8a");
+    setSyncStatus(`Live sync error: ${formatLiveSyncError(error)}`, "#ff8a8a");
   });
   startLivePresence();
 }
@@ -16550,11 +16600,14 @@ function flushLiveCampaignSave(options = {}) {
     });
   }).then(() => {
     liveSaveOverlays.delete(overlayId);
+    if (saveOptions.profileName) markProfileLiveSaveSignature(saveOptions.profileName);
     setSyncStatus(`Live campaign ${code} saved.`, "#84c46a");
     return true;
   }).catch(error => {
+    console.error("Live save failed:", error);
     liveSaveOverlays.delete(overlayId);
-    setSyncStatus(`Live save failed: ${error.message}`, "#ff8a8a");
+    if (saveOptions.profileName) delete liveProfileQueuedSignatures[saveOptions.profileName];
+    setSyncStatus(`Live save failed: ${formatLiveSyncError(error)}`, "#ff8a8a");
     return false;
   });
 }
@@ -16593,10 +16646,13 @@ function queueLiveCampaignSave(options = {}) {
       });
     }).then(() => {
       liveSaveOverlays.delete(overlayId);
+      if (saveOptions.profileName) markProfileLiveSaveSignature(saveOptions.profileName);
       setSyncStatus(`Live campaign ${code} saved.`, "#84c46a");
     }).catch(error => {
+      console.error("Live save failed:", error);
       liveSaveOverlays.delete(overlayId);
-      setSyncStatus(`Live save failed: ${error.message}`, "#ff8a8a");
+      if (saveOptions.profileName) delete liveProfileQueuedSignatures[saveOptions.profileName];
+      setSyncStatus(`Live save failed: ${formatLiveSyncError(error)}`, "#ff8a8a");
     });
   }, 250);
 }
@@ -18750,7 +18806,7 @@ function manualSaveProfile() {
         return;
     }
 
-    persistCurrentProfileState();
+    persistCurrentProfileState({ forceLive: true });
     updateProfileList();
     syncLandingProfileSelect();
     setSyncStatus(
@@ -18763,7 +18819,7 @@ function saveProfiles(){
     persistCurrentProfileState();
 }
 
-function persistCurrentProfileState(){
+function persistCurrentProfileState(options = {}){
     if(!resourceProfile || !data[resourceProfile]) return false;
 
     syncSkillMarksResourceToSm();
@@ -18775,14 +18831,23 @@ function persistCurrentProfileState(){
     setCurrentTreeSm(sm);
 
     localStorage.setItem("skillTreeData", JSON.stringify(data));
-    queueLiveCampaignSave({ profileName: resourceProfile });
-    return true;
+    const nextSignature = getProfileLiveSaveSignature(resourceProfile);
+    const shouldSyncLive = Boolean(options.forceLive) ||
+        (liveProfileSaveSignatures[resourceProfile] !== nextSignature &&
+        liveProfileQueuedSignatures[resourceProfile] !== nextSignature);
+
+    if (shouldSyncLive && liveCampaignCode && liveSyncDb && !isApplyingRemoteCampaign) {
+        liveProfileQueuedSignatures[resourceProfile] = nextSignature;
+        queueLiveCampaignSave({ profileName: resourceProfile });
+    }
+
+    return shouldSyncLive;
 }
 
 function autosaveProfile(options = {}){
-    const saved = persistCurrentProfileState();
+    const saved = persistCurrentProfileState({ forceLive: Boolean(options.forceLive) });
 
-    if (saved && options.flushLive) {
+    if ((saved || liveQueuedSave) && options.flushLive) {
         flushLiveCampaignSave({ profileName: resourceProfile });
     }
 }
@@ -18794,7 +18859,7 @@ document.addEventListener("visibilitychange", () => {
         autosaveProfile({ flushLive: true });
     }
 });
-setInterval(() => autosaveProfile(), 15000);
+setInterval(() => autosaveProfile(), 60000);
 
 
 // PROFILE LIST
