@@ -15304,7 +15304,24 @@ let liveSaveOverlayId = 0;
 const liveSaveOverlays = new Map();
 const liveProfileSaveSignatures = {};
 const liveProfileQueuedSignatures = {};
-const liveClientId = localStorage.getItem("veiledRealmClientId") || crypto.randomUUID();
+function createStableRandomId(prefix = "id") {
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+  const bytes = new Uint8Array(16);
+  if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+    window.crypto.getRandomValues(bytes);
+  } else {
+    for (let index = 0; index < bytes.length; index += 1) {
+      bytes[index] = Math.floor(Math.random() * 256);
+    }
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, "0"));
+  return `${prefix}-${hex.slice(0, 4).join("")}-${hex.slice(4, 6).join("")}-${hex.slice(6, 8).join("")}-${hex.slice(8, 10).join("")}-${hex.slice(10).join("")}`;
+}
+const liveClientId = localStorage.getItem("veiledRealmClientId") || createStableRandomId("client");
 localStorage.setItem("veiledRealmClientId", liveClientId);
 let livePresence = {};
 let livePresenceHeartbeatTimer = null;
@@ -16299,7 +16316,7 @@ function updateLiveSyncPanel() {
       getLanJoinAddress();
     helper.innerHTML = `
       <strong style="color:#ffe08a;">LAN players join:</strong> ${escapeHeroValue(joinAddress || "Start the LAN server first.")}
-      <br><span style="color:#aaa;">Backups save from the current LAN campaign on the laptop server.</span>
+      <br><span style="color:#aaa;">The plain LAN URL opens the current hosted campaign when one is active. Backups save from the laptop server.</span>
     `;
   }
 }
@@ -16646,7 +16663,10 @@ function isLocalSyncActive() {
 }
 
 function normalizeLocalSyncUrl(url) {
-  const trimmed = String(url || "").trim().replace(/\/+$/, "");
+  let trimmed = String(url || "").trim().replace(/\/+$/, "");
+  if (trimmed && !/^https?:\/\//i.test(trimmed)) {
+    trimmed = `http://${trimmed}`;
+  }
   if (trimmed) return trimmed;
   if (location.protocol === "http:" || location.protocol === "https:") return location.origin;
   return "http://localhost:8792";
@@ -16654,6 +16674,7 @@ function normalizeLocalSyncUrl(url) {
 
 function getLocalSyncUrlInputValue() {
   const input = document.getElementById("localSyncUrlInput");
+  if (isLikelyLocalSyncOrigin()) return normalizeLocalSyncUrl(location.origin);
   return normalizeLocalSyncUrl(input?.value || localSyncBaseUrl);
 }
 
@@ -16709,6 +16730,15 @@ function normalizeCampaignCode(code) {
 
 function getCampaignDoc(code) {
   return liveSyncDb.collection("campaigns").doc(code);
+}
+
+function isLikelyLocalSyncOrigin() {
+  const host = String(location.hostname || "").toLowerCase();
+  return host === "localhost" ||
+    host === "127.0.0.1" ||
+    host.startsWith("192.168.") ||
+    host.startsWith("10.") ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
 }
 
 async function createLocalCampaign() {
@@ -16854,6 +16884,10 @@ async function importLocalCampaignBackup(event) {
 }
 
 async function createLiveCampaign() {
+  if (isLikelyLocalSyncOrigin()) {
+    return createLocalCampaign();
+  }
+
   liveSyncMode = "firebase";
   localStorage.setItem("veiledRealmLiveSyncMode", "firebase");
   if (!initializeLiveSync()) return;
@@ -16911,6 +16945,10 @@ async function createLiveCampaign() {
 }
 
 async function joinLiveCampaign() {
+  if (isLikelyLocalSyncOrigin()) {
+    return joinLocalCampaign();
+  }
+
   liveSyncMode = "firebase";
   localStorage.setItem("veiledRealmLiveSyncMode", "firebase");
   if (!initializeLiveSync()) return;
@@ -17873,29 +17911,109 @@ function persistPlayerNotesProfile(profileName) {
   renderPlayerNotesHost();
 }
 
-function submitPlayerNote() {
+function mergePlayerNoteList(existingNotes, nextNote, removedId = "") {
+  const notes = Array.isArray(existingNotes) ? existingNotes.filter(note => note && note.text) : [];
+  const merged = removedId ? notes.filter(note => note.id !== removedId) : [...notes];
+  if (nextNote?.id) {
+    const index = merged.findIndex(note => note.id === nextNote.id);
+    if (index === -1) merged.push(nextNote);
+    else merged[index] = nextNote;
+  }
+  return merged;
+}
+
+async function savePlayerNoteToCampaign(profileName, note, options = {}) {
+  if (!profileName || !data[profileName] || isSharedDataKey(profileName)) return false;
+  localStorage.setItem("skillTreeData", JSON.stringify(data));
+
+  if (!liveCampaignCode || (!liveSyncDb && !isLocalSyncActive()) || isApplyingRemoteCampaign) {
+    persistPlayerNotesProfile(profileName);
+    return false;
+  }
+
+  if (isLiveSyncBackedOff()) {
+    setSyncStatus(getLiveSyncBackoffMessage(), "#ff8a8a");
+    return false;
+  }
+
+  const removedId = options.removedId || "";
+
+  if (isLocalSyncActive()) {
+    const remote = await requestLocalSync(getLocalCampaignPath(liveCampaignCode));
+    const remoteData = remote?.data || {};
+    const remoteProfile = remoteData[profileName] || data[profileName] || {};
+    const nextProfile = { ...remoteProfile };
+    nextProfile.playerNotes = mergePlayerNoteList(remoteProfile.playerNotes, note, removedId);
+    remoteData[profileName] = nextProfile;
+    await requestLocalSync(getLocalCampaignPath(liveCampaignCode, "/save"), {
+      method: "POST",
+      body: JSON.stringify({
+        data: remoteData,
+        updatedBy: liveClientId
+      })
+    });
+    data[profileName].playerNotes = mergePlayerNoteList(data[profileName].playerNotes, note, removedId);
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    markProfileLiveSaveSignature(profileName);
+    return true;
+  }
+
+  const campaignRef = getCampaignDoc(liveCampaignCode);
+  const profilePath = new firebase.firestore.FieldPath("data", profileName);
+  await liveSyncDb.runTransaction(async transaction => {
+    const snapshot = await transaction.get(campaignRef);
+    if (!snapshot.exists) throw new Error("Campaign not found.");
+    const remoteProfile = snapshot.data()?.data?.[profileName] || data[profileName] || {};
+    const nextProfile = { ...remoteProfile };
+    nextProfile.playerNotes = mergePlayerNoteList(remoteProfile.playerNotes, note, removedId);
+    transaction.update(campaignRef, profilePath, nextProfile, "updatedAt", Date.now(), "updatedBy", liveClientId);
+  });
+  data[profileName].playerNotes = mergePlayerNoteList(data[profileName].playerNotes, note, removedId);
+  localStorage.setItem("skillTreeData", JSON.stringify(data));
+  markProfileLiveSaveSignature(profileName);
+  return true;
+}
+
+async function submitPlayerNote() {
   if (!resourceProfile || !data[resourceProfile]) return;
 
   const textInput = document.getElementById("playerNoteText");
   const categoryInput = document.getElementById("playerNoteCategory");
+  const submitButton = document.querySelector("button[onclick=\"submitPlayerNote()\"]");
   const text = (textInput?.value || "").trim();
   if (!text) {
     alert("Write a note first.");
     return;
   }
 
-  ensurePlayerNotesState(resourceProfile).push({
+  const note = {
     id: `${resourceProfile}:note:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
     category: categoryInput?.value || "Idea",
     text,
     createdAt: new Date().toISOString(),
     status: "open",
     addressedAt: ""
-  });
+  };
 
+  ensurePlayerNotesState(resourceProfile).push(note);
   if (textInput) textInput.value = "";
-  persistPlayerNotesProfile(resourceProfile);
-  setSyncStatus("Note sent to the GM.", "#84c46a");
+  renderHubHome();
+  renderPlayerNotes();
+  renderPlayerNotesHost();
+  setSyncStatus("Sending note to the GM...", "#f0c36a");
+
+  if (submitButton) submitButton.disabled = true;
+  try {
+    const synced = await savePlayerNoteToCampaign(resourceProfile, note);
+    setSyncStatus(synced ? "Note sent to the GM." : "Note saved on this device. Reconnect sync before play so the GM receives it.", synced ? "#84c46a" : "#f0c36a");
+  } catch (error) {
+    console.error("Player note save failed:", error);
+    if (isLiveSyncQuotaError(error)) activateLiveSyncBackoff(error, "Note save failed");
+    setSyncStatus(`Note could not sync: ${formatLiveSyncError(error)}`, "#ff8a8a");
+    alert(`The note is saved on this device, but it could not sync to the GM yet: ${formatLiveSyncError(error)}`);
+  } finally {
+    if (submitButton) submitButton.disabled = false;
+  }
 }
 
 function getAllPlayerNotes() {
@@ -17946,13 +18064,27 @@ function setPlayerNoteStatus(profileName, noteId, status) {
   if (!note) return;
   note.status = status;
   note.addressedAt = status === "addressed" ? new Date().toISOString() : "";
-  persistPlayerNotesProfile(profileName);
+  savePlayerNoteToCampaign(profileName, note).then(synced => {
+    if (synced) setSyncStatus("GM note status synced.", "#84c46a");
+    else persistPlayerNotesProfile(profileName);
+  }).catch(error => {
+    console.error("GM note status save failed:", error);
+    persistPlayerNotesProfile(profileName);
+    setSyncStatus(`GM note status could not sync: ${formatLiveSyncError(error)}`, "#ff8a8a");
+  });
 }
 
 function deletePlayerNote(profileName, noteId) {
   if (!profileName || !data[profileName]) return;
   data[profileName].playerNotes = ensurePlayerNotesState(profileName).filter(note => note.id !== noteId);
-  persistPlayerNotesProfile(profileName);
+  savePlayerNoteToCampaign(profileName, null, { removedId: noteId }).then(synced => {
+    if (synced) setSyncStatus("GM note dismissed.", "#84c46a");
+    else persistPlayerNotesProfile(profileName);
+  }).catch(error => {
+    console.error("GM note delete failed:", error);
+    persistPlayerNotesProfile(profileName);
+    setSyncStatus(`GM note dismiss could not sync: ${formatLiveSyncError(error)}`, "#ff8a8a");
+  });
 }
 
 
@@ -22765,7 +22897,7 @@ function drawMythologicalCave(trigger = "Manual Draw") {
     cave: mythologicalCaveState.current.title,
     time: new Date().toLocaleString()
   });
-  recordPresenceEvent(3, `Mythological Cave generated: ${mythologicalCaveState.current.title}`, `mythological:${crypto.randomUUID()}`);
+  recordPresenceEvent(3, `Mythological Cave generated: ${mythologicalCaveState.current.title}`, `mythological:${createStableRandomId("mythological")}`);
 
   saveMythologicalCaves();
   renderMythologicalCaves();
@@ -25177,7 +25309,7 @@ function dissolveAlliance(pairKey, breaker) {
 
   if (!confirm("Dissolve this alliance? These factions cannot ally again during the current mission.")) return;
 
-  const presenceEventId = `alliance:${pairKey}:${crypto.randomUUID()}`;
+  const presenceEventId = `alliance:${pairKey}:${createStableRandomId("alliance")}`;
   const dissolveResult = persistTradeMutation(() => {
     ensureAllianceState();
     const current = data.sharedAlliances.active[pairKey];
@@ -28224,6 +28356,20 @@ const rememberedCampaignInput = document.getElementById("campaignCodeInput");
 if (rememberedCampaignInput && rememberedCampaignCode) rememberedCampaignInput.value = rememberedCampaignCode;
 const rememberedLocalSyncInput = document.getElementById("localSyncUrlInput");
 if (rememberedLocalSyncInput) rememberedLocalSyncInput.value = normalizeLocalSyncUrl(localSyncBaseUrl);
+const autoLanJoinCode = normalizeCampaignCode(window.veiledRealmAutoLanJoinCode || "");
+if (autoLanJoinCode) {
+  const marker = document.createElement("div");
+  marker.id = "lanAutoJoinMarker";
+  marker.style.cssText = "position:fixed;left:10px;top:10px;z-index:10000;background:#173b20;color:#dfffe6;border:1px solid #78dc8c;border-radius:6px;padding:8px 10px;font:13px system-ui;";
+  marker.textContent = `Auto-joining LAN campaign ${autoLanJoinCode}...`;
+  document.body.appendChild(marker);
+  const input = document.getElementById("campaignCodeInput");
+  if (input) input.value = autoLanJoinCode;
+  localStorage.setItem("veiledRealmLastCampaignCode", autoLanJoinCode);
+  localStorage.setItem("veiledRealmLiveSyncMode", "lan");
+  setLocalSyncBaseUrl(location.origin);
+  setTimeout(() => joinLocalCampaign(), 250);
+}
 refreshLanServerInfo();
 updateLiveSyncPanel();
 window.addEventListener("online", () => {
