@@ -24028,6 +24028,10 @@ function renderShop() {
     "Tier 5 Keyword Upgrades"
   ];
 
+  if (!window.shopExpandedSections || typeof window.shopExpandedSections !== "object") {
+    window.shopExpandedSections = {};
+  }
+
   const groupedItems = visibleItems.reduce((groups, item) => {
     const section = item.section || "Other";
     if (!groups[section]) groups[section] = [];
@@ -24088,19 +24092,27 @@ function renderShop() {
           description: "Shop upgrades.",
           accent: "#d4af37"
         };
+        const sectionArg = JSON.stringify(section).replace(/"/g, "&quot;");
+        const isExpanded = Boolean(window.shopExpandedSections[section]);
+        const itemCount = groupedItems[section].length;
 
         return `
         <section id="${getShopSectionDomId(section)}" style="scroll-margin-top:96px; margin-bottom:34px; border-top:3px solid ${meta.accent}; background:rgba(255,255,255,0.035); border-radius:8px; padding:14px;">
-          <div style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid ${meta.accent};">
-            <h3 style="margin:0; color:${meta.accent};">
-              ${meta.label}
-            </h3>
-            <p style="margin:4px 0 0 0; color:#bbb; font-size:13px;">
-              ${meta.description}
-            </p>
+          <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-bottom:${isExpanded ? "12px" : "0"}; padding-bottom:${isExpanded ? "8px" : "0"}; border-bottom:${isExpanded ? `1px solid ${meta.accent}` : "0"};">
+            <button type="button" onclick="toggleShopSection(${sectionArg})" style="flex:1; min-width:220px; display:block; text-align:left; padding:0; margin:0; border:0; background:transparent; box-shadow:none;">
+              <h3 style="margin:0; color:${meta.accent};">
+                ${isExpanded ? "[-]" : "[+]"} ${meta.label}
+              </h3>
+              <p style="margin:4px 0 0 0; color:#bbb; font-size:13px;">
+                ${meta.description}
+              </p>
+            </button>
+            <button type="button" onclick="toggleShopSection(${sectionArg})" style="white-space:nowrap;">
+              ${isExpanded ? "Collapse" : `Show ${itemCount}`}
+            </button>
           </div>
 
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
+          <div id="${getShopSectionContentDomId(section)}" style="display:${isExpanded ? "grid" : "none"}; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
             ${groupedItems[section].map(item => {
               const purchased = purchases[item.id];
               const costOptions = getShopItemCostOptions(item);
@@ -24158,8 +24170,57 @@ function getShopSectionDomId(section) {
   return `shop-section-${String(section || "other").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
 }
 
+function getShopSectionContentDomId(section) {
+  return `${getShopSectionDomId(section)}-content`;
+}
+
+function setShopSectionExpanded(section, expanded) {
+  if (!window.shopExpandedSections || typeof window.shopExpandedSections !== "object") {
+    window.shopExpandedSections = {};
+  }
+  window.shopExpandedSections[section] = Boolean(expanded);
+  const target = document.getElementById(getShopSectionDomId(section));
+  const content = document.getElementById(getShopSectionContentDomId(section));
+  if (content) content.style.display = expanded ? "grid" : "none";
+  if (target) {
+    const header = target.querySelector("h3");
+    const button = target.querySelector("button[style*='white-space']");
+    const meta = shopSectionMetaLookup(section);
+    const count = target.querySelectorAll("[id^='shop-item-']").length;
+    if (header) header.textContent = `${expanded ? "[-]" : "[+]"} ${meta.label}`;
+    if (button) button.textContent = expanded ? "Collapse" : `Show ${count}`;
+  }
+}
+
+function toggleShopSection(section) {
+  const expanded = !(window.shopExpandedSections && window.shopExpandedSections[section]);
+  setShopSectionExpanded(section, expanded);
+}
+
+function shopSectionMetaLookup(section) {
+  const lookup = {
+    "Basic Action Upgrades": "Basic Action Upgrades",
+    "Advanced: Unit Class Specific": "Advanced Unit Class Upgrades",
+    "Technical: Resource Specific": "Technical: Resource Specific",
+    "Rival Ability": "Rival Ability",
+    "Boons": "Boons",
+    "Ultimate/ Abilities": "Ultimate/ Abilities",
+    "Increase Setup Level, Faction Specific": "Increase Setup Level, Faction Specific",
+    "Gate & Wall Health Upgrade": "Gate & Wall Health Upgrade",
+    "Melee Engagement Dice Adding Upgrade": "Melee Engagement Dice Adding Upgrade",
+    "Hero Class Unlocks": "Hero Class Unlocks",
+    "Battle Table Keyword Upgrades": "Battle Table Keyword Upgrades",
+    "Tier 2 Keyword Upgrades": "Tier 2 Keyword Upgrades",
+    "Tier 3 Keyword Upgrades": "Tier 3 Keyword Upgrades",
+    "Tier 4 Keyword Upgrades": "Tier 4 Keyword Upgrades",
+    "Tier 5 Keyword Upgrades": "Tier 5 Keyword Upgrades"
+  };
+  return { label: lookup[section] || section || "Shop upgrades" };
+}
+
 function jumpToShopSection(section) {
   if (!section) return;
+  setShopSectionExpanded(section, true);
   const target = document.getElementById(getShopSectionDomId(section));
   if (!target) return;
   target.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -24169,6 +24230,8 @@ function jumpToShopItem(itemId) {
   if (!itemId) return;
   const target = document.getElementById(`shop-item-${itemId}`);
   if (!target) return;
+  const item = shopItems.find(shopItem => shopItem.id === itemId);
+  if (item?.section) setShopSectionExpanded(item.section, true);
   target.scrollIntoView({ behavior: "smooth", block: "center" });
   target.style.boxShadow = "0 0 0 3px rgba(255,224,138,0.78), 0 0 28px rgba(255,224,138,0.35)";
   target.style.transform = "translateY(-2px)";
@@ -28623,5 +28686,3 @@ renderCampaignPresenceOverlay();
 
 
 
-
-    
