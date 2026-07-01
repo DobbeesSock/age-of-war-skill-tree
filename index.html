@@ -4138,7 +4138,6 @@ const defaultResources = [
   { name: "Metal", value: 0, color: "#9E9E9E", icon: "&#9939;" },
   { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "&#128009;" },
   { name: "Skill Marks", value: 0, color: "#C084FC", icon: "SM" },
-  { name: "Shadow Marks", value: 0, color: "#9C27B0", icon: "&#128128;" },
   { name: "Unlock Tokens", value: 0, color: "#14B8A6", icon: "UT" }
 ];
 const defaultCraftingMaterialGroups = [
@@ -4211,14 +4210,20 @@ function normalizeCraftingMaterialGroups(materialGroups) {
 }
 function normalizeResourceList(resourceList) {
   const existingResources = Array.isArray(resourceList) ? resourceList : [];
+  const legacyShadowMarks = existingResources.find(resource => resource.name === "Shadow Marks");
   const normalizedResources = defaultResources.map(defaultResource => {
     const existingResource = existingResources.find(resource => resource.name === defaultResource.name);
-    return existingResource
+    const normalized = existingResource
       ? { ...defaultResource, ...existingResource, icon: defaultResource.icon, color: defaultResource.color, value: Number(existingResource.value || 0) }
       : { ...defaultResource };
+    if (defaultResource.name === "Skill Marks" && legacyShadowMarks) {
+      normalized.value = Math.max(Number(normalized.value || 0), Number(legacyShadowMarks.value || 0));
+    }
+    return normalized;
   });
 
   existingResources.forEach(resource => {
+    if (resource.name === "Shadow Marks") return;
     if (!normalizedResources.some(normalized => normalized.name === resource.name)) {
       normalizedResources.push(resource);
     }
@@ -5021,6 +5026,11 @@ function addResourceByName(name, amount) {
     resource.value = 0;
   }
 
+  if (name === "Skill Marks" && resourceProfile) {
+    const actualDelta = Number(resource.value || 0) - beforeValue;
+    if (actualDelta !== 0) setCurrentTreeSm(getSharedSkillMarks() + actualDelta);
+  }
+
   if (name === "Dragon Coins") {
     const afterValue = Number(resource.value || 0);
     applyDragonCoinAutoTension(resourceProfile, beforeValue, afterValue);
@@ -5086,12 +5096,15 @@ function applyCollectionIncome(incomeText, constructed = null) {
     metal: "Metal",
     "dragon coin": "Dragon Coins",
     "dragon coins": "Dragon Coins",
-    "shadow mark": "Shadow Marks",
-    "shadow marks": "Shadow Marks"
+    "skill mark": "Skill Marks",
+    "skill marks": "Skill Marks",
+    sm: "Skill Marks",
+    "shadow mark": "Skill Marks",
+    "shadow marks": "Skill Marks"
   };
 
   function applyPart(part) {
-    const proportionalMatch = part.match(/^\+(\d+)\s+(.+?)\s+per\s+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)$/i);
+    const proportionalMatch = part.match(/^\+(\d+)\s+(.+?)\s+per\s+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?)$/i);
     if (proportionalMatch) {
       const rewardAmount = parseInt(proportionalMatch[1], 10);
       const rewardName = resourceMap[proportionalMatch[2].trim().toLowerCase()];
@@ -5134,7 +5147,7 @@ function applyCollectionIncome(incomeText, constructed = null) {
   }
 
   if (/choose\s*1/i.test(incomeText)) {
-    const choices = [...incomeText.matchAll(/\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)/gi)]
+    const choices = [...incomeText.matchAll(/\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?)/gi)]
       .map(match => `+${match[1]} ${match[2]}`);
 
     if (choices.length > 0) {
@@ -5165,7 +5178,7 @@ function getRelicCollectionIncome(card) {
   if (card.collectionIncome) return card.collectionIncome;
 
   const text = card.text || "";
-  const match = text.match(/\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)\s+for\s+Collection/i);
+  const match = text.match(/\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?)\s+for\s+Collection/i);
   return match ? `+${match[1]} ${match[2]}` : "";
 }
 
@@ -5622,12 +5635,12 @@ function getSkillNodeCollectionIncome(node) {
   if (node.dataset.collectionIncome) return node.dataset.collectionIncome;
 
   const text = node.innerText || "";
-  const proportionalMatch = text.match(/gain\s+\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)\s+per\s+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)/i);
+  const proportionalMatch = text.match(/gain\s+\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?)\s+per\s+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?)/i);
   if (proportionalMatch) {
     return `+${proportionalMatch[1]} ${proportionalMatch[2]} per ${proportionalMatch[3]} ${proportionalMatch[4]}`;
   }
 
-  const match = text.match(/gain\s+\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Shadow Marks?)\s+Collection/i);
+  const match = text.match(/gain\s+\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?)\s+Collection/i);
   return match ? `+${match[1]} ${match[2]}` : "";
 }
 
@@ -11367,8 +11380,8 @@ function normalizeDiscoveryResourceName(name) {
     "skill mark": "Skill Marks",
     "skill marks": "Skill Marks",
     sm: "Skill Marks",
-    "shadow mark": "Shadow Marks",
-    "shadow marks": "Shadow Marks",
+    "shadow mark": "Skill Marks",
+    "shadow marks": "Skill Marks",
     "unlock token": "Unlock Tokens",
     "unlock tokens": "Unlock Tokens"
   };
@@ -12424,7 +12437,7 @@ const titleTrackerDefinitions = [
   { id: "title_world_breaker", requirements: [{ key: "worldBosses", metric: "World Bosses defeated", threshold: 3, step: 1 }] },
   { id: "title_poi_master", requirements: [{ key: "poisControlled", metric: "Points of Interest controlled or progressed", threshold: 50, step: 5 }] },
   { id: "title_harmony_keeper", requirements: [{ key: "harmonyRounds", metric: "Rounds at 80+ Harmony", threshold: 10, step: 1 }] },
-  { id: "title_shadowmarked", requirements: [{ key: "shadowMarks", metric: "Shadow Marks collected", threshold: 10, step: 1, resourceName: "Shadow Marks" }] },
+  { id: "title_shadowmarked", requirements: [{ key: "shadowMarks", metric: "SM collected", threshold: 10, step: 1, resourceName: "Skill Marks" }] },
   { id: "title_relic_hunter", requirements: [{ key: "uniqueRelics", metric: "Unique Relics obtained", threshold: 10, step: 1 }] },
   { id: "title_ancient_scourge", requirements: [{ key: "pointsOfInterest", legacyKeys: ["ancientStructures"], metric: "Destroyed Points of Interest", threshold: 15, step: 5 }] },
   { id: "title_forge_master", requirements: [{ key: "craftedItems", metric: "Legendary or Mythic Items Crafted", threshold: 20, step: 5 }] },
@@ -15008,12 +15021,17 @@ function renderResources() {
     const displayValue = res.max !== undefined
       ? `${res.value} / ${res.max}`
       : res.value;
+    const resourceLabel = res.name === "Skill Marks" ? "Total SM Collected" : res.name;
+    const resourceHelp = res.name === "Skill Marks"
+      ? `<div style="font-size:13px; color:#cfc6e8; line-height:1.35;">Adding SM here also adds to your skill tree spend pool. Spending on trees does not reduce this lifetime total.</div>`
+      : "";
 
     row.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-        <strong style="font-size:21px; color:#fff;">${res.icon} ${res.name}</strong>
+        <strong style="font-size:21px; color:#fff;">${res.icon} ${resourceLabel}</strong>
         <div style="font-size:36px; font-weight:bold; color:#fff; line-height:1; text-align:right;">${displayValue}</div>
       </div>
+      ${resourceHelp}
       <div style="display:grid; grid-template-columns:repeat(4, minmax(58px, 1fr)); gap:8px;">
         <button style="font-size:16px; min-height:44px;" onclick="change(${i}, 1)">+1</button>
         <button style="font-size:16px; min-height:44px;" onclick="change(${i}, 5)">+5</button>
@@ -15126,7 +15144,8 @@ function change(index, amount) {
   }
 
   if (res.name === "Skill Marks") {
-    setCurrentTreeSm(res.value);
+    const actualDelta = Number(res.value || 0) - beforeValue;
+    if (actualDelta !== 0) setCurrentTreeSm(getSharedSkillMarks() + actualDelta);
     updateSM();
   }
 
@@ -19584,17 +19603,18 @@ function getSkillMarksResource(){
 }
 
 function getSharedSkillMarks(){
-    const skillMarks = getSkillMarksResource();
-    if (skillMarks) return Number(skillMarks.value || 0);
+    if (resourceProfile && data[resourceProfile]) {
+        const treeValues = Object.keys(skillTreeRootIds)
+            .filter(treeId => data[resourceProfile][treeId] && Object.prototype.hasOwnProperty.call(data[resourceProfile][treeId], "sm"))
+            .map(treeId => Number(data[resourceProfile][treeId].sm || 0));
+        if (treeValues.length) return Math.max(...treeValues);
+    }
     return Number(sm || 0);
 }
 
 function syncSkillMarksResourceToSm(){
-    const skillMarks = getSkillMarksResource();
-    if (!skillMarks) return;
-
-    skillMarks.value = sm;
     if (resourceProfile && data[resourceProfile]) {
+        resources = normalizeResourceList(resources);
         data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
     }
 }
@@ -19603,6 +19623,7 @@ function setCurrentTreeSm(nextSm){
     sm = Math.max(0, Number(nextSm) || 0);
 
     if (resourceProfile && data[resourceProfile]) {
+        data[resourceProfile].skillMarksSeparatePool = true;
         Object.keys(skillTreeRootIds).forEach(treeId => {
             if (data[resourceProfile][treeId]) {
                 data[resourceProfile][treeId].sm = sm;
@@ -19621,11 +19642,15 @@ function loadSharedSkillMarks(){
 
     const skillMarks = getSkillMarksResource();
     const resourceSm = Number(skillMarks?.value || 0);
-    const legacyTreeSm = Object.keys(skillTreeRootIds).reduce((highest, treeId) => {
-        return Math.max(highest, Number(data[resourceProfile][treeId]?.sm || 0));
+    const treeSmValues = Object.keys(skillTreeRootIds)
+      .filter(treeId => data[resourceProfile][treeId] && Object.prototype.hasOwnProperty.call(data[resourceProfile][treeId], "sm"))
+      .map(treeId => Number(data[resourceProfile][treeId].sm || 0));
+    const legacyTreeSm = treeSmValues.reduce((highest, value) => {
+        return Math.max(highest, Number(value || 0));
     }, 0);
+    const hasSeparatePool = data[resourceProfile].skillMarksSeparatePool === true;
 
-    setCurrentTreeSm(Math.max(resourceSm, legacyTreeSm));
+    setCurrentTreeSm(hasSeparatePool ? legacyTreeSm : Math.max(resourceSm, legacyTreeSm));
     return sm;
 }
 
@@ -19637,7 +19662,15 @@ function loadSharedSkillMarks(){
 function changeSM(amount){
     if(!resourceProfile) return;
 
-    setCurrentTreeSm(getSharedSkillMarks() + amount);
+    const skillMarks = getSkillMarksResource();
+    if (skillMarks) {
+        const beforeValue = Number(skillMarks.value || 0);
+        skillMarks.value = Math.max(0, beforeValue + amount);
+        const actualDelta = Number(skillMarks.value || 0) - beforeValue;
+        if (actualDelta !== 0) setCurrentTreeSm(getSharedSkillMarks() + actualDelta);
+    } else {
+        setCurrentTreeSm(getSharedSkillMarks() + amount);
+    }
 
     saveProfiles();
     updateSM();
