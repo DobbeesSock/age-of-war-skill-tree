@@ -2097,6 +2097,72 @@ body.elves {
   font-size: 13px;
 }
 
+.sync-mode-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.sync-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 6px;
+  background: rgba(0,0,0,0.24);
+  color: #ddd;
+  font-size: 12px;
+}
+
+.sync-chip.good { color: #dfffe6; border-color: rgba(120,220,140,0.42); background: rgba(60,130,72,0.18); }
+.sync-chip.warn { color: #ffe6ad; border-color: rgba(240,195,106,0.42); background: rgba(130,92,32,0.18); }
+.sync-chip.bad { color: #ffd2d2; border-color: rgba(255,127,127,0.48); background: rgba(130,40,40,0.2); }
+
+.lan-helper {
+  margin-top: 8px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  background: rgba(0,0,0,0.18);
+  color: #cfcfcf;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.lan-sync-guard {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0,0,0,0.78);
+}
+
+.lan-sync-guard-panel {
+  width: min(520px, 100%);
+  padding: 18px;
+  border: 1px solid rgba(255,224,138,0.42);
+  border-radius: 8px;
+  background: #181818;
+  box-shadow: 0 18px 48px rgba(0,0,0,0.55);
+  color: #eee;
+}
+
+.lan-sync-guard-panel h2 {
+  margin: 0 0 8px 0;
+  color: #ffe08a;
+}
+
+.lan-sync-guard-panel p {
+  margin: 0 0 12px 0;
+  color: #ccc;
+  line-height: 1.45;
+}
+
 .navigation-menu-label {
   display: grid;
   gap: 5px;
@@ -2183,7 +2249,20 @@ body.elves {
         <button onclick="joinLiveCampaign()">Join Campaign</button>
         <button onclick="disconnectLiveCampaign()">Disconnect</button>
       </div>
-      <p id="syncStatus" class="sync-status">Local only. Add Firebase config in the code to enable live campaign sync.</p>
+      <div id="syncModeRow" class="sync-mode-row"></div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+        <input id="localSyncUrlInput" placeholder="LAN Server URL">
+        <button onclick="createLocalCampaign()">Host LAN Campaign</button>
+        <button onclick="joinLocalCampaign()">Join LAN Campaign</button>
+        <button onclick="reconnectLocalCampaign()">Reconnect LAN Campaign</button>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+        <button onclick="exportLocalCampaignBackup()">Export LAN Backup</button>
+        <button onclick="document.getElementById('localCampaignBackupInput').click()">Import LAN Backup</button>
+        <input id="localCampaignBackupInput" type="file" accept="application/json,.json" style="display:none" onchange="importLocalCampaignBackup(event)">
+      </div>
+      <div id="lanServerHelper" class="lan-helper"></div>
+      <p id="syncStatus" class="sync-status">Local only. Use LAN sync for same-network play or cloud sync for Firebase.</p>
     </div>
 
     <div class="hub-grid">
@@ -11391,6 +11470,9 @@ function persistDiscoveryMutation(mutation) {
   if (!liveCampaignCode || !liveSyncDb) {
     mutation(data);
     localStorage.setItem("skillTreeData", JSON.stringify(data));
+    if (isLocalSyncActive()) {
+      queueLiveCampaignSave({ fullData: true });
+    }
     refreshAfterDiscoveryMutation();
     return Promise.resolve(data);
   }
@@ -15209,6 +15291,11 @@ const firebaseConfig = {
 
 let liveSyncDb = null;
 let liveCampaignCode = "";
+let liveSyncMode = localStorage.getItem("veiledRealmLiveSyncMode") || "firebase";
+let localSyncBaseUrl = localStorage.getItem("veiledRealmLocalSyncUrl") || "";
+let localSyncPollTimer = null;
+let lanServerInfo = null;
+let lanServerInfoPromise = null;
 let liveCampaignUnsubscribe = null;
 let isApplyingRemoteCampaign = false;
 let liveSaveTimer = null;
@@ -16139,7 +16226,111 @@ function setSyncStatus(message, color = "#bbb") {
 
   status.textContent = message;
   status.style.color = color;
+  updateLiveSyncPanel();
+  renderLanSyncGuard();
   renderCampaignPresenceOverlay();
+}
+
+function isLanSyncExpected() {
+  return (localStorage.getItem("veiledRealmLiveSyncMode") || liveSyncMode) === "lan" &&
+    Boolean(normalizeCampaignCode(localStorage.getItem("veiledRealmLastCampaignCode") || liveCampaignCode || ""));
+}
+
+function isLanConnectionHealthy() {
+  return isLocalSyncActive() && liveConnectionState === "connected" && Date.now() - liveLastContactAt < 75000;
+}
+
+function getCurrentSyncModeLabel() {
+  if (isLanSyncExpected()) return "LAN";
+  if (liveCampaignCode && liveSyncDb) return "Firebase";
+  return "Local";
+}
+
+function getCurrentSyncHealth() {
+  if (isLanSyncExpected()) return isLanConnectionHealthy() ? "good" : "bad";
+  if (liveCampaignCode && liveSyncDb) return liveConnectionState === "connected" ? "good" : "warn";
+  return "warn";
+}
+
+function getLanJoinAddress() {
+  if (location.protocol === "http:" || location.protocol === "https:") {
+    return location.origin;
+  }
+  return normalizeLocalSyncUrl(localSyncBaseUrl);
+}
+
+async function refreshLanServerInfo() {
+  const baseUrl = normalizeLocalSyncUrl(localSyncBaseUrl || getLanJoinAddress());
+  if (!baseUrl || lanServerInfoPromise) return lanServerInfoPromise;
+  lanServerInfoPromise = fetch(`${baseUrl}/api/server-info`)
+    .then(response => response.ok ? response.json() : null)
+    .then(info => {
+      lanServerInfo = info;
+      updateLiveSyncPanel();
+      return info;
+    })
+    .catch(() => null)
+    .finally(() => {
+      lanServerInfoPromise = null;
+    });
+  return lanServerInfoPromise;
+}
+
+function updateLiveSyncPanel() {
+  const row = document.getElementById("syncModeRow");
+  if (row) {
+    const mode = getCurrentSyncModeLabel();
+    const health = getCurrentSyncHealth();
+    const campaign = normalizeCampaignCode(localStorage.getItem("veiledRealmLastCampaignCode") || liveCampaignCode || "");
+    const healthText = health === "good" ? "Connected" : health === "bad" ? "Reconnect needed" : "Local only";
+    row.innerHTML = `
+      <span class="sync-chip ${health}">Mode: ${mode}</span>
+      <span class="sync-chip ${health}">Status: ${healthText}</span>
+      ${campaign ? `<span class="sync-chip">Campaign: ${escapeHeroValue(campaign)}</span>` : ""}
+    `;
+  }
+
+  const helper = document.getElementById("lanServerHelper");
+  if (helper) {
+    const addresses = Array.isArray(lanServerInfo?.addresses) ? lanServerInfo.addresses : [];
+    const joinAddress = addresses.find(address => address.includes("192.168.")) ||
+      addresses.find(address => address.includes("10.0.") || address.includes("10.1.") || address.includes("172.16.")) ||
+      addresses.find(address => !address.includes("127.0.0.1") && !address.includes("localhost")) ||
+      getLanJoinAddress();
+    helper.innerHTML = `
+      <strong style="color:#ffe08a;">LAN players join:</strong> ${escapeHeroValue(joinAddress || "Start the LAN server first.")}
+      <br><span style="color:#aaa;">Backups save from the current LAN campaign on the laptop server.</span>
+    `;
+  }
+}
+
+function renderLanSyncGuard() {
+  let guard = document.getElementById("lanSyncGuard");
+  const shouldShow = isLanSyncExpected() && !isLanConnectionHealthy() && !isApplyingRemoteCampaign;
+  if (!shouldShow) {
+    if (guard) guard.remove();
+    return;
+  }
+
+  if (!guard) {
+    guard = document.createElement("div");
+    guard.id = "lanSyncGuard";
+    guard.className = "lan-sync-guard";
+    document.body.appendChild(guard);
+  }
+
+  const code = normalizeCampaignCode(localStorage.getItem("veiledRealmLastCampaignCode") || liveCampaignCode || "");
+  guard.innerHTML = `
+    <div class="lan-sync-guard-panel">
+      <h2>LAN Sync Paused</h2>
+      <p>This device is not connected to the table server. Reconnect before making campaign changes so cards, discards, resources, and notes do not drift from the shared game.</p>
+      <p><strong>Campaign:</strong> ${escapeHeroValue(code || "Unknown")}<br><strong>Server:</strong> ${escapeHeroValue(normalizeLocalSyncUrl(localSyncBaseUrl || getLanJoinAddress()))}</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" onclick="reconnectLocalCampaign()">Reconnect LAN Campaign</button>
+        <button type="button" onclick="disconnectLiveCampaign()">Use This Device Local Only</button>
+      </div>
+    </div>
+  `;
 }
 
 function formatLiveSyncError(error) {
@@ -16228,6 +16419,8 @@ function toggleCampaignPresenceOverlay() {
 }
 
 function renderCampaignPresenceOverlay() {
+  updateLiveSyncPanel();
+  renderLanSyncGuard();
   const overlay = document.getElementById("campaignPresenceOverlay");
   if (!overlay) return;
   const now = Date.now();
@@ -16237,6 +16430,7 @@ function renderCampaignPresenceOverlay() {
   const statusLabel = connected ? "Connected" : connecting ? "Reconnecting" : "Disconnected";
   const statusColor = connected ? "#78dc8c" : connecting ? "#f0c36a" : "#ff7f7f";
   const lastCode = normalizeCampaignCode(localStorage.getItem("veiledRealmLastCampaignCode") || "");
+  const lastMode = localStorage.getItem("veiledRealmLiveSyncMode") || liveSyncMode || "firebase";
   const people = Object.values(livePresence || {})
     .filter(person => person && now - Number(person.lastSeen || 0) < 120000)
     .sort((a, b) => (a.role === "GM" ? -1 : b.role === "GM" ? 1 : String(a.profileName).localeCompare(String(b.profileName))));
@@ -16249,7 +16443,7 @@ function renderCampaignPresenceOverlay() {
     ${collapsed ? "" : `<div style="padding:11px 12px 12px;">
       <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:8px;">
         <span style="color:#bbb;">${liveCampaignCode ? `Campaign <strong style="color:#ffe08a;">${escapeHeroValue(liveCampaignCode)}</strong>` : "Not connected to a campaign"}</span>
-        ${!liveCampaignCode && lastCode ? `<button type="button" onclick="reconnectLiveCampaign()">Reconnect</button>` : ""}
+        ${!liveCampaignCode && lastCode ? `<button type="button" onclick="reconnectLiveCampaign()">${lastMode === "lan" ? "Reconnect LAN" : "Reconnect"}</button>` : ""}
       </div>
       ${liveCampaignCode ? `<div style="color:#aaa; font-size:12px; margin-bottom:5px;">Connected people</div>${people.length ? people.map(person => {
         const active = now - Number(person.lastSeen || 0) < 60000;
@@ -16274,6 +16468,26 @@ function getCurrentPresenceRecord() {
 }
 
 async function writeLivePresence() {
+  if (isLocalSyncActive()) {
+    const record = getCurrentPresenceRecord();
+    try {
+      const campaign = await requestLocalSync(getLocalCampaignPath(liveCampaignCode, "/presence"), {
+        method: "POST",
+        body: JSON.stringify({ clientId: liveClientId, record })
+      });
+      livePresence = campaign.presence || { [liveClientId]: record };
+      livePresence[liveClientId] = record;
+      liveLastContactAt = Date.now();
+      liveConnectionState = "connected";
+      renderCampaignPresenceOverlay();
+    } catch (error) {
+      console.error("LAN presence update failed:", error);
+      liveConnectionState = "error";
+      setSyncStatus(`LAN presence failed: ${error.message}`, "#ff8a8a");
+      renderCampaignPresenceOverlay();
+    }
+    return;
+  }
   if (!liveCampaignCode || !liveSyncDb) return;
   if (isLiveSyncBackedOff()) {
     liveConnectionState = "error";
@@ -16325,6 +16539,17 @@ function stopLivePresence() {
 }
 
 async function removeLivePresence(code) {
+  if (liveSyncMode === "lan" && code && localSyncBaseUrl) {
+    try {
+      await requestLocalSync(getLocalCampaignPath(code, "/presence/remove"), {
+        method: "POST",
+        body: JSON.stringify({ clientId: liveClientId })
+      });
+    } catch (error) {
+      console.warn("Could not clear LAN campaign presence:", error);
+    }
+    return;
+  }
   if (!code || !liveSyncDb) return;
   if (isLiveSyncBackedOff()) return;
   const campaignRef = getCampaignDoc(code);
@@ -16342,6 +16567,12 @@ async function removeLivePresence(code) {
 }
 
 async function reconnectLiveCampaign() {
+  if ((localStorage.getItem("veiledRealmLiveSyncMode") || liveSyncMode) === "lan") {
+    return reconnectLocalCampaign();
+  }
+
+  liveSyncMode = "firebase";
+  localStorage.setItem("veiledRealmLiveSyncMode", "firebase");
   if (!initializeLiveSync()) return;
   if (isLiveSyncBackedOff()) {
     setSyncStatus(getLiveSyncBackoffMessage(), "#ff8a8a");
@@ -16367,13 +16598,97 @@ async function reconnectLiveCampaign() {
   }
 }
 
+async function reconnectLocalCampaign(options = {}) {
+  const code = normalizeCampaignCode(localStorage.getItem("veiledRealmLastCampaignCode") || document.getElementById("campaignCodeInput")?.value || "");
+  const baseUrl = normalizeLocalSyncUrl(localStorage.getItem("veiledRealmLocalSyncUrl") || document.getElementById("localSyncUrlInput")?.value || "");
+
+  if (!code || !baseUrl) {
+    if (!options.silent) setSyncStatus("Enter a LAN server URL and campaign code before reconnecting.", "#f0c36a");
+    return false;
+  }
+
+  setLocalSyncBaseUrl(baseUrl);
+  const codeInput = document.getElementById("campaignCodeInput");
+  if (codeInput) codeInput.value = code;
+  localStorage.setItem("veiledRealmLastCampaignCode", code);
+  localStorage.setItem("veiledRealmLiveSyncMode", "lan");
+  liveSyncMode = "lan";
+  liveSyncDb = null;
+  liveConnectionState = "connecting";
+  setSyncStatus(`Reconnecting to LAN campaign ${code}...`, "#f0c36a");
+
+  try {
+    const campaign = await requestLocalSync(getLocalCampaignPath(code));
+    if (!campaign.data) throw new Error("Campaign data was not found.");
+    liveCampaignCode = code;
+    data = cloneCampaignValue(campaign.data);
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    markAllProfileLiveSaveSignatures();
+    refreshAfterRemoteCampaignUpdate();
+    subscribeToLocalCampaign(code);
+    setSyncStatus(`Reconnected to LAN campaign ${code}.`, "#84c46a");
+    return true;
+  } catch (error) {
+    liveCampaignCode = "";
+    liveConnectionState = "error";
+    if (!options.silent) setSyncStatus(`LAN reconnect failed: ${error.message}`, "#ff8a8a");
+    renderCampaignPresenceOverlay();
+    return false;
+  }
+}
+
 function isFirebaseConfigured() {
   return Boolean(firebaseConfig.apiKey && firebaseConfig.projectId && window.firebase);
 }
 
+function isLocalSyncActive() {
+  return liveSyncMode === "lan" && Boolean(liveCampaignCode && localSyncBaseUrl);
+}
+
+function normalizeLocalSyncUrl(url) {
+  const trimmed = String(url || "").trim().replace(/\/+$/, "");
+  if (trimmed) return trimmed;
+  if (location.protocol === "http:" || location.protocol === "https:") return location.origin;
+  return "http://localhost:8792";
+}
+
+function getLocalSyncUrlInputValue() {
+  const input = document.getElementById("localSyncUrlInput");
+  return normalizeLocalSyncUrl(input?.value || localSyncBaseUrl);
+}
+
+function setLocalSyncBaseUrl(url) {
+  localSyncBaseUrl = normalizeLocalSyncUrl(url);
+  localStorage.setItem("veiledRealmLocalSyncUrl", localSyncBaseUrl);
+  lanServerInfo = null;
+  const input = document.getElementById("localSyncUrlInput");
+  if (input) input.value = localSyncBaseUrl;
+  refreshLanServerInfo();
+  updateLiveSyncPanel();
+}
+
+async function requestLocalSync(path, options = {}) {
+  const response = await fetch(`${localSyncBaseUrl}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || `LAN sync request failed (${response.status}).`);
+  }
+  return payload;
+}
+
+function getLocalCampaignPath(code, suffix = "") {
+  return `/api/campaign/${encodeURIComponent(code)}${suffix}`;
+}
+
 function initializeLiveSync() {
   if (!isFirebaseConfigured()) {
-    setSyncStatus("Local only. Add Firebase config in the code to enable live campaign sync.");
+    setSyncStatus("Local only. Use LAN sync for same-network play or add Firebase config for cloud sync.");
     return false;
   }
 
@@ -16396,7 +16711,151 @@ function getCampaignDoc(code) {
   return liveSyncDb.collection("campaigns").doc(code);
 }
 
+async function createLocalCampaign() {
+  const codeInput = document.getElementById("campaignCodeInput");
+  const code = normalizeCampaignCode(codeInput?.value);
+  if (!code) {
+    alert("Enter a campaign code first.");
+    return;
+  }
+
+  setLocalSyncBaseUrl(getLocalSyncUrlInputValue());
+  setLiveConnectionRole("GM");
+  localStorage.setItem("veiledRealmLastCampaignCode", code);
+  localStorage.setItem("veiledRealmLiveSyncMode", "lan");
+  liveSyncMode = "lan";
+  liveSyncDb = null;
+
+  try {
+    const campaign = await requestLocalSync(getLocalCampaignPath(code, "/create"), {
+      method: "POST",
+      body: JSON.stringify({ data, clientId: liveClientId })
+    });
+    liveCampaignCode = code;
+    if (campaign.data) {
+      data = cloneCampaignValue(campaign.data);
+      localStorage.setItem("skillTreeData", JSON.stringify(data));
+      markAllProfileLiveSaveSignatures();
+      refreshAfterRemoteCampaignUpdate();
+    }
+    subscribeToLocalCampaign(code);
+    setSyncStatus(`Hosting LAN campaign ${code}.`, "#84c46a");
+  } catch (error) {
+    liveCampaignCode = "";
+    liveConnectionState = "error";
+    setSyncStatus(`Could not host LAN campaign: ${error.message}`, "#ff8a8a");
+    alert(`Could not host LAN campaign: ${error.message}`);
+  }
+}
+
+async function joinLocalCampaign() {
+  const codeInput = document.getElementById("campaignCodeInput");
+  const code = normalizeCampaignCode(codeInput?.value);
+  if (!code) {
+    alert("Enter a campaign code first.");
+    return;
+  }
+
+  setLocalSyncBaseUrl(getLocalSyncUrlInputValue());
+  setLiveConnectionRole("Player");
+  localStorage.setItem("veiledRealmLastCampaignCode", code);
+  localStorage.setItem("veiledRealmLiveSyncMode", "lan");
+  liveSyncMode = "lan";
+  liveSyncDb = null;
+
+  try {
+    const campaign = await requestLocalSync(getLocalCampaignPath(code));
+    if (!campaign.data) throw new Error("Campaign data was not found.");
+    liveCampaignCode = code;
+    data = cloneCampaignValue(campaign.data);
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    markAllProfileLiveSaveSignatures();
+    refreshAfterRemoteCampaignUpdate();
+    subscribeToLocalCampaign(code);
+    setSyncStatus(`Joined LAN campaign ${code}.`, "#84c46a");
+  } catch (error) {
+    liveCampaignCode = "";
+    liveConnectionState = "error";
+    setSyncStatus(`Could not join LAN campaign: ${error.message}`, "#ff8a8a");
+    alert(`Could not join LAN campaign: ${error.message}`);
+  }
+}
+
+async function exportLocalCampaignBackup() {
+  const code = normalizeCampaignCode(liveCampaignCode || localStorage.getItem("veiledRealmLastCampaignCode") || document.getElementById("campaignCodeInput")?.value || "");
+  if (!code) {
+    alert("Enter or reconnect to a LAN campaign before exporting a backup.");
+    return;
+  }
+
+  setLocalSyncBaseUrl(getLocalSyncUrlInputValue());
+  try {
+    const campaign = await requestLocalSync(getLocalCampaignPath(code));
+    const backup = {
+      type: "veiled-realm-lan-campaign-backup",
+      code,
+      exportedAt: new Date().toISOString(),
+      campaign
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${code}-lan-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setSyncStatus(`Exported LAN backup for ${code}.`, "#84c46a");
+  } catch (error) {
+    setSyncStatus(`LAN backup export failed: ${error.message}`, "#ff8a8a");
+    alert(`LAN backup export failed: ${error.message}`);
+  }
+}
+
+async function importLocalCampaignBackup(event) {
+  const input = event?.target;
+  const file = input?.files?.[0];
+  if (!file) return;
+
+  try {
+    const backup = JSON.parse(await file.text());
+    const campaign = backup.campaign || backup;
+    const backupCode = normalizeCampaignCode(backup.code || document.getElementById("campaignCodeInput")?.value || localStorage.getItem("veiledRealmLastCampaignCode") || "");
+    const code = normalizeCampaignCode(prompt("Restore backup into which campaign code?", backupCode) || "");
+    if (!code) return;
+    if (!campaign?.data || typeof campaign.data !== "object") {
+      throw new Error("Backup does not contain campaign data.");
+    }
+    if (!confirm(`Restore this backup into LAN campaign ${code}? This replaces the server copy for that campaign.`)) return;
+
+    setLocalSyncBaseUrl(getLocalSyncUrlInputValue());
+    const restored = await requestLocalSync(getLocalCampaignPath(code, "/import"), {
+      method: "POST",
+      body: JSON.stringify({ campaign, updatedBy: liveClientId })
+    });
+
+    localStorage.setItem("veiledRealmLastCampaignCode", code);
+    localStorage.setItem("veiledRealmLiveSyncMode", "lan");
+    liveSyncMode = "lan";
+    liveCampaignCode = code;
+    data = cloneCampaignValue(restored.data);
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    markAllProfileLiveSaveSignatures();
+    refreshAfterRemoteCampaignUpdate();
+    subscribeToLocalCampaign(code);
+    setSyncStatus(`Restored LAN backup into ${code}.`, "#84c46a");
+  } catch (error) {
+    setSyncStatus(`LAN backup import failed: ${error.message}`, "#ff8a8a");
+    alert(`LAN backup import failed: ${error.message}`);
+  } finally {
+    if (input) input.value = "";
+  }
+}
+
 async function createLiveCampaign() {
+  liveSyncMode = "firebase";
+  localStorage.setItem("veiledRealmLiveSyncMode", "firebase");
   if (!initializeLiveSync()) return;
   if (isLiveSyncBackedOff()) {
     const message = getLiveSyncBackoffMessage();
@@ -16452,6 +16911,8 @@ async function createLiveCampaign() {
 }
 
 async function joinLiveCampaign() {
+  liveSyncMode = "firebase";
+  localStorage.setItem("veiledRealmLiveSyncMode", "firebase");
   if (!initializeLiveSync()) return;
   if (isLiveSyncBackedOff()) {
     const message = getLiveSyncBackoffMessage();
@@ -16496,6 +16957,8 @@ function disconnectLiveCampaign() {
   if (liveCampaignUnsubscribe) {
     liveCampaignUnsubscribe();
   }
+  clearInterval(localSyncPollTimer);
+  localSyncPollTimer = null;
 
   clearTimeout(liveSaveTimer);
   liveSaveTimer = null;
@@ -16507,6 +16970,8 @@ function disconnectLiveCampaign() {
   liveLastContactAt = 0;
   liveLastAppliedCampaignUpdateAt = null;
   liveConnectionState = "disconnected";
+  liveSyncMode = "local";
+  localStorage.setItem("veiledRealmLiveSyncMode", "local");
   setSyncStatus("Disconnected. Local changes will stay on this device.", "#f0c36a");
 }
 
@@ -16562,6 +17027,67 @@ function subscribeToLiveCampaign(code) {
     renderCampaignPresenceOverlay();
     setSyncStatus(`Live sync error: ${formatLiveSyncError(error)}`, "#ff8a8a");
   });
+  startLivePresence();
+}
+
+function subscribeToLocalCampaign(code) {
+  if (liveCampaignUnsubscribe) {
+    liveCampaignUnsubscribe();
+  }
+
+  stopLivePresence();
+  clearInterval(localSyncPollTimer);
+  localSyncPollTimer = null;
+  liveLastAppliedCampaignUpdateAt = null;
+  liveConnectionState = "connecting";
+  renderCampaignPresenceOverlay();
+
+  const poll = async () => {
+    if (!isLocalSyncActive()) return;
+    try {
+      const remote = await requestLocalSync(getLocalCampaignPath(code));
+      if (!remote || !remote.data) return;
+
+      livePresence = remote.presence || {};
+      liveLastContactAt = Date.now();
+      liveConnectionState = "connected";
+      renderCampaignPresenceOverlay();
+      applyRemoteTrackerState(remote.data.sharedTrackers);
+
+      const remoteUpdateAt = Number(remote.updatedAt || 0);
+      if (liveLastAppliedCampaignUpdateAt !== null && remoteUpdateAt === liveLastAppliedCampaignUpdateAt) return;
+      liveLastAppliedCampaignUpdateAt = remoteUpdateAt;
+
+      isApplyingRemoteCampaign = true;
+      try {
+        data = applyLiveSaveOverlays(cloneCampaignValue(remote.data));
+        localStorage.setItem("skillTreeData", JSON.stringify(data));
+        markAllProfileLiveSaveSignatures();
+        refreshAfterRemoteCampaignUpdate();
+      } finally {
+        isApplyingRemoteCampaign = false;
+      }
+
+      setSyncStatus(
+        liveSaveOverlays.size
+          ? `LAN campaign ${code} synced. Saving local changes...`
+          : `LAN campaign ${code} synced.`,
+        "#84c46a"
+      );
+    } catch (error) {
+      console.error("LAN sync refresh failed:", error);
+      liveConnectionState = "error";
+      renderCampaignPresenceOverlay();
+      setSyncStatus(`LAN sync error: ${error.message}`, "#ff8a8a");
+    }
+  };
+
+  localSyncPollTimer = setInterval(poll, 1500);
+  liveCampaignUnsubscribe = () => {
+    clearInterval(localSyncPollTimer);
+    localSyncPollTimer = null;
+  };
+  poll();
   startLivePresence();
 }
 
@@ -16638,8 +17164,25 @@ function getLiveSavePayload(remoteData = {}, options = {}) {
   return nextData;
 }
 
+async function saveLocalCampaignSnapshot(code, saveOptions, overlayId) {
+  const remote = await requestLocalSync(getLocalCampaignPath(code));
+  const remoteData = remote?.data || {};
+  const nextData = getLiveSavePayload(remoteData, saveOptions);
+  await requestLocalSync(getLocalCampaignPath(code, "/save"), {
+    method: "POST",
+    body: JSON.stringify({
+      data: nextData,
+      updatedBy: liveClientId
+    })
+  });
+  liveSaveOverlays.delete(overlayId);
+  if (saveOptions.profileName) markProfileLiveSaveSignature(saveOptions.profileName);
+  setSyncStatus(`LAN campaign ${code} saved.`, "#84c46a");
+  return true;
+}
+
 function flushLiveCampaignSave(options = {}) {
-  if (isApplyingRemoteCampaign || !liveCampaignCode || !liveSyncDb) return Promise.resolve(false);
+  if (isApplyingRemoteCampaign || !liveCampaignCode || (!liveSyncDb && !isLocalSyncActive())) return Promise.resolve(false);
   if (isLiveSyncBackedOff()) {
     setSyncStatus(getLiveSyncBackoffMessage(), "#ff8a8a");
     return Promise.resolve(false);
@@ -16663,6 +17206,16 @@ function flushLiveCampaignSave(options = {}) {
   }
 
   const code = liveCampaignCode;
+  if (isLocalSyncActive()) {
+    return saveLocalCampaignSnapshot(code, saveOptions, overlayId).catch(error => {
+      console.error("LAN save failed:", error);
+      liveSaveOverlays.delete(overlayId);
+      if (saveOptions.profileName) delete liveProfileQueuedSignatures[saveOptions.profileName];
+      setSyncStatus(`LAN save failed: ${error.message}`, "#ff8a8a");
+      return false;
+    });
+  }
+
   const campaignRef = getCampaignDoc(code);
 
   return liveSyncDb.runTransaction(transaction => {
@@ -16693,7 +17246,7 @@ function flushLiveCampaignSave(options = {}) {
 }
 
 function queueLiveCampaignSave(options = {}) {
-  if (isApplyingRemoteCampaign || !liveCampaignCode || !liveSyncDb) return;
+  if (isApplyingRemoteCampaign || !liveCampaignCode || (!liveSyncDb && !isLocalSyncActive())) return;
   if (isLiveSyncBackedOff()) {
     setSyncStatus(getLiveSyncBackoffMessage(), "#ff8a8a");
     return;
@@ -16714,6 +17267,16 @@ function queueLiveCampaignSave(options = {}) {
     liveQueuedSave = null;
 
     const code = liveCampaignCode;
+    if (isLocalSyncActive()) {
+      saveLocalCampaignSnapshot(code, saveOptions, overlayId).catch(error => {
+        console.error("LAN save failed:", error);
+        liveSaveOverlays.delete(overlayId);
+        if (saveOptions.profileName) delete liveProfileQueuedSignatures[saveOptions.profileName];
+        setSyncStatus(`LAN save failed: ${error.message}`, "#ff8a8a");
+      });
+      return;
+    }
+
     const campaignRef = getCampaignDoc(code);
 
     liveSyncDb.runTransaction(transaction => {
@@ -18921,7 +19484,7 @@ function persistCurrentProfileState(options = {}){
         (liveProfileSaveSignatures[resourceProfile] !== nextSignature &&
         liveProfileQueuedSignatures[resourceProfile] !== nextSignature);
 
-    if (shouldSyncLive && liveCampaignCode && liveSyncDb && !isApplyingRemoteCampaign) {
+    if (shouldSyncLive && liveCampaignCode && (liveSyncDb || isLocalSyncActive()) && !isApplyingRemoteCampaign) {
         liveProfileQueuedSignatures[resourceProfile] = nextSignature;
         queueLiveCampaignSave({ profileName: resourceProfile });
     }
@@ -23566,6 +24129,10 @@ function getPathUnlockEnvelope(pathId) {
 async function persistGmNotificationState(options = {}) {
   ensureGmNotificationState();
   localStorage.setItem("skillTreeData", JSON.stringify(data));
+  if (isLocalSyncActive()) {
+    queueLiveCampaignSave({ includeShared: true, sharedKeys: ["sharedGmNotifications"] });
+    return;
+  }
   if (!liveCampaignCode || !liveSyncDb) return;
 
   const campaignRef = getCampaignDoc(liveCampaignCode);
@@ -25036,6 +25603,14 @@ function refreshAfterTradeMutation() {
 function persistTradeMutation(mutator) {
   clearTimeout(liveSaveTimer);
 
+  if (isLocalSyncActive() && !isApplyingRemoteCampaign) {
+    mutator();
+    persistCampaignData();
+    refreshAfterTradeMutation();
+    queueLiveCampaignSave({ fullData: true });
+    return Promise.resolve(data);
+  }
+
   if (liveCampaignCode && liveSyncDb && !isApplyingRemoteCampaign) {
     const ref = getCampaignDoc(liveCampaignCode);
 
@@ -25562,6 +26137,39 @@ async function transferRandomSharedDeckCard(targetProfile, sharedKey, inventoryK
         alert("Choose a player before sending a card.");
         return null;
     }
+    if (isLocalSyncActive()) {
+        const sharedState = data[sharedKey];
+        const targetState = data[targetProfile];
+        if (!sharedState || !Array.isArray(sharedState.deck)) {
+            alert("The shared card deck is unavailable.");
+            return null;
+        }
+        if (!targetState) {
+            alert(`Player profile ${targetProfile} was not found in the LAN campaign.`);
+            return null;
+        }
+
+        const eligibleIndexes = sharedState.deck
+            .map((card, index) => ({ card, index }))
+            .filter(entry => !matchField || entry.card?.[matchField] === matchValue);
+        if (!eligibleIndexes.length) {
+            alert(`No matching cards remain in the LAN ${sharedKey === "sharedPotions" ? "Potion" : "Relic"} deck.`);
+            return null;
+        }
+
+        const chosen = eligibleIndexes[Math.floor(Math.random() * eligibleIndexes.length)];
+        const card = { ...sharedState.deck.splice(chosen.index, 1)[0], receivedAt: Date.now() };
+        if (!targetState[inventoryKey]) targetState[inventoryKey] = { inventory: [] };
+        if (!Array.isArray(targetState[inventoryKey].inventory)) targetState[inventoryKey].inventory = [];
+        targetState[inventoryKey].inventory.push(card);
+        localStorage.setItem("skillTreeData", JSON.stringify(data));
+        renderPotions();
+        renderRelics();
+        renderObjectives();
+        queueLiveCampaignSave({ fullData: true });
+        setSyncStatus(`Sent ${card.name} to ${targetProfile} over LAN.`, "#84c46a");
+        return card;
+    }
     if (!liveCampaignCode || !liveSyncDb) {
         alert("Connect to a live campaign before sending a card.");
         return null;
@@ -25815,6 +26423,9 @@ async function returnDiscardPileToDeck(rarity) {
     sharedPotionState.discard = remainingDiscard;
 
     saveProfiles();
+    if (isLocalSyncActive()) {
+        queueLiveCampaignSave({ includeShared: true, sharedKeys: ["sharedPotions"] });
+    }
     renderPotions();
 }
 
@@ -25879,7 +26490,7 @@ async function gainRandomPotionByRarity(rarity, targetProfile = getGmTargetProfi
     if (!targetProfile) return;
     ensurePotionState(targetProfile);
 
-    if (liveCampaignCode && liveSyncDb) {
+    if (liveCampaignCode && (liveSyncDb || isLocalSyncActive())) {
         await transferRandomSharedDeckCard(targetProfile, "sharedPotions", "potions", "rarity", rarity);
         return;
     }
@@ -26200,6 +26811,9 @@ async function unlockRelicType(type) {
     });
 
     saveProfiles();
+    if (isLocalSyncActive()) {
+        queueLiveCampaignSave({ includeShared: true, sharedKeys: ["sharedRelics"] });
+    }
     renderRelics();
   renderObjectives();
 }
@@ -26231,7 +26845,7 @@ async function gainRandomRelic(targetProfile = getGmTargetProfile("gmRelicTarget
     if (!targetProfile) return;
     ensureRelicState(targetProfile);
 
-    if (liveCampaignCode && liveSyncDb) {
+    if (liveCampaignCode && (liveSyncDb || isLocalSyncActive())) {
         await transferRandomSharedDeckCard(targetProfile, "sharedRelics", "relics");
         return;
     }
@@ -26257,7 +26871,7 @@ async function gainRandomRelicByType(type, targetProfile = getGmTargetProfile("g
     if (!targetProfile) return;
     ensureRelicState(targetProfile);
 
-    if (liveCampaignCode && liveSyncDb) {
+    if (liveCampaignCode && (liveSyncDb || isLocalSyncActive())) {
         await transferRandomSharedDeckCard(targetProfile, "sharedRelics", "relics", "type", type);
         return;
     }
@@ -26414,6 +27028,13 @@ function refreshAfterObjectiveMutation() {
 
 function persistObjectiveMutation(mutator) {
     clearTimeout(liveSaveTimer);
+
+    if (isLocalSyncActive() && !isApplyingRemoteCampaign) {
+        mutator();
+        refreshAfterObjectiveMutation();
+        queueLiveCampaignSave({ fullData: true });
+        return Promise.resolve(data);
+    }
 
     if (liveCampaignCode && liveSyncDb && !isApplyingRemoteCampaign) {
         const ref = getCampaignDoc(liveCampaignCode);
@@ -26789,6 +27410,9 @@ async function mutateCampaignTrackers(mutator, reason = "") {
   nextState.lastChangeReason = reason;
   applyRemoteTrackerState(nextState);
   localStorage.setItem("skillTreeData", JSON.stringify(data));
+  if (isLocalSyncActive()) {
+    queueLiveCampaignSave({ includeShared: true, sharedKeys: ["sharedTrackers"] });
+  }
   return nextState;
 }
 
@@ -27598,8 +28222,13 @@ returnToHubLanding();
 const rememberedCampaignCode = normalizeCampaignCode(localStorage.getItem("veiledRealmLastCampaignCode") || "");
 const rememberedCampaignInput = document.getElementById("campaignCodeInput");
 if (rememberedCampaignInput && rememberedCampaignCode) rememberedCampaignInput.value = rememberedCampaignCode;
+const rememberedLocalSyncInput = document.getElementById("localSyncUrlInput");
+if (rememberedLocalSyncInput) rememberedLocalSyncInput.value = normalizeLocalSyncUrl(localSyncBaseUrl);
+refreshLanServerInfo();
+updateLiveSyncPanel();
 window.addEventListener("online", () => {
   if (liveCampaignCode) writeLivePresence();
+  else if ((localStorage.getItem("veiledRealmLiveSyncMode") || liveSyncMode) === "lan") reconnectLocalCampaign({ silent: true });
   renderCampaignPresenceOverlay();
 });
 window.addEventListener("offline", () => {
@@ -27608,7 +28237,11 @@ window.addEventListener("offline", () => {
 });
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && liveCampaignCode) writeLivePresence();
+  else if (document.visibilityState === "visible" && (localStorage.getItem("veiledRealmLiveSyncMode") || liveSyncMode) === "lan") reconnectLocalCampaign({ silent: true });
 });
+if ((localStorage.getItem("veiledRealmLiveSyncMode") || liveSyncMode) === "lan" && rememberedCampaignCode && localSyncBaseUrl) {
+  reconnectLocalCampaign({ silent: true });
+}
 renderCampaignPresenceOverlay();
 
 
