@@ -10876,6 +10876,7 @@ function renderBuildings() {
 }
 
 function renderProductionTable(title, headers, rows, cells) {
+  const mode = title.toLowerCase().includes("construction") ? "construction" : "production";
   function formatProductionCell(row, cell) {
     return row[cell] || "-";
   }
@@ -10884,13 +10885,146 @@ function renderProductionTable(title, headers, rows, cells) {
     <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px; overflow:auto;">
       <h3 style="margin:0 0 12px 0; color:#ffe08a; text-align:center;">${title}</h3>
       <table style="width:100%; border-collapse:collapse; color:white; min-width:720px;">
-        <thead><tr>${headers.map(header => `<th style="text-align:center; padding:8px; border:1px solid rgba(255,255,255,0.22); background:rgba(255,255,255,0.06);">${header}</th>`).join("")}</tr></thead>
+        <thead><tr>${headers.map(header => `<th style="text-align:center; padding:8px; border:1px solid rgba(255,255,255,0.22); background:rgba(255,255,255,0.06);">${header}</th>`).join("")}<th style="text-align:center; padding:8px; border:1px solid rgba(255,255,255,0.22); background:rgba(255,255,255,0.06);">Action</th></tr></thead>
         <tbody>
-          ${rows.map(row => `<tr>${cells.map(cell => `<td style="text-align:center; vertical-align:top; padding:8px; border:1px solid rgba(255,255,255,0.18);">${formatProductionCell(row, cell)}</td>`).join("")}</tr>`).join("")}
+          ${rows.map((row, rowIndex) => {
+            return `<tr>${cells.map(cell => `<td style="text-align:center; vertical-align:top; padding:8px; border:1px solid rgba(255,255,255,0.18);">${formatProductionCell(row, cell)}</td>`).join("")}<td style="text-align:center; vertical-align:top; padding:8px; border:1px solid rgba(255,255,255,0.18);">${renderProductionActionButtons(row, mode, rowIndex)}</td></tr>`;
+          }).join("")}
         </tbody>
       </table>
     </div>
   `;
+}
+
+function stripProductionText(value) {
+  return String(value || "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/\s*\n\s*/g, "\n")
+    .trim();
+}
+
+function normalizeProductionResourceName(name) {
+  const key = String(name || "").trim().toLowerCase();
+  const aliases = {
+    e: "Energy",
+    energy: "Energy",
+    f: "Food",
+    food: "Food",
+    g: "Gold",
+    gold: "Gold",
+    m: "Metal",
+    metal: "Metal",
+    dc: "Dragon Coins",
+    dragon: "Dragon Coins",
+    "dragon coin": "Dragon Coins",
+    "dragon coins": "Dragon Coins",
+    sm: "Skill Marks",
+    "skill mark": "Skill Marks",
+    "skill marks": "Skill Marks",
+    cp: "Campaign Points",
+    "campaign point": "Campaign Points",
+    "campaign points": "Campaign Points",
+    "unlock token": "Unlock Tokens",
+    "unlock tokens": "Unlock Tokens"
+  };
+  return aliases[key] || "";
+}
+
+function parseProductionCostOption(optionText) {
+  const text = stripProductionText(optionText);
+  if (!text || text === "-") return { costs: [], manual: false, label: "Free" };
+  const costs = [];
+  const parts = text.split(/\s*(?:&|\+|,)\s*/).filter(Boolean);
+  for (const part of parts) {
+    const match = part.trim().match(/^(\d+)\s+(.+)$/i);
+    if (!match) return { costs: [], manual: true, label: text };
+    const resourceName = normalizeProductionResourceName(match[2]);
+    if (!resourceName) return { costs: [], manual: true, label: text };
+    costs.push({ amount: Number(match[1]), resourceName });
+  }
+  return { costs, manual: false, label: costs.map(cost => `${cost.amount} ${cost.resourceName}`).join(" + ") };
+}
+
+function getProductionCostOptions(costText) {
+  const text = String(costText || "").replace(/<br\s*\/?>/gi, "\n");
+  const lines = text.split(/\n+/).map(stripProductionText).filter(Boolean);
+  const rawOptions = (lines.length ? lines : [stripProductionText(costText)]).flatMap(line => {
+    const match = line.match(/^(\d+)\s+([A-Za-z ]+?)\s+or\s+(\d+)?\s*([A-Za-z ]+)$/i);
+    if (match) {
+      const firstAmount = match[1];
+      const secondAmount = match[3] || firstAmount;
+      return [`${firstAmount} ${match[2].trim()}`, `${secondAmount} ${match[4].trim()}`];
+    }
+    return [line];
+  });
+  return rawOptions.map(parseProductionCostOption);
+}
+
+function renderProductionActionButtons(row, mode, rowIndex) {
+  const options = getProductionCostOptions(row.cost);
+  const verb = mode === "construction" ? "Build" : "Produce";
+  const buttons = options.map((option, index) => {
+    if (option.manual) {
+      return `<button type="button" disabled title="Manual requirement">${escapeHeroValue(option.label)}</button>`;
+    }
+    return `<button type="button" onclick="performConstructionProductionAction('${mode}', ${rowIndex}, ${index})">${verb}: ${escapeHeroValue(option.label)}</button>`;
+  }).join("");
+  return `<div class="potion-actions" style="justify-content:center;">${buttons || `<button type="button" onclick="performConstructionProductionAction('${mode}', ${rowIndex}, 0)">${verb}</button>`}</div>`;
+}
+
+function canPayProductionCosts(costs) {
+  return costs.every(cost => {
+    const resource = getResourceByName(cost.resourceName);
+    return resource && Number(resource.value || 0) >= Number(cost.amount || 0);
+  });
+}
+
+function payProductionCosts(costs) {
+  costs.forEach(cost => changeResourceByName(cost.resourceName, -Number(cost.amount || 0)));
+}
+
+function getConstructionProductionRow(mode, rowIndex) {
+  const hub = getCurrentHub();
+  const tables = constructionProductionTables[hub.family];
+  const rows = mode === "construction" ? tables?.construction : tables?.production;
+  return rows?.[rowIndex] || null;
+}
+
+function performConstructionProductionAction(mode, rowIndex, optionIndex = 0) {
+  if (!resourceProfile || !data[resourceProfile]) return;
+  const row = getConstructionProductionRow(mode, rowIndex);
+  if (!row) return;
+  loadResourceProfile(resourceProfile);
+  const options = getProductionCostOptions(row.cost);
+  const option = options[optionIndex] || options[0] || { costs: [], manual: false, label: "Free" };
+  const verb = mode === "construction" ? "Built" : "Produced";
+
+  if (option.manual) {
+    alert(`Manual requirement for ${row.name}: ${option.label}`);
+    return;
+  }
+
+  if (!canPayProductionCosts(option.costs)) {
+    alert(`Insufficient resources for ${row.name}. Need ${option.label}.`);
+    return;
+  }
+
+  payProductionCosts(option.costs);
+  const appliedBonuses = mode === "construction" ? applyObjectiveRewardText(data, resourceProfile, row.bonus || "") : [];
+  resources = normalizeResourceList(data[resourceProfile].resources || resources);
+  saveResourceProfile();
+  renderConstructionProduction();
+  renderResources();
+  const bonusText = mode === "construction"
+    ? appliedBonuses.length
+      ? ` Bonus applied: ${appliedBonuses.join(", ")}.`
+      : row.bonus && row.bonus !== "-"
+        ? ` Bonus is manual: ${stripProductionText(row.bonus)}.`
+        : ""
+    : "";
+  setSyncStatus(`${verb} ${row.name} for ${option.label}.${bonusText}`, "#84c46a");
 }
 
 function renderConstructionProduction() {
@@ -11401,9 +11535,26 @@ function adjustDiscoveryProfileResource(targetData, profileName, resourceName, a
   targetData[profileName].resources = normalizeResourceList(targetData[profileName].resources);
   const resource = targetData[profileName].resources.find(entry => entry.name === normalizedName);
   if (!resource) return false;
+  const beforeValue = Number(resource.value || 0);
   resource.value = Math.max(0, Number(resource.value || 0) + Number(amount || 0));
   if (resource.max !== undefined) {
     resource.value = Math.min(resource.value, resource.max);
+  }
+  if (normalizedName === "Skill Marks") {
+    const actualDelta = Number(resource.value || 0) - beforeValue;
+    if (actualDelta !== 0 && typeof skillTreeRootIds !== "undefined") {
+      const currentTreeSm = Object.keys(skillTreeRootIds).reduce((highest, treeId) => {
+        return Math.max(highest, Number(targetData[profileName][treeId]?.sm || 0));
+      }, 0);
+      const nextSm = Math.max(0, currentTreeSm + actualDelta);
+      targetData[profileName].skillMarksSeparatePool = true;
+      Object.keys(skillTreeRootIds).forEach(treeId => {
+        if (targetData[profileName][treeId]) {
+          targetData[profileName][treeId].sm = nextSm;
+        }
+      });
+      if (profileName === resourceProfile) sm = nextSm;
+    }
   }
   return true;
 }
