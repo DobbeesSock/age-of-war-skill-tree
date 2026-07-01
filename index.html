@@ -24035,6 +24035,20 @@ function renderShop() {
     return groups;
   }, {});
 
+  const orderedSections = sectionOrder.filter(section => groupedItems[section]?.length);
+  const shopJumpOptions = orderedSections.map(section => {
+    const meta = sectionMeta[section] || { label: section };
+    return `
+      <optgroup label="${escapeHeroValue(meta.label)}">
+        ${groupedItems[section].map(item => {
+          const costOptions = getShopItemCostOptions(item);
+          const costLabel = item.free ? "Free" : costOptions.map(cost => `${cost.amount} ${cost.resourceName}`).join(" or ");
+          return `<option value="${escapeHeroValue(item.id)}">${escapeHeroValue(item.name)} - ${escapeHeroValue(costLabel)}</option>`;
+        }).join("")}
+      </optgroup>
+    `;
+  }).join("");
+
   app.innerHTML = `
     <div style="margin-bottom:16px; color:#ddd;">
       <strong>Gold:</strong> ${goldValue}
@@ -24047,8 +24061,27 @@ function renderShop() {
       </span>
     </div>
 
-    ${sectionOrder
-      .filter(section => groupedItems[section]?.length)
+    <div style="position:sticky; top:0; z-index:20; display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:10px; align-items:end; margin:0 0 18px 0; padding:12px; border:1px solid rgba(255,224,138,0.28); border-radius:8px; background:rgba(18,18,18,0.96); box-shadow:0 8px 20px rgba(0,0,0,0.28);">
+      <label style="display:grid; gap:5px; color:#ffe08a; font-weight:bold;">
+        Section
+        <select onchange="jumpToShopSection(this.value)" style="width:100%; min-height:38px;">
+          <option value="">Choose section...</option>
+          ${orderedSections.map(section => {
+            const meta = sectionMeta[section] || { label: section };
+            return `<option value="${escapeHeroValue(section)}">${escapeHeroValue(meta.label)}</option>`;
+          }).join("")}
+        </select>
+      </label>
+      <label style="display:grid; gap:5px; color:#ffe08a; font-weight:bold;">
+        Find Upgrade
+        <select onchange="jumpToShopItem(this.value)" style="width:100%; min-height:38px;">
+          <option value="">Choose exact upgrade...</option>
+          ${shopJumpOptions}
+        </select>
+      </label>
+    </div>
+
+    ${orderedSections
       .map(section => {
         const meta = sectionMeta[section] || {
           label: section,
@@ -24057,7 +24090,7 @@ function renderShop() {
         };
 
         return `
-        <section style="margin-bottom:34px; border-top:3px solid ${meta.accent}; background:rgba(255,255,255,0.035); border-radius:8px; padding:14px;">
+        <section id="${getShopSectionDomId(section)}" style="scroll-margin-top:96px; margin-bottom:34px; border-top:3px solid ${meta.accent}; background:rgba(255,255,255,0.035); border-radius:8px; padding:14px;">
           <div style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid ${meta.accent};">
             <h3 style="margin:0; color:${meta.accent};">
               ${meta.label}
@@ -24102,7 +24135,7 @@ function renderShop() {
                 `);
 
               return `
-                <div style="background:rgba(45,45,45,0.95); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${cardAccent}; border-radius:10px; padding:14px;">
+                <div id="shop-item-${item.id}" style="scroll-margin-top:112px; background:rgba(45,45,45,0.95); border:1px solid rgba(255,255,255,0.12); border-left:6px solid ${cardAccent}; border-radius:10px; padding:14px; transition:box-shadow 0.2s ease, transform 0.2s ease;">
                   <small style="color:${meta.accent}; text-transform:uppercase;">${item.section}</small>
                   <h3 style="margin:6px 0; color:#ffe08a;">${item.name}</h3>
                   <p style="color:#ddd;">${item.effect}</p>
@@ -24119,6 +24152,30 @@ function renderShop() {
       `;
       }).join("")}
   `;
+}
+
+function getShopSectionDomId(section) {
+  return `shop-section-${String(section || "other").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+}
+
+function jumpToShopSection(section) {
+  if (!section) return;
+  const target = document.getElementById(getShopSectionDomId(section));
+  if (!target) return;
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function jumpToShopItem(itemId) {
+  if (!itemId) return;
+  const target = document.getElementById(`shop-item-${itemId}`);
+  if (!target) return;
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+  target.style.boxShadow = "0 0 0 3px rgba(255,224,138,0.78), 0 0 28px rgba(255,224,138,0.35)";
+  target.style.transform = "translateY(-2px)";
+  setTimeout(() => {
+    target.style.boxShadow = "";
+    target.style.transform = "";
+  }, 1600);
 }
 
 function refreshResourceViewIfReady() {
@@ -28566,3 +28623,5 @@ renderCampaignPresenceOverlay();
 
 
 
+
+    
