@@ -17757,9 +17757,11 @@ function claimUnitMatrixKill(rowId) {
 
   ensureUnitMatrixState(resourceProfile);
   data[resourceProfile].unitMatrix.kills[row.id] += 1;
+  incrementAutoKillObjectiveProgress(resourceProfile, 1);
   localStorage.setItem("skillTreeData", JSON.stringify(data));
   queueLiveCampaignSave({ profileName: resourceProfile });
   renderFactionInfo();
+  renderInventory();
   setSyncStatus(`Unit Matrix: +${payout.amount} ${payout.resourceName} for ${row.label}.`, "#84c46a");
 }
 
@@ -17776,9 +17778,11 @@ function undoUnitMatrixKill(rowId) {
 
   ensureUnitMatrixState(resourceProfile);
   data[resourceProfile].unitMatrix.kills[row.id] = Math.max(0, data[resourceProfile].unitMatrix.kills[row.id] - 1);
+  incrementAutoKillObjectiveProgress(resourceProfile, -1);
   localStorage.setItem("skillTreeData", JSON.stringify(data));
   queueLiveCampaignSave({ profileName: resourceProfile });
   renderFactionInfo();
+  renderInventory();
   setSyncStatus(`Unit Matrix undo: -${payout.amount} ${payout.resourceName} for ${row.label}.`, "#f0c36a");
 }
 
@@ -26801,7 +26805,8 @@ function renderPotionCard(card, zone, index) {
 
     if (zone === "inventory") {
         buttons = `
-            <button onclick="usePotion(${index})">Use / Discard</button>
+            <button onclick="usePotion(${index})">Use</button>
+            <button onclick="sellPotion(${index})">Sell</button>
             <button onclick="returnPotionToDeck(${index})">Return to Deck</button>
         `;
     }
@@ -26889,8 +26894,78 @@ function usePotion(index) {
     const card = playerPotionState.inventory.splice(index, 1)[0];
     if (!card) return;
 
-    sharedPotionState.discard.push(card);
-    saveProfiles();
+    sharedPotionState.discard.push({ ...card, usedAt: Date.now(), usedBy: resourceProfile });
+    saveProfileWithSharedCards(resourceProfile, ["sharedPotions"]);
+    renderPotions();
+    renderInventory();
+}
+
+function normalizePotionSellResourceName(name) {
+    const key = String(name || "").trim().toLowerCase();
+    const aliases = {
+        food: "Food",
+        gold: "Gold",
+        metal: "Metal",
+        energy: "Energy",
+        dragon: "Dragon Coins",
+        "dragon coin": "Dragon Coins",
+        "dragon coins": "Dragon Coins",
+        sm: "Skill Marks",
+        "skill mark": "Skill Marks",
+        "skill marks": "Skill Marks",
+        "shadow mark": "Skill Marks",
+        "shadow marks": "Skill Marks",
+        cp: "Campaign Points",
+        "campaign point": "Campaign Points",
+        "campaign points": "Campaign Points",
+        "unlock token": "Unlock Tokens",
+        "unlock tokens": "Unlock Tokens"
+    };
+    return aliases[key] || "";
+}
+
+function applyPotionSellValue(sellValue) {
+    const text = String(sellValue || "").trim();
+    if (!text || text === "0") return [];
+
+    const gains = [];
+    text
+        .replace(/\band\b/gi, "&")
+        .split("&")
+        .map(part => part.trim())
+        .filter(Boolean)
+        .forEach(part => {
+            const match = part.match(/^\+?\s*(\d+)\s+(.+)$/i);
+            if (!match) return;
+            const amount = Number(match[1] || 0);
+            const resourceName = normalizePotionSellResourceName(match[2]);
+            if (!amount || !resourceName) return;
+            addResourceByName(resourceName, amount);
+            gains.push(`+${amount} ${resourceName}`);
+        });
+
+    return gains;
+}
+
+function sellPotion(index) {
+    if (!resourceProfile) return;
+    ensurePotionState(resourceProfile);
+
+    resources = normalizeResourceList(data[resourceProfile].resources || resources);
+    const playerPotionState = data[resourceProfile].potions;
+    const sharedPotionState = data.sharedPotions;
+    const card = playerPotionState.inventory.splice(index, 1)[0];
+    if (!card) return;
+
+    const gains = applyPotionSellValue(card.sellValue);
+    data[resourceProfile].resources = JSON.parse(JSON.stringify(resources));
+    sharedPotionState.discard.push({ ...card, soldAt: Date.now(), soldBy: resourceProfile });
+    saveProfileWithSharedCards(resourceProfile, ["sharedPotions"]);
+    setSyncStatus(
+        gains.length ? `Sold ${card.name} for ${gains.join(", ")}.` : `Sold ${card.name}. No sell value was listed.`,
+        gains.length ? "#84c46a" : "#f0c36a"
+    );
+    renderResources();
     renderPotions();
     renderInventory();
 }
@@ -27358,12 +27433,111 @@ function ensureObjectiveState(profileName) {
     if (!profileName || !data[profileName]) return;
 
     if (!data[profileName].objectives) {
-        data[profileName].objectives = { inventory: [] };
+        data[profileName].objectives = { inventory: [], progress: {} };
     } else {
         data[profileName].objectives = {
-            inventory: data[profileName].objectives.inventory || []
+            inventory: data[profileName].objectives.inventory || [],
+            progress: data[profileName].objectives.progress || {}
         };
     }
+}
+
+function getObjectiveInstanceId(card, index) {
+    if (!card) return `objective_${index}`;
+    if (!card.instanceId) {
+        card.instanceId = `${card.id || "objective"}:${card.receivedAt || Date.now()}:${createStableRandomId("objective")}`;
+    }
+    return card.instanceId;
+}
+
+function getObjectiveProgressState(profileName, card, index) {
+    ensureObjectiveState(profileName);
+    const instanceId = getObjectiveInstanceId(card, index);
+    const progressState = data[profileName].objectives.progress;
+    if (!progressState[instanceId]) {
+        progressState[instanceId] = {
+            current: 0,
+            target: 1,
+            autoKill: false,
+            rewardNote: ""
+        };
+    }
+    progressState[instanceId].current = Math.max(0, Number(progressState[instanceId].current || 0));
+    progressState[instanceId].target = Math.max(1, Number(progressState[instanceId].target || 1));
+    progressState[instanceId].autoKill = Boolean(progressState[instanceId].autoKill);
+    progressState[instanceId].rewardNote = String(progressState[instanceId].rewardNote || "");
+    return progressState[instanceId];
+}
+
+function setObjectiveProgress(index, field, value) {
+    if (!resourceProfile || !data[resourceProfile]) return;
+    ensureObjectiveState(resourceProfile);
+    const card = data[resourceProfile].objectives.inventory[index];
+    if (!card) return;
+    const state = getObjectiveProgressState(resourceProfile, card, index);
+    if (field === "current") state.current = Math.max(0, Number(value || 0));
+    if (field === "target") state.target = Math.max(1, Number(value || 1));
+    if (field === "autoKill") state.autoKill = Boolean(value);
+    if (field === "rewardNote") state.rewardNote = String(value || "");
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    queueLiveCampaignSave({ profileName: resourceProfile });
+    renderInventory();
+}
+
+function changeObjectiveProgress(index, amount) {
+    if (!resourceProfile || !data[resourceProfile]) return;
+    ensureObjectiveState(resourceProfile);
+    const card = data[resourceProfile].objectives.inventory[index];
+    if (!card) return;
+    const state = getObjectiveProgressState(resourceProfile, card, index);
+    state.current = Math.max(0, Number(state.current || 0) + Number(amount || 0));
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    queueLiveCampaignSave({ profileName: resourceProfile });
+    renderInventory();
+}
+
+function incrementAutoKillObjectiveProgress(profileName, amount = 1) {
+    if (!profileName || !data[profileName]?.objectives?.inventory) return;
+    ensureObjectiveState(profileName);
+    let changed = false;
+    data[profileName].objectives.inventory.forEach((card, index) => {
+        const state = getObjectiveProgressState(profileName, card, index);
+        if (!state.autoKill) return;
+        state.current = Math.max(0, Math.min(Number(state.target || 1), Number(state.current || 0) + Number(amount || 0)));
+        changed = true;
+    });
+    if (changed) {
+        localStorage.setItem("skillTreeData", JSON.stringify(data));
+    }
+}
+
+function renderObjectiveProgressControls(card, index) {
+    if (!resourceProfile || !data[resourceProfile]) return "";
+    const state = getObjectiveProgressState(resourceProfile, card, index);
+    const percent = Math.max(0, Math.min(100, Math.round((state.current / Math.max(1, state.target)) * 100)));
+    return `
+        <div style="margin:10px 0; padding:10px; border:1px solid rgba(255,255,255,0.14); border-radius:8px; background:rgba(0,0,0,0.22);">
+            <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;">
+                <strong style="color:#ffe08a;">Progress</strong>
+                <span style="color:#ddd;">${state.current} / ${state.target}</span>
+            </div>
+            <div style="height:10px; border-radius:999px; background:#111; overflow:hidden; margin:8px 0;">
+                <div style="height:100%; width:${percent}%; background:linear-gradient(90deg, #d4af37, #84c46a);"></div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <button type="button" onclick="changeObjectiveProgress(${index}, 1)">+1</button>
+                <button type="button" onclick="changeObjectiveProgress(${index}, -1)" ${state.current <= 0 ? "disabled" : ""}>-1</button>
+                <label style="color:#ddd;">Target
+                    <input type="number" min="1" value="${state.target}" onchange="setObjectiveProgress(${index}, 'target', this.value)" style="width:64px; margin-left:5px; background:#151515; color:white; border:1px solid #555; border-radius:4px; padding:5px;">
+                </label>
+                <label style="color:#ddd; display:flex; align-items:center; gap:5px;">
+                    <input type="checkbox" ${state.autoKill ? "checked" : ""} onchange="setObjectiveProgress(${index}, 'autoKill', this.checked)">
+                    Auto +1 on Kill Claim
+                </label>
+            </div>
+            <textarea placeholder="Optional reward note, like +3 Gold or ask GM..." onchange="setObjectiveProgress(${index}, 'rewardNote', this.value)" style="width:100%; min-height:58px; margin-top:8px; background:#111; color:white; border:1px solid rgba(255,255,255,0.2); border-radius:6px; padding:8px;">${escapeHeroValue(state.rewardNote)}</textarea>
+        </div>
+    `;
 }
 
 function getObjectiveTierSlug(tier) {
@@ -27529,7 +27703,8 @@ function renderObjectiveCard(card, zone, index) {
 
     if (zone === "inventory") {
         buttons = `
-            <button onclick="discardObjective(${index})">Complete / Discard</button>
+            <button onclick="completeObjective(${index})">Complete</button>
+            <button onclick="discardObjective(${index})">Discard</button>
             <button onclick="returnObjectiveToDeck(${index})">Return to Deck</button>
         `;
     }
@@ -27542,25 +27717,99 @@ function renderObjectiveCard(card, zone, index) {
               <p><strong>Objective:</strong> ${card.text || "-"}</p>
               <p><strong>Reward:</strong> ${card.reward || "-"}</p>
             `}
+            ${zone === "inventory" ? renderObjectiveProgressControls(card, index) : ""}
             <div class="potion-actions">
                 ${buttons}
             </div>
         </div>
     `;
 }
+
+function applyObjectiveRewardText(targetData, profileName, rewardText) {
+    const text = String(rewardText || "").trim();
+    if (!text) return [];
+    const applied = [];
+
+    const applyGrant = grant => {
+        if (grant.kind === "resource" && adjustDiscoveryProfileResource(targetData, profileName, grant.name, grant.amount)) {
+            applied.push(`+${grant.amount} ${normalizeDiscoveryResourceName(grant.name)}`);
+        } else if (grant.kind === "material" && adjustDiscoveryProfileMaterial(targetData, profileName, grant.name, grant.amount)) {
+            applied.push(`+${grant.amount} ${grant.name}`);
+        } else if (grant.kind === "randomMaterial" && addDiscoveryRandomProfileMaterial(targetData, profileName, grant.tier, grant.amount)) {
+            applied.push(`+${grant.amount} random ${grant.tier} material`);
+        }
+    };
+
+    text
+        .replace(/\band\b/gi, "&")
+        .split(/[,;&]|\bor\b/gi)
+        .map(part => part.trim())
+        .filter(Boolean)
+        .forEach(part => parseDiscoveryRewardLabel(part).forEach(applyGrant));
+
+    if (!applied.length) {
+        parseDiscoveryRewardLabel(text).forEach(applyGrant);
+    }
+
+    return applied;
+}
+
+function moveObjectiveToDiscard(profileName, index, completion = {}) {
+    ensureObjectiveState(profileName);
+    const playerObjectiveState = data[profileName].objectives;
+    const card = playerObjectiveState.inventory.splice(index, 1)[0];
+    if (!card) return null;
+    const instanceId = getObjectiveInstanceId(card, index);
+    const tier = card.tier || "Tier 1";
+    if (!data.sharedObjectives.discards[tier]) data.sharedObjectives.discards[tier] = [];
+    data.sharedObjectives.discards[tier].push({
+        ...card,
+        ...completion,
+        completedBy: completion.completedBy || "",
+        completedAt: completion.completedAt || ""
+    });
+    if (playerObjectiveState.progress) {
+        delete playerObjectiveState.progress[instanceId];
+    }
+    return card;
+}
+
+function completeObjective(index) {
+    if (!resourceProfile || !data[resourceProfile]) return;
+    let statusMessage = "";
+
+    persistObjectiveMutation(() => {
+        ensureObjectiveState(resourceProfile);
+        const card = data[resourceProfile].objectives.inventory[index];
+        if (!card) return;
+        const state = getObjectiveProgressState(resourceProfile, card, index);
+        const rewardText = state.rewardNote || card.reward || "";
+        const applied = applyObjectiveRewardText(data, resourceProfile, rewardText);
+        const completedCard = moveObjectiveToDiscard(resourceProfile, index, {
+            completedBy: resourceProfile,
+            completedAt: Date.now(),
+            rewardClaimed: rewardText,
+            rewardApplied: applied
+        });
+        if (completedCard) {
+            statusMessage = applied.length
+                ? `Completed ${completedCard.name}: ${applied.join(", ")}.`
+                : `Completed ${completedCard.name}. Reward not auto-applied; use the note/GM if needed.`;
+        }
+    })?.then?.(() => {
+        if (statusMessage) setSyncStatus(statusMessage, statusMessage.includes("auto-applied") ? "#f0c36a" : "#84c46a");
+        renderResources();
+    });
+}
+
 function discardObjective(index) {
     if (!resourceProfile) return;
 
     persistObjectiveMutation(() => {
-        ensureObjectiveState(resourceProfile);
-
-        const playerObjectiveState = data[resourceProfile].objectives;
-        const card = playerObjectiveState.inventory.splice(index, 1)[0];
-        if (!card) return;
-
-        const tier = card.tier || "Tier 1";
-        if (!data.sharedObjectives.discards[tier]) data.sharedObjectives.discards[tier] = [];
-        data.sharedObjectives.discards[tier].push(card);
+        moveObjectiveToDiscard(resourceProfile, index, {
+            discardedBy: resourceProfile,
+            discardedAt: Date.now()
+        });
     });
 }
 
@@ -27573,6 +27822,10 @@ function returnObjectiveToDeck(index) {
         const playerObjectiveState = data[resourceProfile].objectives;
         const card = playerObjectiveState.inventory.splice(index, 1)[0];
         if (!card) return;
+        const instanceId = getObjectiveInstanceId(card, index);
+        if (playerObjectiveState.progress) {
+            delete playerObjectiveState.progress[instanceId];
+        }
 
         const tier = card.tier || "Tier 1";
         if (!data.sharedObjectives.decks[tier]) data.sharedObjectives.decks[tier] = [];
