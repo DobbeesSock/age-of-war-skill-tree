@@ -17862,7 +17862,7 @@ function renderPlayerNotesPanel() {
     .slice(0, 5);
 
   return `
-    <div class="relic-zone" style="margin-top:18px; border-color:rgba(255,224,138,0.42); background:linear-gradient(135deg, rgba(255,224,138,0.08), rgba(0,0,0,0.72));">
+    <div class="relic-zone player-notes-panel" style="margin-top:18px; border-color:rgba(255,224,138,0.42); background:linear-gradient(135deg, rgba(255,224,138,0.08), rgba(0,0,0,0.72));">
       <h2 style="margin-top:0;">Notes for the GM</h2>
       <div style="display:grid; gap:10px;">
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
@@ -17875,7 +17875,7 @@ function renderPlayerNotesPanel() {
               <option value="Balance">Balance</option>
             </select>
           </label>
-          <button type="button" onclick="submitPlayerNote()">Submit Note</button>
+          <button type="button" onclick="submitPlayerNote(this)">Submit Note</button>
         </div>
         <textarea id="playerNoteText" rows="4" placeholder="Leave an idea, suggestion, bug, or reminder for the GM..." style="width:100%; min-height:92px; resize:vertical; border-radius:6px; border:1px solid rgba(255,255,255,0.22); background:#111; color:white; padding:10px;"></textarea>
       </div>
@@ -17974,12 +17974,13 @@ async function savePlayerNoteToCampaign(profileName, note, options = {}) {
   return true;
 }
 
-async function submitPlayerNote() {
+async function submitPlayerNote(button = null) {
   if (!resourceProfile || !data[resourceProfile]) return;
 
-  const textInput = document.getElementById("playerNoteText");
-  const categoryInput = document.getElementById("playerNoteCategory");
-  const submitButton = document.querySelector("button[onclick=\"submitPlayerNote()\"]");
+  const panel = button?.closest?.(".player-notes-panel") || document;
+  const textInput = panel.querySelector("#playerNoteText");
+  const categoryInput = panel.querySelector("#playerNoteCategory");
+  const submitButton = button || panel.querySelector("button[onclick^=\"submitPlayerNote\"]");
   const text = (textInput?.value || "").trim();
   if (!text) {
     alert("Write a note first.");
