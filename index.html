@@ -2259,6 +2259,7 @@ body.elves {
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
         <button onclick="exportLocalCampaignBackup()">Export LAN Backup</button>
         <button onclick="document.getElementById('localCampaignBackupInput').click()">Import LAN Backup</button>
+        <button onclick="migrateCurrentCampaignToLan()">Save Current Campaign to LAN</button>
         <input id="localCampaignBackupInput" type="file" accept="application/json,.json" style="display:none" onchange="importLocalCampaignBackup(event)">
       </div>
       <div id="lanServerHelper" class="lan-helper"></div>
@@ -16880,6 +16881,71 @@ async function importLocalCampaignBackup(event) {
     alert(`LAN backup import failed: ${error.message}`);
   } finally {
     if (input) input.value = "";
+  }
+}
+
+async function migrateCurrentCampaignToLan() {
+  const codeInput = document.getElementById("campaignCodeInput");
+  const suggestedCode = normalizeCampaignCode(codeInput?.value || liveCampaignCode || localStorage.getItem("veiledRealmLastCampaignCode") || "");
+  const code = normalizeCampaignCode(prompt("Save the currently loaded campaign into which LAN campaign code?", suggestedCode || "TEST") || "");
+  if (!code) return;
+
+  const profileNames = Object.keys(data || {}).filter(name => !isSharedDataKey(name) && data[name]);
+  if (!profileNames.length) {
+    alert("No player profiles are loaded yet. Load/join the Firebase campaign first, confirm the progress is visible, then run this migration.");
+    return;
+  }
+
+  if (!confirm(`This will replace the laptop LAN campaign ${code} with the campaign currently visible in this browser. Continue?`)) return;
+
+  const sourceData = cloneCampaignValue(data);
+  const previousMode = liveSyncMode;
+  const previousDb = liveSyncDb;
+  const previousCode = liveCampaignCode;
+  const previousConnectionState = liveConnectionState;
+  const previousBaseUrl = localSyncBaseUrl;
+
+  setSyncStatus(`Saving current campaign into LAN campaign ${code}...`, "#f0c36a");
+
+  try {
+    const targetBaseUrl = getLocalSyncUrlInputValue();
+    setLocalSyncBaseUrl(targetBaseUrl);
+    const restored = await requestLocalSync(getLocalCampaignPath(code, "/import"), {
+      method: "POST",
+      body: JSON.stringify({
+        campaign: {
+          data: sourceData,
+          presence: {},
+          updatedAt: Date.now(),
+          updatedBy: liveClientId
+        },
+        updatedBy: liveClientId
+      })
+    });
+
+    localStorage.setItem("veiledRealmLastCampaignCode", code);
+    localStorage.setItem("veiledRealmLiveSyncMode", "lan");
+    liveSyncMode = "lan";
+    liveSyncDb = null;
+    liveCampaignCode = code;
+    if (codeInput) codeInput.value = code;
+    data = cloneCampaignValue(restored.data || sourceData);
+    localStorage.setItem("skillTreeData", JSON.stringify(data));
+    markAllProfileLiveSaveSignatures();
+    refreshAfterRemoteCampaignUpdate();
+    subscribeToLocalCampaign(code);
+    setSyncStatus(`Migrated current campaign into LAN campaign ${code}.`, "#84c46a");
+    alert(`Migration complete. LAN campaign ${code} now has the currently loaded campaign data.`);
+  } catch (error) {
+    liveSyncMode = previousMode;
+    liveSyncDb = previousDb;
+    liveCampaignCode = previousCode;
+    liveConnectionState = previousConnectionState;
+    localSyncBaseUrl = previousBaseUrl;
+    localStorage.setItem("veiledRealmLiveSyncMode", previousMode || "firebase");
+    if (previousCode) localStorage.setItem("veiledRealmLastCampaignCode", previousCode);
+    setSyncStatus(`LAN migration failed: ${error.message || error}`, "#ff8a8a");
+    alert(`LAN migration failed: ${error.message || error}`);
   }
 }
 
