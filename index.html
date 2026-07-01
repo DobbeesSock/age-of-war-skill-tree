@@ -4138,7 +4138,8 @@ const defaultResources = [
   { name: "Metal", value: 0, color: "#9E9E9E", icon: "&#9939;" },
   { name: "Dragon Coins", value: 0, color: "#FF5722", icon: "&#128009;" },
   { name: "Skill Marks", value: 0, color: "#C084FC", icon: "SM" },
-  { name: "Unlock Tokens", value: 0, color: "#14B8A6", icon: "UT" }
+  { name: "Unlock Tokens", value: 0, color: "#14B8A6", icon: "UT" },
+  { name: "Campaign Points", value: 0, color: "#F59E0B", icon: "CP" }
 ];
 const defaultCraftingMaterialGroups = [
   {
@@ -5096,6 +5097,9 @@ function applyCollectionIncome(incomeText, constructed = null) {
     metal: "Metal",
     "dragon coin": "Dragon Coins",
     "dragon coins": "Dragon Coins",
+    "campaign point": "Campaign Points",
+    "campaign points": "Campaign Points",
+    cp: "Campaign Points",
     "skill mark": "Skill Marks",
     "skill marks": "Skill Marks",
     sm: "Skill Marks",
@@ -5104,7 +5108,7 @@ function applyCollectionIncome(incomeText, constructed = null) {
   };
 
   function applyPart(part) {
-    const proportionalMatch = part.match(/^\+(\d+)\s+(.+?)\s+per\s+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?)$/i);
+    const proportionalMatch = part.match(/^\+(\d+)\s+(.+?)\s+per\s+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Campaign Points?|Skill Marks?|Shadow Marks?)$/i);
     if (proportionalMatch) {
       const rewardAmount = parseInt(proportionalMatch[1], 10);
       const rewardName = resourceMap[proportionalMatch[2].trim().toLowerCase()];
@@ -5147,7 +5151,7 @@ function applyCollectionIncome(incomeText, constructed = null) {
   }
 
   if (/choose\s*1/i.test(incomeText)) {
-    const choices = [...incomeText.matchAll(/\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?)/gi)]
+    const choices = [...incomeText.matchAll(/\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Campaign Points?|Skill Marks?|Shadow Marks?)/gi)]
       .map(match => `+${match[1]} ${match[2]}`);
 
     if (choices.length > 0) {
@@ -5178,7 +5182,7 @@ function getRelicCollectionIncome(card) {
   if (card.collectionIncome) return card.collectionIncome;
 
   const text = card.text || "";
-  const match = text.match(/\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?)\s+for\s+Collection/i);
+  const match = text.match(/\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Campaign Points?|Skill Marks?|Shadow Marks?)\s+for\s+Collection/i);
   return match ? `+${match[1]} ${match[2]}` : "";
 }
 
@@ -5635,12 +5639,12 @@ function getSkillNodeCollectionIncome(node) {
   if (node.dataset.collectionIncome) return node.dataset.collectionIncome;
 
   const text = node.innerText || "";
-  const proportionalMatch = text.match(/gain\s+\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?)\s+per\s+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?)/i);
+  const proportionalMatch = text.match(/gain\s+\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Campaign Points?|Skill Marks?|Shadow Marks?)\s+per\s+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Campaign Points?|Skill Marks?|Shadow Marks?)/i);
   if (proportionalMatch) {
     return `+${proportionalMatch[1]} ${proportionalMatch[2]} per ${proportionalMatch[3]} ${proportionalMatch[4]}`;
   }
 
-  const match = text.match(/gain\s+\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?)\s+Collection/i);
+  const match = text.match(/gain\s+\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Campaign Points?|Skill Marks?|Shadow Marks?)\s+Collection/i);
   return match ? `+${match[1]} ${match[2]}` : "";
 }
 
@@ -11377,6 +11381,9 @@ function normalizeDiscoveryResourceName(name) {
     metal: "Metal",
     "dragon coin": "Dragon Coins",
     "dragon coins": "Dragon Coins",
+    "campaign point": "Campaign Points",
+    "campaign points": "Campaign Points",
+    cp: "Campaign Points",
     "skill mark": "Skill Marks",
     "skill marks": "Skill Marks",
     sm: "Skill Marks",
@@ -11442,7 +11449,7 @@ function parseDiscoveryRewardLabel(label) {
     return [{ kind: "randomMaterial", tier: randomMatch[2].toLowerCase(), amount: Number(randomMatch[1]) }];
   }
 
-  const resourceMatch = text.match(/^\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Skill Marks?|Shadow Marks?|Unlock Tokens?)$/i);
+  const resourceMatch = text.match(/^\+(\d+)\s+(Food|Gold|Energy|Metal|Dragon Coins?|Campaign Points?|Skill Marks?|Shadow Marks?|Unlock Tokens?)$/i);
   if (resourceMatch) {
     return [{ kind: "resource", name: normalizeDiscoveryResourceName(resourceMatch[2]), amount: Number(resourceMatch[1]) }];
   }
