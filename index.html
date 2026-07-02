@@ -10877,7 +10877,19 @@ function renderBuildings() {
 
 function renderProductionTable(title, headers, rows, cells) {
   const mode = title.toLowerCase().includes("construction") ? "construction" : "production";
-  function formatProductionCell(row, cell) {
+  function formatProductionCell(row, cell, rowIndex) {
+    if (cell === "cost") {
+      return `
+        <div>${row[cell] || "-"}</div>
+        ${mode === "construction" ? renderProductionActionButtons(row, mode, rowIndex) : ""}
+      `;
+    }
+    if (cell === "produced") {
+      return `
+        <div>${row[cell] || "-"}</div>
+        ${mode === "production" ? renderProductionActionButtons(row, mode, rowIndex) : ""}
+      `;
+    }
     return row[cell] || "-";
   }
 
@@ -10885,10 +10897,10 @@ function renderProductionTable(title, headers, rows, cells) {
     <div style="background:rgba(40,40,40,0.9); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:16px; overflow:auto;">
       <h3 style="margin:0 0 12px 0; color:#ffe08a; text-align:center;">${title}</h3>
       <table style="width:100%; border-collapse:collapse; color:white; min-width:720px;">
-        <thead><tr>${headers.map(header => `<th style="text-align:center; padding:8px; border:1px solid rgba(255,255,255,0.22); background:rgba(255,255,255,0.06);">${header}</th>`).join("")}<th style="text-align:center; padding:8px; border:1px solid rgba(255,255,255,0.22); background:rgba(255,255,255,0.06);">Action</th></tr></thead>
+        <thead><tr>${headers.map(header => `<th style="text-align:center; padding:8px; border:1px solid rgba(255,255,255,0.22); background:rgba(255,255,255,0.06);">${header}</th>`).join("")}</tr></thead>
         <tbody>
           ${rows.map((row, rowIndex) => {
-            return `<tr>${cells.map(cell => `<td style="text-align:center; vertical-align:top; padding:8px; border:1px solid rgba(255,255,255,0.18);">${formatProductionCell(row, cell)}</td>`).join("")}<td style="text-align:center; vertical-align:top; padding:8px; border:1px solid rgba(255,255,255,0.18);">${renderProductionActionButtons(row, mode, rowIndex)}</td></tr>`;
+            return `<tr>${cells.map(cell => `<td style="text-align:center; vertical-align:top; padding:8px; border:1px solid rgba(255,255,255,0.18);">${formatProductionCell(row, cell, rowIndex)}</td>`).join("")}</tr>`;
           }).join("")}
         </tbody>
       </table>
