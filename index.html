@@ -10974,16 +10974,31 @@ function getProductionCostOptions(costText) {
   return rawOptions.map(parseProductionCostOption);
 }
 
+function getProductionResultOptions(row, optionCount) {
+  const fallback = stripProductionText(row.produced || row.name || "Production");
+  const text = String(row.produced || fallback).replace(/<br\s*\/?>/gi, "\n");
+  const lines = text.split(/\n+/).map(stripProductionText).filter(Boolean);
+
+  if (lines.length === optionCount) return lines;
+  if (lines.length === 1) return Array(optionCount).fill(lines[0]);
+  return Array(optionCount).fill(fallback);
+}
+
 function renderProductionActionButtons(row, mode, rowIndex) {
   const options = getProductionCostOptions(row.cost);
   const verb = mode === "construction" ? "Build" : "Produce";
+  const producedOptions = mode === "production" ? getProductionResultOptions(row, options.length) : [];
+  const buttonStyle = "min-width:180px; max-width:260px; white-space:normal; line-height:1.25; padding:10px 12px;";
   const buttons = options.map((option, index) => {
+    const label = mode === "production"
+      ? `${option.label} - ${producedOptions[index] || stripProductionText(row.produced || row.name || "")}`
+      : `${verb}: ${option.label}`;
     if (option.manual) {
-      return `<button type="button" disabled title="Manual requirement">${escapeHeroValue(option.label)}</button>`;
+      return `<button type="button" disabled title="Manual requirement" style="${buttonStyle}">${escapeHeroValue(label)}</button>`;
     }
-    return `<button type="button" onclick="performConstructionProductionAction('${mode}', ${rowIndex}, ${index})">${verb}: ${escapeHeroValue(option.label)}</button>`;
+    return `<button type="button" onclick="performConstructionProductionAction('${mode}', ${rowIndex}, ${index})" style="${buttonStyle}">${escapeHeroValue(label)}</button>`;
   }).join("");
-  return `<div class="potion-actions" style="justify-content:center;">${buttons || `<button type="button" onclick="performConstructionProductionAction('${mode}', ${rowIndex}, 0)">${verb}</button>`}</div>`;
+  return `<div class="potion-actions" style="justify-content:center;">${buttons || `<button type="button" onclick="performConstructionProductionAction('${mode}', ${rowIndex}, 0)" style="${buttonStyle}">${verb}</button>`}</div>`;
 }
 
 function canPayProductionCosts(costs) {
