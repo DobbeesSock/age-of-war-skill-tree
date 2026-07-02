@@ -10880,7 +10880,7 @@ function renderProductionTable(title, headers, rows, cells) {
   function formatProductionCell(row, cell, rowIndex) {
     if (cell === "cost") {
       return `
-        <div>${row[cell] || "-"}</div>
+        ${mode === "production" ? `<div>${row[cell] || "-"}</div>` : ""}
         ${mode === "construction" ? renderProductionActionButtons(row, mode, rowIndex) : ""}
       `;
     }
