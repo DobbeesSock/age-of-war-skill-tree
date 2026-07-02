@@ -10886,7 +10886,7 @@ function renderProductionTable(title, headers, rows, cells) {
     }
     if (cell === "produced") {
       return `
-        <div>${row[cell] || "-"}</div>
+        ${mode === "construction" ? `<div>${row[cell] || "-"}</div>` : ""}
         ${mode === "production" ? renderProductionActionButtons(row, mode, rowIndex) : ""}
       `;
     }
@@ -11074,7 +11074,7 @@ function renderConstructionProduction() {
   app.innerHTML = `
     <div style="display:grid; gap:20px;">
       ${renderProductionTable("Construction Costs & Bonuses", ["Name", "Levels", "Cost", "Construction Bonus", "HP", "Count", "Size"], tables.construction, ["name", "levels", "cost", "bonus", "hp", "count", "size"])}
-      ${renderProductionTable("Unit & Ability Production", ["Name", "Cost", "Produced"], tables.production, ["name", "cost", "produced"])}
+      ${renderProductionTable("Unit & Ability Production", ["Name", "Purchase"], tables.production, ["name", "produced"])}
     </div>
   `;
 }
